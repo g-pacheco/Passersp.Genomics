@@ -12,39 +12,64 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(optparse, tidyverse, plyr, RColorBrewer, extrafont, ggforce, ggstar, ggrepel, RcppCNPy, reshape2, lemon, plotly,
-               gridExtra, grid, cowplot, patchwork, ggpubr, rphylopic, viridis)
+pacman::p_load(optparse, tidyverse, plyr, RColorBrewer, extrafont, ggforce, ggstar, ggrepel, RcppCNPy, reshape2, lemon,
+               gridExtra, grid, ggpubr, rphylopic, viridis)
 
 
-# Imports data while incorporating annotation ~
 annot <- list()
 rab <- list()
 annotL <- dir(pattern = ".labels")
 rabL <- dir(pattern = ".res")
-for (k in 1:length(annotL)){
+
+for (k in 1:length(annotL)) {
   annot[[k]] <- read.table(annotL[k], sep = "\t", header = FALSE, stringsAsFactors = FALSE)
   colnames(annot[[k]]) <- c("Ind1")
   annot[[k]]$Ind2 <- c(annot[[k]]$Ind1[-c(1)], NA)
   annot[[k]]$Population <- gsub("[A-z._]*(Autosomes|Allosome).", "", annotL[k])
   annot[[k]]$Population <- gsub(".labels", "", annot[[k]]$Population)
+  annot[[k]]$SubPopulation <- annot[[k]]$Population
+  
+  ### Only needed because the population Utrecht has subpopulation ~
+  annot[[k]] <- annot[[k]] %>%
+    mutate(SubPopulation = case_when(Ind1 %in% c("PD22NLD0146F", "PD22NLD0147F") ~ "Garderen",
+                                     Ind1 == "PDOM2022NLD0077M" ~ "Meerkerk",
+                                     Ind1 == "PI22NLD0001M" ~ "Y150239", TRUE ~ Population))
   annot[[k]]$CHRType <- str_extract(annotL[k], "(Allosome|Autosomes)")
+  annot[[k]] <- annot[[k]] %>%
+    group_by(SubPopulation) %>% mutate(Ind1b = paste(SubPopulation, sprintf("%02d", row_number()), sep = "_")) %>%
+    ungroup() %>%
+    mutate(Ind2b = lead(Ind1b, default = paste0(SubPopulation[1], "_", sprintf("%02d", n() + 1))))
   rab[[k]] <- read.table(rabL[k], header = TRUE, stringsAsFactors = FALSE)
   rab[[k]]$a <- rab[[k]]$a + 1
-  rab[[k]]$Population <- gsub("[A-z._]*(Autosomes|Allosome).", "", rabL[k])
-  rab[[k]]$Population <- gsub(".res", "", rab[[k]]$Population)
+  rab[[k]]$Population <- annot[[k]]$Population[match(rab[[k]]$a, seq_along(annot[[k]]$Ind1))]
   rab[[k]]$CHRType <- str_extract(rabL[k], "(Allosome|Autosomes)")
-  annot[[k]]$Ind1b <- paste(annot[[k]]$Population, sprintf("%02d", 1:nrow(annot[[k]])), sep = "_")
-  annot[[k]]$Ind2b <- paste(annot[[k]]$Population, sprintf("%02d", 2:nrow(annot[[k]])), sep = "_")
-  rab[[k]]$Ind1 <- annot[[k]]$Ind1b[match(rab[[k]]$a, seq_along(annot[[k]]$Ind1b))]
-  rab[[k]]$Ind2 <- annot[[k]]$Ind2b[match(rab[[k]]$b, seq_along(annot[[k]]$Ind2b))]
+  rab[[k]]$Ind1 <- annot[[k]]$Ind1b[match(rab[[k]]$a, seq_along(annot[[k]]$Ind1))]
+  rab[[k]]$Ind2 <- annot[[k]]$Ind2b[match(rab[[k]]$b, seq_along(annot[[k]]$Ind1))]
   rab[[k]]$a <- annot[[k]]$Ind1[match(rab[[k]]$a, seq_along(annot[[k]]$Ind1))]
-  rab[[k]]$b <- annot[[k]]$Ind2[match(rab[[k]]$b, seq_along(annot[[k]]$Ind2))]
-  rab[[k]]$Pair <- paste(rab[[k]]$Ind1,"Vs",rab[[k]]$Ind2)
-  rab[[k]] <- rab[[k]] %>% select(Ind1, Ind2, a, b, rab, Pair, CHRType, Population)}
+  rab[[k]]$b <- annot[[k]]$Ind2[match(rab[[k]]$b, seq_along(annot[[k]]$Ind1))]
+  rab[[k]]$Pair <- paste(rab[[k]]$Ind1, "Vs", rab[[k]]$Ind2)
+  
+  ### Only needed because of Meerkerk_01 is amidist surrounded by the Utrecht subpopulation ~
+  rab[[k]] <- rab[[k]] %>% mutate(Invert = str_detect(Ind2, "Meerkerk") & !Ind1 %in% c("Garderen_01", "Garderen_02"),
+                                  Temp_Ind1 = Ind1,
+                                  Temp_Ind2 = Ind2,
+                                  Ind1 = ifelse(Invert, Temp_Ind2, Temp_Ind1),
+                                  Ind2 = ifelse(Invert, Temp_Ind1, Temp_Ind2),
+                                  Pair = paste(Ind1, "Vs", Ind2)) %>%
+                                  select(-Invert, -Temp_Ind1, -Temp_Ind2)
+  tryCatch({rab[[k]] <- rab[[k]] %>%
+            select(Ind1, Ind2, a, b, rab, Pair, CHRType, Population)}, error = function(e) {
+            print(paste("Error in rab[[", k, "]] column selection:", e$message))})
+  rab[[k]] <- rab[[k]] %>%
+              arrange(Ind1, Ind2)}
 
 
-# Expands list ~
+# Expands rab list ~
 fulldf <- bind_rows(rab)
+
+
+# Fixes individual Y150239 ~
+fulldf <- fulldf %>% mutate(across(c(Ind1, Ind2, Pair), ~ str_replace_all(., "Y150239_01", "Y150239")))
 
 
 # Corrects Population names ~
@@ -64,10 +89,9 @@ fulldf$Population <- factor(fulldf$Population, ordered = T,
 
 # Creates plot (Heatmap) ~
 Kinship_Plot_Heatmap <-
-  ggplot(subset(fulldf, CHRType == "Autosomes"), aes(Ind1, Ind2, fill = rab)) + 
+  ggplot(subset(fulldf, CHRType == "Autosomes"), aes(Ind1, y = Ind2, fill = rab)) + 
   geom_tile(colour = "#000000") +
   scale_fill_continuous(low = "#ffffff", high = "#f768a1") +
-  #scale_fill_viridis(trans = "reverse", option = "plasma") +
   scale_x_discrete(expand = c(0, 0)) +
   scale_y_discrete(limits = rev, expand = c(0, 0)) +
   facet_wrap(Population ~., scales = "free", ncol = 2) +
@@ -85,10 +109,10 @@ Kinship_Plot_Heatmap <-
         axis.title = element_blank(),
         axis.text.x = element_text(family = "Optima", color = "#000000", size = 8.25, face = "bold", angle = 45, vjust = 1, hjust = 1),
         axis.text.y = element_text(family = "Optima", color = "#000000", size = 8.25, face = "bold"),
-        axis.ticks = element_line(color = "#000000", linewidth = .3),
+        axis.ticks = element_line(color = "#000000", linewidth = .2),
         strip.text = element_text(family = "Optima", colour = "#000000", size = 14, face = "bold"),
-        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
-        axis.line = element_line(colour = "#000000", linewidth = .3)) +
+        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .2),
+        axis.line = element_line(colour = "#000000", linewidth = .2)) +
   guides(fill = guide_legend(title = "Rab", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
                              label.theme = element_text(family = "Optima", size = 15), reverse = TRUE))
 

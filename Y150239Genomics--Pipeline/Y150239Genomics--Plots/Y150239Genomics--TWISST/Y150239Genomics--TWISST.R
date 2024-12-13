@@ -11,7 +11,8 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads packages ~
-pacman::p_load(tidyverse, scales, reshape2, lemon, patchwork, GenomicRanges, txdbmaker, rtracklayer, GenomicFeatures, clusterProfiler, org.Hs.eg.db, AnnotationDbi)
+pacman::p_load(tidyverse, scales, reshape2, lemon, patchwork, GenomicRanges, txdbmaker, rtracklayer,
+               GenomicFeatures, clusterProfiler, org.Hs.eg.db, AnnotationDbi, biomaRt, AnnotationHub)
 
 
 # Imports weights ~
@@ -25,15 +26,15 @@ for (k in 1:length(Wlistgz)){
   colnames(Wlgz[[k]]) <- c(paste(col_prefix, "~ Spanish"),
                            paste(col_prefix, "~ House"),
                            paste("House ~ Spanish"), "TotalWeight")
-  Wlgz[[k]]$CHR <- gsub(".*(WithMeerkerk|WithY150239)\\.Phased\\.MAFfiltered\\.Pruned\\.", "", Wlistgz[k])
-  Wlgz[[k]]$CHR <- gsub("\\.SW50\\.Weights\\.csv\\.gz", "", Wlgz[[k]]$CHR)
+  Wlgz[[k]]$CHR <- gsub(".*(WithMeerkerk|WithY150239)\\.Phased\\.MinMaf\\.", "", Wlistgz[k])
+  Wlgz[[k]]$CHR <- gsub("\\.SW150\\.Weights\\.csv\\.gz", "", Wlgz[[k]]$CHR)
   Wlgz[[k]]$Phylo <- ifelse(grepl("WithMeerkerk", Wlistgz[k]), "Meerkerk",
                      ifelse(grepl("WithY150239", Wlistgz[k]), "Y150239", "Error"))}
 
 
 # Subsets list of data frames ~
-Y150239_df <- Wlgz[34:66]
-Meerkerk_df <- Wlgz[1:33]
+Y150239_df <- Wlgz[36:70]
+Meerkerk_df <- Wlgz[1:35]
 
 
 # Expands list of data frames 
@@ -82,8 +83,9 @@ fulldfUp <- gather(fulldf, Estimation, Value, "Y150239 ~ House", "Y150239 ~ Span
 
 # Reorders CHR ~
 fulldfUp$CHR <- factor(fulldfUp$CHR, ordered = TRUE,
-                       levels = c("chr1", "chr1A", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr17",
-                                  "chr18", "chr19", "chr20", "chr21", "chr22", "chr23", "chr24", "chr26", "chr27", "chr28", "chrZ", "scaffold00169", "scaffold00221", "scaffold00223", "scaffold00224", "scaffold00238", "scaffold00239", "scaffold00242"))
+                       levels = c("chr1", "chr1A", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14",
+                                  "chr15", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chr23", "chr24", "chr26", "chr27", "chr28", "chrZ",
+                                  "scaffold00169", "scaffold00221", "scaffold00223", "scaffold00224", "scaffold00238", "scaffold00239", "scaffold00242"))
 
 
 # Corrects the y-strip facet labels ~
@@ -102,10 +104,6 @@ generate_dynamic_breaks_and_labels <- function(min_val, max_val) {
   data_range <- max_val - min_val
   if (data_range <= 1300000) {
     step_size <- 100000
-  #} else if (data_range <= 100000) {
-  #  step_size <- 1000000
-  #} else if (data_range <= 1000000) {
-  #  step_size <- 100000
   } else if (data_range <= 10000000) {
     step_size <- 1000000
   } else if (data_range <= 100000000) {
@@ -130,6 +128,7 @@ generate_dynamic_breaks_and_labels <- function(min_val, max_val) {
   if (length(breaks) != length(labels)) {
     stop("Breaks and labels have different lengths.")}
   return(list(breaks = breaks, labels = labels))}
+
 
 # Applies the function to each unique CHR ~
 patterns <- unique(fulldfUp$CHR)
@@ -276,14 +275,214 @@ Panel_Plot <- Y150239_Plot + Meerkerk_Plot + Delta_Plot + plot_layout(ncol = 1)
   
   
 # Save the panel ~
-ggsave(paste("Y150239Genomics--TWISST_FillArea_", x, ".pdf", sep = ""), plot = Panel_Plot,
-       device = cairo_pdf, limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)
-ggsave(paste("Y150239Genomics--TWISST_FillArea_", x, ".png", sep = ""), plot = Panel_Plot,
-       limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
+ggsave(paste("Y150239Genomics--TWISST_SW150_FillArea_", x, ".pdf", sep = ""), plot = Panel_Plot,
+       device = cairo_pdf, limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
+#ggsave(paste("Y150239Genomics--TWISST_FillArea_", x, ".png", sep = ""), plot = Panel_Plot,
+#       limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
+
+
+# Loads protein dataset ~
+HouseSparrow_GOTerms <- read.delim("./GOTerms/house_sparrow_genome_assembly-18-11-14_masked.Protein_gffreads.fasta.tsv", header = FALSE, sep = "\t")
+HouseSparrow_GOTerms <- HouseSparrow_GOTerms[, c(1, 3, 4, 5, 14)]
+colnames(HouseSparrow_GOTerms) <- c("Gene_ID", "Gene_Size", "Analysis_Type", "Accession", "GOTerms")
+
+
+# Extract accession and GO terms columns (adjust column names based on your file)
+accession_go <- HouseSparrow_GOTerms %>%
+                filter(GOTerms != "-" & GOTerms != "") %>%
+                dplyr::select(Accession, GOTerms)
+
+
+# Split multiple GO terms in the GOTerms column into separate rows
+cleaned_data <- accession_go %>%
+                tidyr::separate_rows(GOTerms, sep = "\\|")
+
+
+go_term_freq <- table(cleaned_data$GOTerms)
+
+
+# Convert the result to a data frame
+go_term_freq_df <- as.data.frame(go_term_freq)
+
+
+# Perform GO enrichment analysis (assuming you have a list of GO terms)
+go_enrich <- enrichGO(gene = cleaned_data$GOTerms,
+                      OrgDb = org.Tguttata.eg.db,
+                      keyType = "GO",
+                      ont = "ALL",
+                      pvalueCutoff = 0.05)
+
+
+# Collapses GO Terms by GeneID ~ 
+HouseSparrow_GOTerms <- HouseSparrow_GOTerms %>%
+                        filter(GOTerms != "-" & GOTerms != "") %>%
+                        group_by(Gene_ID) %>%
+                        summarise(GOTerms = paste(unique(GOTerms), collapse = "|"))
+
+
+# Converts filtered_positions_df to GRanges object ~
+Regions_GR <- GRanges(seqnames = filtered_positions_df$CHR, ranges = IRanges(start = filtered_positions_df$Start, end = filtered_positions_df$End))
+
+
+# Imports the House Sparrow annotation ~
+HouseGFF <- import("house_sparrow.gff")
+
+
+# Finds gene overlaps ~
+GeneOverlaps <- findOverlaps(HouseGFF, Regions_GR)
+
+
+# Extract genes within the ranges
+GenesInRange <- HouseGFF[queryHits(GeneOverlaps)]
+GenesInRange_df <- data.frame(Chromosome = as.character(seqnames(GenesInRange)),
+                              Start = start(GenesInRange),
+                              End = end(GenesInRange),
+                              Gene_ID = mcols(GenesInRange)$ID,
+                              Gene_Name = mcols(GenesInRange)$Name,
+                              Type = mcols(GenesInRange)$type)
+
+
+# Merges data frames ~
+fulldf <- merge(HouseSparrow_GOTerms, GenesInRange_df, by = "Gene_ID")
+fulldf <- fulldf %>%
+          distinct(Gene_ID, .keep_all = TRUE)
+
+
+# Proceed with the select and summarise steps
+InGroupGOTerms <- fulldf %>%
+  tidyr::separate_rows(GOTerms, sep = "\\|") %>%
+  dplyr::select(Gene_ID, GOTerms) %>%
+  group_by(GOTerms) %>%
+  summarise(Genes = paste(Gene_ID, collapse = ", "), .groups = "drop")
 
 
 
-Layka <- read.table("house_sparrow.gff", sep = "\t", header = FALSE)
+# Assuming 'fulldf' is your data frame and it has a 'Gene_ID' column
+gene_ids <- unique(fulldf$Gene_ID)
+
+# Write the gene IDs to a file 'gene_list.txt'
+writeLines(gene_ids, "gene_list.txt")
+
+
+# Split the GOTerms column into individual terms, and count their frequencies
+go_term_freq <- table(unlist(strsplit(InGroupGOTerms$GOTerms, "\\|")))
+
+
+# Inspect how many GO terms each gene has
+table(sapply(strsplit(InGroupGOTerms$GOTerms, "\\|"), length))
+
+
+# Split the GOTerms into separate rows
+split_goterms <- unlist(strsplit(InGroupGOTerms$GOTerms, "\\|"))
+
+
+head(go_term_freq)
+
+go_term_freq <- table(split_goterms)
+
+
+length(unique(split_goterms))
+
+
+head(split_goterms)
+
+
+# Plot GO term frequencies
+barplot(go_term_freq, las = 2, main = "GO Term Frequency", col = "lightblue", cex.names = 0.7)
+
+
+head(go_term_freq)
+
+
+
+
+
+# Imports House annotation ~
+HouseAnnot_File <- "house_sparrow.gff"
+HouseAnnot_Data <- import(HouseAnnot_File, format = "gff")
+
+
+# Gets Genes from House Annotation ~
+HouseGenes <- subset(HouseAnnot_Data, type == "gene")
+
+
+# Extract gene IDs from the House Annotation ~
+HouseGenes_IDs <- mcols(HouseGenes)$ID
+
+
+# Get overlapping gene indices and gene IDs
+overlapping_gene_ids <- HouseGenes_simple_df$Gene_ID[subjectHits(overlap_hits)]
+
+# Perform GO enrichment analysis using clusterProfiler
+go_results <- enrichGO(gene = mapped_genes$ensembl_gene_id, OrgDb = org.Hs.eg.db, keyType = "ENSEMBL", ont = "BP", pAdjustMethod = "BH", pvalueCutoff = .05)
+
+
+
+# Imports Zebra Annotation ~
+ZebraAnnot_File <- "Taeniopygia_guttata.bTaeGut1_v1.p.113.gff3"
+ZebraAnnot_Data <- import(ZebraAnnot_File, format = "gff3")
+
+
+# Gets Genes from Zebra Annotation ~
+ZebraGenes <- subset(ZebraAnnot_Data, type == "gene")
+
+
+# Extract gene IDs from the Zebra Annotation ~
+ZebraGenes_IDs <- mcols(ZebraGenes)$ID
+
+# Normalize Zebra Finch Gene IDs by removing the 'gene:' prefix
+ZebraGenes_IDs_Normalised <- sub("^gene:", "", ZebraGenes_IDs)
+length(ZebraGenes_IDs_Normalised)
+
+head(HouseGenes_IDs)
+head(ZebraGenes_IDs)
+
+# Identify common genes between house sparrow and zebra finch
+CommonGenes <- intersect(HouseGenes_IDs, ZebraGenes_IDs_Normalised)
+length(CommonGenes)
+
+# Identify genes that are unique to house sparrow
+house_unique_genes <- setdiff(HouseGenes_IDs, ZebraGenes_IDs)
+length(house_unique_genes)
+
+# Identify genes that are unique to zebra finch
+zebra_unique_genes <- setdiff(ZebraGenes_IDs, HouseGenes_IDs)
+length(zebra_unique_genes)
+
+
+
+ensembl_metazoa <- useMart("metazoa_mart", host = "https://metazoa.ensembl.org")
+datasets <- listDatasets(ensembl)
+
+datasets <- datasets[grep("zebra finch|Taeniopygia guttata", datasets$description, ignore.case = TRUE), ]
+
+listMarts()
+
+head(filtered_positions_df)
+
+
+# Simplify the data frame to only include essential columns
+HouseGenes_df <- HouseGenes_df[, c("Chromosome", "Start", "End", "Gene_ID")]
+
+
+# Connect to Ensembl (for zebra finch)
+ensembl <- useMart("ensembl", dataset = "bTaeGut1_v1.p", host = "https://ensembl.org")
+
+
+# Retrieve GO terms for zebra finch genes
+zebra_finch_go <- getBM(attributes = c("ensembl_gene_id", "go_id", "name_1006"),
+                        mart = ensembl)
+
+
+# Connect to Ensembl Metazoa mart
+ensembl_metazoa <- useMart("metazoa_mart", host = "https://metazoa.ensembl.org")
+
+# List available datasets to check if house sparrow is present
+datasets <- listDatasets(ensembl_metazoa)
+head(datasets)
+
+
+
 colnames(Layka) <- c("SeqName", "Source", "Feature", "Start", "End", 
                       "Score", "Strand", "Frame", "Attribute")
 
@@ -381,22 +580,6 @@ attributes_column <- gff_df$attributes
 
 # Imports GTF file ~ 
 txdb <- makeTxDbFromGFF("house_sparrow.gff", format = "gff")
-
-
-
-
-
-
-#geom_hline(yintercept = Percentile_95, linetype = "twodash", color = "blue", linewidth = 1) +
-#geom_hline(yintercept = Percentile_99, linetype = "twodash", color = "red", linewidth = 1) +
-#geom_text(aes(x = max(as.numeric(subset_df$Mid)), y = Percentile_99, label = paste("99th Percentile:", round(Percentile_99, 2), "/ Count:", Count_99)),
-#           family = "Optima", size = 7.5, colour = "red", fontface = "bold", hjust = 1, vjust = -.5, nudge_y = .1) +
-#geom_text(aes(x = max(as.numeric(subset_df$Mid)), y = Percentile_95, label = paste("95th Percentile:", round(Percentile_95, 2), "/ Count:", Count_95)),
-#           family = "Optima", size = 7.5, colour = "blue", fontface = "bold", hjust = 1, vjust = -.5, nudge_y = .08) +
-
-#Oi <- fulldfUp %>%
-#  filter(Estimation == "Delta" & str_detect(Scaffold, "scaffold"))
-#max(Oi$Mid)
 
 
 # Creates plot ~
@@ -539,6 +722,10 @@ ggsave(Weights_Line_Plot, file = "Meerkerkgenomics--TWISST_WithMeerkerk_LineReal
 #
 ##
 ### The END ~~~~~
+
+#fulldf_collapsed <- fulldf %>%
+#                    group_by(Gene_ID, Chromosome, Start, End, Gene_Name, Type) %>%
+#                    summarize(GOTerms = paste(unique(GOTerms), collapse = "|"), .groups = "drop")
 
 #Wlgz[[k]]$CHR <- gsub("AllSamples_bcftools.raw.vcf.Filtered.AllCHRs.NoKinship.NoITA.WithTreeSparrow.WithMeerkerk.Phased.MAFfiltered.", "", Wlistgz[k])
 #Wlgz[[k]]$CHR <- gsub(".SW50.Weights.csv.gz", "", Wlgz[[k]]$CHR)}
