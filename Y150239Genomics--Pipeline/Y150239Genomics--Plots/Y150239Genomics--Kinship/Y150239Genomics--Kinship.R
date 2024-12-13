@@ -16,6 +16,7 @@ pacman::p_load(optparse, tidyverse, plyr, RColorBrewer, extrafont, ggforce, ggst
                gridExtra, grid, ggpubr, rphylopic, viridis)
 
 
+# Loads data while loading accompanying annotations ~
 annot <- list()
 rab <- list()
 annotL <- dir(pattern = ".labels")
