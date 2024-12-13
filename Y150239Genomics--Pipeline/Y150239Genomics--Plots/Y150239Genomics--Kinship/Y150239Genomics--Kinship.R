@@ -50,7 +50,7 @@ for (k in 1:length(annotL)) {
   rab[[k]]$b <- annot[[k]]$Ind2[match(rab[[k]]$b, seq_along(annot[[k]]$Ind1))]
   rab[[k]]$Pair <- paste(rab[[k]]$Ind1, "Vs", rab[[k]]$Ind2)
   
-  ### Only needed because of Meerkerk_01 is amidst the Utrecht subpopulation ~
+  ### Only needed because the individual Meerkerk_01 is amidst the Utrecht subpopulation ~
   rab[[k]] <- rab[[k]] %>% mutate(Invert = str_detect(Ind2, "Meerkerk") & !Ind1 %in% c("Garderen_01", "Garderen_02"),
                                   Temp_Ind1 = Ind1,
                                   Temp_Ind2 = Ind2,
