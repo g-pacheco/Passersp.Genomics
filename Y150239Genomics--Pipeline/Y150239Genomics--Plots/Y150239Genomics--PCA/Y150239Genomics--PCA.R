@@ -17,25 +17,27 @@ pacman::p_load(optparse, tidyverse, plyr, RColorBrewer, extrafont, ggforce, ggst
 
 
 # Loads data ~
-dataauto <- as.matrix(read.table("AllSamples_bcftools.raw.vcf.Filtered.Autosomes.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.PCAone.SVD0.cov"),
+data.auto <- as.matrix(read.table("AllSamples_bcftools.raw.vcf.Filtered.Autosomes.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.PCAone.SVD0.cov"),
                       header = FALSE, stringsAsFactors = FALSE)
-dataallo <- as.matrix(read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.PCAone.SVD0.cov"),
+data.allo <- as.matrix(read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MalesOnly.MAFfiltered.Pruned.PCAone.SVD0.cov"),
                       header = FALSE, stringsAsFactors = FALSE)
 
 
-# Loads annot ~
-annot <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Autosomes.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.labels",
-                    sep = "\t", header = FALSE, stringsAsFactors = FALSE)
+# Loads annotations files ~
+annot.auto <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Autosomes.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.labels",
+                         sep = "\t", header = FALSE, stringsAsFactors = FALSE)
+annot.allo <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MalesOnly.MAFfiltered.Pruned.labels",
+                         sep = "\t", header = FALSE, stringsAsFactors = FALSE)
 
 
 # Runs PCA ~
-PCAauto <- eigen(dataauto)
-PCAallo <- eigen(dataallo)
+PCAauto <- eigen(data.auto)
+PCAallo <- eigen(data.allo)
 
 
 # Merges the first 3 PCs with annot ~
-PCAauto_Annot <- as.data.frame(cbind(annot, PCAauto$vectors[, c(1:3)])); colnames(PCAauto_Annot) <- c("Sample_ID", "PCA_1", "PCA_2", "PCA_3")
-PCAallo_Annot <- as.data.frame(cbind(annot, PCAallo$vectors[, c(1:3)])); colnames(PCAallo_Annot) <- c("Sample_ID", "PCA_1", "PCA_2", "PCA_3")
+PCAauto_Annot <- as.data.frame(cbind(annot.auto, PCAauto$vectors[, c(1:3)])); colnames(PCAauto_Annot) <- c("Sample_ID", "PCA_1", "PCA_2", "PCA_3")
+PCAallo_Annot <- as.data.frame(cbind(annot.allo, PCAallo$vectors[, c(1:3)])); colnames(PCAallo_Annot) <- c("Sample_ID", "PCA_1", "PCA_2", "PCA_3")
 
 
 # Merges the first 3 PCs with annot ~
@@ -54,17 +56,15 @@ fulldf$Population <- ifelse(grepl("FR0", fulldf$Sample_ID), "Sales",
                      ifelse(grepl("Crotone", fulldf$Sample_ID), "Crotone",
                      ifelse(grepl("Guglionesi", fulldf$Sample_ID), "Guglionesi",
                      ifelse(grepl("PI22NLD0001M", fulldf$Sample_ID), NA,
-                     ifelse(grepl("PD22NLD0146F", fulldf$Sample_ID), "Garderen",
-                     ifelse(grepl("PD22NLD0147F", fulldf$Sample_ID), "Garderen",
-                     ifelse(grepl("PDOM2022NLD0077M", fulldf$Sample_ID), "Meerkerk",
+                     ifelse(grepl("PD22NLD0146F", fulldf$Sample_ID), NA,
+                     ifelse(grepl("PD22NLD0147F", fulldf$Sample_ID), NA,
+                     ifelse(grepl("PDOM2022NLD0077M", fulldf$Sample_ID), NA,
                      ifelse(grepl("PDOM2022NLD0", fulldf$Sample_ID), "Utrecht", "Error"))))))))))
 
 
 # Reorders Population ~
 fulldf$Population <- factor(fulldf$Population, ordered = T,
                         levels = c("Utrecht",
-                                   "Garderen",
-                                   "Meerkerk",
                                    "Sales",
                                    "Crotone",
                                    "Guglionesi",
@@ -74,7 +74,7 @@ fulldf$Population <- factor(fulldf$Population, ordered = T,
 
 
 # Expands PCA_Annot by adding Species ~
-fulldf$Species <- ifelse(fulldf$Population %in% c("Utrecht", "Sales", "Garderen", "Meerkerk"), "House",
+fulldf$Species <- ifelse(fulldf$Population %in% c("Utrecht", "Sales"), "House",
                   ifelse(fulldf$Population %in% c("Chokpak", "Lesina"), "Spanish",
                   ifelse(fulldf$Population %in% c("Crotone", "Guglionesi"), "Italian",
                   ifelse(fulldf$Population %in% NA, NA, "Error"))))
@@ -89,7 +89,7 @@ fulldf$Species <- factor(fulldf$Species, ordered = T,
 
 
 # Defines the shapes to be used for each Group ~
-Shapes <- as.vector(c(1, 2, 3, 9, 13, 21, 11, 23))
+Shapes <- as.vector(c(1, 9, 13, 21, 11, 23))
 
 
 # Creates legend plot ~
@@ -122,27 +122,33 @@ MyLegend_Plot <-
 
 
 # Defines the shapes to be used for each Group ~
-Shapes_2 <- as.vector(c(1, 2, 3, 9, 13, 21, 11, 23, 14))
+shapes.auto <- as.vector(c(1, 2, 3, 9, 13, 21, 14))
 
 
 # Combines all populations from the Faroe Islands ~
 fulldf$Species <- as.character(fulldf$Species)
 fulldf$Population <- as.character(fulldf$Population)
-fulldf <- fulldf %>%
-  mutate_at(c("Population", "Species"), ~replace_na(., "Y150239"))
+
+
+# Expands fulldf by adding Labels ~
+fulldf$Species <- ifelse(fulldf$Sample_ID %in% c("PI22NLD0001M", "PD22NLD0146F", "PD22NLD0147F", "PDOM2022NLD0077M"),
+                                                 "Focal", fulldf$Species)
+
+
+# Expands fulldf by adding Labels ~
+fulldf$Population <- ifelse(fulldf$Sample_ID %in% c("PI22NLD0001M", "PD22NLD0146F", "PD22NLD0147F", "PDOM2022NLD0077M"),
+                                                    "Focal", fulldf$Population)
 
 
 # Reorders Population ~
 fulldf$Population <- factor(fulldf$Population, ordered = T,
                                levels = c("Utrecht",
-                                          "Garderen",
-                                          "Meerkerk",
                                           "Sales",
                                           "Crotone",
                                           "Guglionesi",
                                           "Lesina",
                                           "Chokpak",
-                                          "Y150239"))
+                                          "Focal"))
 
 
 # Reorders Population ~
@@ -150,11 +156,14 @@ fulldf$Species <- factor(fulldf$Species, ordered = T,
                             levels = c("House",
                                        "Italian",
                                        "Spanish",
-                                       "Y150239"))
+                                       "Focal"))
 
 
 # Expands PCA_Annot by adding Labels ~
-fulldf$Labels <- ifelse(fulldf$Species %in% c("Y150239"), "Y150239", "")
+fulldf$Labels <- ifelse(fulldf$Sample_ID %in% c("PI22NLD0001M"), "Y150239",
+                 ifelse(fulldf$Sample_ID %in% c("PD22NLD0146F"), "Garderen_01",
+                 ifelse(fulldf$Sample_ID %in% c("PD22NLD0147F"), "Garderen_02",
+                 ifelse(fulldf$Sample_ID %in% c("PDOM2022NLD0077M"), "Meerkerk_01", ""))))
 
 
 # Gets Eigenvalues of each Eigenvectors (Allosome) ~
@@ -169,12 +178,17 @@ PCAauto_12 <-
   geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.15, starstroke = .15) +
   facet_rep_grid(CHR ~. , scales = "free_x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
-  scale_starshape_manual(values = Shapes_2) +
-  geom_label_repel(data = subset(fulldf, CHR == "Autosomes"), aes(label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.055, nudge_y = .05,
+  scale_starshape_manual(values = shapes.auto) +
+  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Y150239", "Garderen_02")), aes(label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.06, nudge_y = 0,
                    point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                    ends = "last", type = "open")) +
+  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Garderen_01", "Meerkerk_01")), aes(label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = -.1,
+                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
   geom_mark_ellipse(aes(filter = Species == "House", label = "House\nSparrow"), con.colour = "#1E90FF", colour = "#1E90FF",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
                     con.type = "straight", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
@@ -185,11 +199,11 @@ PCAauto_12 <-
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   scale_x_continuous("PC 1 (5.55%)",
-                     breaks = c(-.1, 0, .1),
-                     labels = c("-0.1", "0", ".01"),
-                     limits = c(-.2, .2),
+                     breaks = c(-.1, 0, .1, .2),
+                     labels = c("-0.1", "0", ".01", ".02"),
+                     limits = c(-.19, .25),
                      expand = c(0, 0)) +
-  scale_y_continuous("PC 2 (1.96%)",
+  scale_y_continuous("PC 2 (1.97%)",
                      #breaks = c(-.08, -.04, 0.00), 
                      #labels = c("-0.08", "-0.04", "0.00"),
                      limits = c(-.31, .35),
@@ -216,14 +230,18 @@ PCAallo_Eigenval_Sum <- sum(PCAallo$values)
 (PCAallo$values[3]/PCAallo_Eigenval_Sum)*100
 
 
+# Defines the shapes to be used for each Group ~
+shapes.allo <- as.vector(c(1, 9, 13, 21, 11, 23, 14))
+
+
 PCAallo_12 <-
-  ggplot(data = subset(fulldf, CHR == "Chromosome Z"), aes_string(x = "PCA_1", y = "PCA_2")) +
+  ggplot(data =  subset(fulldf, CHR == "Chromosome Z"), aes_string(x = "PCA_1", y = "PCA_2")) +
   geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.15, starstroke = .15) +
   facet_rep_grid(CHR ~. , scales = "free_x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
-  scale_starshape_manual(values = Shapes_2) +
+  scale_starshape_manual(values = shapes.allo) +
   geom_label_repel(data = subset(fulldf, CHR == "Chromosome Z"), aes(label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .040, nudge_y = -.1,
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.03, nudge_y = .015,
                    point.padding = .6, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
@@ -236,10 +254,10 @@ PCAallo_12 <-
   geom_mark_ellipse(aes(filter = Species == "Italian", label = "Italian\nSparrow"), con.colour = "#FFD700", colour = "#FFD700",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
-  scale_x_continuous("PC 1 (8.76%)",
-                     limits = c(-.17, .19),
+  scale_x_continuous("PC 1 (8.90%)",
+                     limits = c(-.19, .25),
                      expand = c(0, 0)) +
-  scale_y_continuous("PC 2 (4.19%)",
+  scale_y_continuous("PC 2 (4.75%)",
                      limits = c(-.31, .35),
                      expand = c(0, 0)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
@@ -268,7 +286,7 @@ PCA_Plot <- ggarrange(PCAauto_12, PCAallo_12, nrow = 2, legend.grob = MyLegendBl
 # Saves plot ~
 ggsave(PCA_Plot, file = "Y150239Genomics--PCA.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 12, height = 12, dpi = 600)
-ggsave(PCA_Plot, file = "Y150239Genomics--PCA.png",
+ggsave(PCA_Plot, file = "Y150239Genomics--PCA.jpeg",
       limitsize = FALSE, scale = 1, width = 12, height = 12, dpi = 600)
 
 

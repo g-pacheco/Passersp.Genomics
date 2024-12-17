@@ -26,57 +26,96 @@ samples.allo <- read.table("Y150239Genomics--ngsAdmix.Allosome.popfile", strings
 
 
 # Reads the annotation file ~
-ids <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.K2.labels", stringsAsFactors = FALSE, sep = "\t", header = FALSE)
+ids.auto <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.K2.labels", stringsAsFactors = FALSE, sep = "\t", header = FALSE)
+ids.allo <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MalesOnly.MAFfiltered.Pruned.labels", stringsAsFactors = FALSE, sep = "\t", header = FALSE)
 
 
 # Adds column ids names ~
-colnames(ids) <- c("Sample_ID")
+colnames(ids.auto) <- c("Sample_ID")
+colnames(ids.allo) <- c("Sample_ID")
 
 
-# Expands ids by adding Population ~
-ids$Population <- ifelse(grepl("FR0", ids$Sample_ID), "Sales",
-                  ifelse(grepl("KAZ", ids$Sample_ID), "Chokpak",
-                  ifelse(grepl("Lesina", ids$Sample_ID), "Lesina",
-                  ifelse(grepl("Crotone", ids$Sample_ID), "Crotone",
-                  ifelse(grepl("Guglionesi", ids$Sample_ID), "Guglionesi",
-                  ifelse(grepl("PI22NLD0001M", ids$Sample_ID), "Y150239",
-                  ifelse(grepl("PD22NLD0146F", ids$Sample_ID), "Garderen",
-                  ifelse(grepl("PD22NLD0147F", ids$Sample_ID), "Garderen",
-                  ifelse(grepl("PDOM2022NLD0077M", ids$Sample_ID), "Meerkerk",
-                  ifelse(grepl("PDOM2022NLD0", ids$Sample_ID), "Utrecht", "Error"))))))))))
+# Expands ids.auto by adding Population ~
+ids.auto$Population <- ifelse(grepl("FR0", ids.auto$Sample_ID), "Sales",
+                       ifelse(grepl("KAZ", ids.auto$Sample_ID), "Chokpak",
+                       ifelse(grepl("Lesina", ids.auto$Sample_ID), "Lesina",
+                       ifelse(grepl("Crotone", ids.auto$Sample_ID), "Crotone",
+                       ifelse(grepl("Guglionesi", ids.auto$Sample_ID), "Guglionesi",
+                       ifelse(grepl("PI22NLD0001M", ids.auto$Sample_ID), "Y150239",
+                       ifelse(grepl("PD22NLD0146F", ids.auto$Sample_ID), "Garderen",
+                       ifelse(grepl("PD22NLD0147F", ids.auto$Sample_ID), "Garderen",
+                       ifelse(grepl("PDOM2022NLD0077M", ids.auto$Sample_ID), "Meerkerk",
+                       ifelse(grepl("PDOM2022NLD0", ids.auto$Sample_ID), "Utrecht", "Error"))))))))))
+
+
+# Expands ids.allo by adding Population ~
+ids.allo$Population <- ifelse(grepl("FR0", ids.allo$Sample_ID), "Sales",
+                       ifelse(grepl("KAZ", ids.allo$Sample_ID), "Chokpak",
+                       ifelse(grepl("Lesina", ids.allo$Sample_ID), "Lesina",
+                       ifelse(grepl("Crotone", ids.allo$Sample_ID), "Crotone",
+                       ifelse(grepl("Guglionesi", ids.allo$Sample_ID), "Guglionesi",
+                       ifelse(grepl("PI22NLD0001M", ids.allo$Sample_ID), "Y150239",
+                       ifelse(grepl("PDOM2022NLD0077M", ids.allo$Sample_ID), "Meerkerk",
+                       ifelse(grepl("PDOM2022NLD0", ids.allo$Sample_ID), "Utrecht", "Error"))))))))
 
 
 # Reorders Population ~
-ids$Population <- factor(ids$Population, ordered = T,
-                         levels = c("Utrecht",
-                                    "Garderen",
-                                    "Meerkerk",
-                                    "Sales",
-                                    "Crotone",
-                                    "Guglionesi",
-                                    "Lesina",
-                                    "Chokpak",
-                                    "Y150239"))
+ids.auto$Population <- factor(ids.auto$Population, ordered = T,
+                              levels = c("Utrecht",
+                                         "Sales",
+                                         "Crotone",
+                                         "Guglionesi",
+                                         "Lesina",
+                                         "Chokpak",
+                                         "Y150239",
+                                         "Garderen",
+                                         "Meerkerk"))
+
+
+# Reorders Population ~
+ids.allo$Population <- factor(ids.allo$Population, ordered = T,
+                              levels = c("Utrecht",
+                                         "Sales",
+                                         "Crotone",
+                                         "Guglionesi",
+                                         "Lesina",
+                                         "Chokpak",
+                                         "Y150239",
+                                         "Garderen",
+                                         "Meerkerk"))
 
 
 # Expands PCA_Annot by adding Species ~
-ids$Species <- ifelse(ids$Population %in% c("Utrecht", "Sales", "Garderen", "Meerkerk"), "House",
-               ifelse(ids$Population %in% c("Chokpak", "Lesina"), "Spanish",
-               ifelse(ids$Population %in% c("Guglionesi", "Crotone"), "Italian",
-               ifelse(ids$Population %in% c("Y150239"), "Y150239", "Error"))))
+ids.auto$Species <- ifelse(ids.auto$Population %in% c("Utrecht", "Sales", "Garderen", "Meerkerk"), "House",
+                    ifelse(ids.auto$Population %in% c("Chokpak", "Lesina"), "Spanish",
+                    ifelse(ids.auto$Population %in% c("Guglionesi", "Crotone"), "Italian",
+                    ifelse(ids.auto$Population %in% c("Y150239"), "Y150239", "Error"))))
+
+
+# Expands PCA_Annot by adding Species ~
+ids.allo$Species <- ifelse(ids.allo$Population %in% c("Utrecht", "Sales", "Garderen", "Meerkerk"), "House",
+                    ifelse(ids.allo$Population %in% c("Chokpak", "Lesina"), "Spanish",
+                    ifelse(ids.allo$Population %in% c("Guglionesi", "Crotone"), "Italian",
+                    ifelse(ids.allo$Population %in% c("Y150239"), "Y150239", "Error"))))
 
 
 # Reorders Population ~
-ids$Species <- factor(ids$Species, ordered = T,
-                      levels = c("House",
-                                 "Italian",
-                                 "Spanish",
-                                 "Y150239"))
+ids.auto$Species <- factor(ids.auto$Species, ordered = T,
+                           levels = c("House",
+                                      "Italian",
+                                      "Spanish",
+                                      "Y150239"))
+
+
+# Reorders Population ~
+ids.allo$Species <- factor(ids.allo$Species, ordered = T,
+                           levels = c("House",
+                                      "Italian",
+                                      "Spanish",
+                                      "Y150239"))
 
 
 # Recognises chromosomes ~
-ids.auto <- ids
-ids.allo <- ids
 ids.auto$chrtype <- "Autosomes"
 ids.allo$chrtype <- "Chromosome Z"
 
@@ -93,10 +132,11 @@ x.auto <- list(c(3, 2, 1, 4, 6, 5, 7),
                c(1, 3, 2),
                c(1, 2))
 
-x.allo <- list(c(5, 6, 3, 1, 4, 2, 7),
-               c(6, 2, 5, 4, 3, 1),
-               c(3, 4, 2, 5, 1),
-               c(3, 4, 2, 1),
+
+x.allo <- list(c(3, 5, 1, 6, 7, 4, 2),
+               c(1, 4, 2, 6, 3, 5),
+               c(4, 3, 2, 1, 5),
+               c(3, 2, 1, 4),
                c(3, 1, 2),
                c(1, 2))
 
@@ -128,7 +168,17 @@ for (j in 1:length(samples.allo[, 1])){
     fulldf.allo <- rbind(fulldf.allo, temp)}}
 
 
-fulldf <- rbind(fulldf.auto, fulldf.allo)
+# Step 1: Identify the rows in fulldf.auto that are missing in fulldf.allo
+missing_rows <- fulldf.auto %>%
+                anti_join(fulldf.allo, by = c("Population", "Sample_ID")) %>%
+                mutate(Ancestry = NA, K = NA)
+
+
+# Combine the original fulldf.allo with the missing rows
+fulldf.alloUp <- bind_rows(fulldf.allo, missing_rows)
+
+
+fulldf <- rbind(fulldf.auto, fulldf.alloUp)
 
 
 # Reorders chrtye ~
@@ -175,13 +225,13 @@ ngsAdmix_G <- gtable_add_rows(ngsAdmix_G, unit(1.25, "cm"), pos = 5)
 # Adds top strips ~
 ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#1E90FF", alpha = .7, size = .75, lwd = .25)),
                textGrob("House Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
-               t = 6, l = 4, b = 6, r = 20, name = c("a", "b"))
+               t = 6, l = 4, b = 6, r = 12, name = c("a", "b"))
 ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#FFD700", alpha = .7, size = .5, lwd = .25)),
                textGrob("Italian Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
-               t = 6, l = 22, b = 6, r = 28, name = c("a", "b"))
+               t = 6, l = 14, b = 6, r = 20, name = c("a", "b"))
 ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#ee0000", alpha = .7, size = .75, lwd = .25)),
                textGrob("Spanish Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
-               t = 6, l = 30, b = 6, r = 36, name = c("a", "b"))
+               t = 6, l = 22, b = 6, r = 28, name = c("a", "b"))
 
 
 # Controls separation ~

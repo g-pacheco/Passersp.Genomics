@@ -17,20 +17,22 @@ devtools::install_github("omys-omics/triangulaR")
 
 
 # Loads VCF data ~
-VCF_auto <- read.vcfR("AllSamples_bcftools.raw.vcf.Filtered.Y150239.Autosomes.ALL.vcf", verbose = TRUE)
-VCF_allo <- read.vcfR("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.TriangularR.vcf", verbose = TRUE)
+VCF_auto <- read.vcfR("../../../../LargeFiles/Y150239--TriangularR/AllSamples_bcftools.raw.vcf.Filtered.Y150239.Autosomes.ALL.vcf", verbose = TRUE)
+#VCF_allo <- read.vcfR("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.TriangularR.vcf", verbose = TRUE)
 
 
 # Loads annotation file ~
 pm <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Y150239.Autosomes.ALL.annot",  sep = " ", header = FALSE, stringsAsFactors = FALSE)
 colnames(pm) <- c("id", "pop")
-annot_allo <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.TriangularR.annot",  sep = " ", header = FALSE, stringsAsFactors = FALSE)
-colnames(annot_allo) <- c("id", "pop")
+#annot_allo <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.TriangularR.annot",  sep = " ", header = FALSE, stringsAsFactors = FALSE)
+#colnames(annot_allo) <- c("id", "pop")
 
-# Process data ~
+
+# Gets AIMs ~
 VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = pm, p1 = "House", p2 = "Spanish", difference = 0.9)
 
 
+# Gets AIMs´ genotypes ~
 m <- extract.gt(VCF_auto.diff9)
 
 
@@ -45,31 +47,31 @@ m[m=="1/0"] <- 1
 m[m=="1/1"] <- 2
 
 
-# Filter and subset the genotypes for the two populations
+# Filters $ subsets the genotypes for the two populations
 p1.gts <- m[, pm[pm$pop == "House",]$id]
 p2.gts <- m[, pm[pm$pop == "Spanish",]$id]
 
 
-# convert to numeric
+# Converts to numeric ~
 p1.gts[] <- sapply(p1.gts, as.numeric)
 p2.gts[] <- sapply(p2.gts, as.numeric)
 
 
-# Calculate allele frequencies for p1 and p2
+# Calculates allele frequencies for P1 & P2 ~
 af_p1 <- (rowSums(p1.gts == 1, na.rm = TRUE) + (2 * rowSums(p1.gts == 2, na.rm = TRUE))) / (2 * rowSums(!is.na(p1.gts)))
 af_p2 <- (rowSums(p2.gts == 1, na.rm = TRUE) + (2 * rowSums(p2.gts == 2, na.rm = TRUE))) / (2 * rowSums(!is.na(p2.gts)))
 
 
-# Determine p1 and p2 allele based on allele frequencies
+# Determines P1 & P2 alleles based on allele frequencies ~
 p1.allele <- ifelse(af_p1 > af_p2, 2, 0)
 p2.allele <- ifelse(af_p2 > af_p1, 2, 0)
 
 
-# Create a matrix to store hybrid index scores
+# Creates a matrix to store hybrid index scores ~
 n <- matrix(nrow = nrow(m), ncol = ncol(m))
 
 
-# Compare genotypes and assign scores
+# Compares genotypes & assigns scores ~
 n[m == p1.allele] <- 0
 n[m == 1] <- 1
 n[m == p2.allele] <- 2
@@ -77,43 +79,45 @@ n[is.na(m)] <- NA
 n[m == -9] <- NA
 
 
+# Names columns & rows ~
 colnames(n) <- colnames(m)
 rownames(n) <- rownames(m)
 
 
+# Fills matrix ~
 n <- as.data.frame(n)
 
 
-Layka <- n %>% select(PI22NLD0001M_SAMPLE, PD22NLD0146F_SAMPLE, PD22NLD0147F_SAMPLE, PDOM2022NLD0077M_SAMPLE)
+# Selects focal individual & controls ~
+fulldf <- n %>% select(PI22NLD0001M_SAMPLE, PD22NLD0146F_SAMPLE, PD22NLD0147F_SAMPLE, PDOM2022NLD0077M_SAMPLE)
 
 
-Layka <- Layka %>% 
-  filter(!is.na(PDOM2022NLD0077M_SAMPLE) & !is.na(PD22NLD0146F_SAMPLE) & !is.na(PD22NLD0147F_SAMPLE))
+# Filters out AIMs where any of the controls is NA ~
+fulldf <- fulldf %>% 
+          filter(!is.na(PDOM2022NLD0077M_SAMPLE) & !is.na(PD22NLD0146F_SAMPLE) & !is.na(PD22NLD0147F_SAMPLE))
 
 
-# Convert row names to a column
-Layka <- Layka %>%
-         mutate(CHR = sub("_.*", "", rownames(Layka))) %>%
-         mutate(POS = sub(".*_", "", rownames(Layka))) %>%
-         tibble::rownames_to_column(var = "SNP") %>%
-         select(SNP, CHR, POS, everything())
+# Convert row names to a column ~
+fulldf <- fulldf %>%
+          mutate(CHR = sub("_.*", "", rownames(fulldf))) %>%
+          mutate(POS = sub(".*_", "", rownames(fulldf))) %>%
+          tibble::rownames_to_column(var = "SNP") %>%
+          select(SNP, CHR, POS, everything())
 
 
-# Create the Index column, restarting for each new chromosome
-Layka <- Layka %>%
-         group_by(CHR) %>%
-         mutate(Index = row_number()) %>%
-         ungroup()
+# Creates Index per CHR ~
+fulldf$Index <- with(fulldf, ave(seq_along(CHR), CHR, FUN = seq_along))
 
 
-fulldf <- gather(Layka, Individual, Ancestry,
+# Converts to wide data frame ~
+fulldf <- gather(fulldf, Individual, Ancestry,
                  "PI22NLD0001M_SAMPLE", "PD22NLD0146F_SAMPLE", "PD22NLD0147F_SAMPLE", "PDOM2022NLD0077M_SAMPLE")
 
 
 # Expands PCA_Annot by adding Population ~
-fulldf$Ancestry <- ifelse(grepl("0", fulldf$Ancestry), "Spanish",
+fulldf$Ancestry <- ifelse(grepl("0", fulldf$Ancestry), "House",
                    ifelse(grepl("1", fulldf$Ancestry), "Heterozygous",
-                   ifelse(grepl("2", fulldf$Ancestry), "House", "Error")))
+                   ifelse(grepl("2", fulldf$Ancestry), "Spanish", "Error")))
 
 
 # Expands PCA_Annot by adding Population ~
@@ -124,41 +128,28 @@ fulldf$Individual <- ifelse(grepl("PI22NLD0001M_SAMPLE", fulldf$Individual), "Y1
 
 
 # Reorders BioStatus ~
-fulldf$Individual <- factor(fulldf$Individual, ordered = T,
-                          levels = c("Meerkerk_01",
-                                     "Garderen_02",
-                                     "Garderen_01",
-                                     "Y150239"))
+fulldf$Individual <- factor(fulldf$Individual, ordered = TRUE,
+                            levels = c("Meerkerk_01",
+                                       "Garderen_02",
+                                       "Garderen_01",
+                                       "Y150239"))
 
 
-# Reorders BioStatus ~
-fulldf$Ancestry <- factor(fulldf$Ancestry, ordered = T,
+# Reorders Ancestry ~
+fulldf$Ancestry <- factor(fulldf$Ancestry, ordered = TRUE,
                            levels = c("House",
                                       "Heterozygous",
                                       "Spanish"))
 
 
-# Step 1: Create a custom label column and remove "no_display"
-fulldf$Individual_Label <- ifelse(fulldf$CHR == "chr1", as.character(fulldf$Individual), NA)
-
-
-fulldf <- readRDS("Layka.rds")
-
-
-# Step 2: Filter out NA values from Individual_Label (those we don't want displayed)
-valid_labels <- fulldf %>%
-  filter(!is.na(Individual_Label)) %>%
-  select(Individual_Label, Individual) %>%
-  distinct()
-
-# Step 3: Reorder CHR as a factor
+# Reorders CHR ~
 fulldf$CHR <- factor(fulldf$CHR, ordered = TRUE,
                      levels = c("chr1", "chr1A", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", 
                                 "chr11", "chr12", "chr13", "chr14", "chr15", "chr17", "chr18", "chr19", "chr20", "chr21", 
                                 "chr22", "chr23", "chr24", "chr26", "chr27", "chr28", "scaffold00239"))
 
 
-# Step 4: Create a label mapping for facet grid
+# Fixes CHRs´ names ~
 y_strip_labels <- setNames(c("CHR 01", "CHR 01A", "CHR 02", "CHR 03", "CHR 04", "CHR 05", "CHR 06", "CHR 07", 
                              "CHR 08", "CHR 09", "CHR 10", "CHR 11", "CHR 12", "CHR 13", "CHR 14", "CHR 15", 
                              "CHR 17", "CHR 18", "CHR 19", "CHR 20", "CHR 21", "CHR 22", "CHR 23", "CHR 24", 
@@ -181,13 +172,11 @@ delete_no_display <- function(v) {
   if_else(str_detect(v, 'no_display'), '', v)}
 
 
-saveRDS(fulldf, "Layka.rds")
-
 # Creates Index plot ~
 AncestryPlot_Index <-
 ggplot(fulldf, aes(x = Index, y = Individual, fill = as.factor(Ancestry))) +
   geom_point(shape = 21, size = 2, colour = "#000000", stroke = 0) +
-  scale_fill_manual(values = c("#ee0000", "#FFD700", "#1E90FF"), na.translate = FALSE) +
+  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
   ggtitle("Ancestry-informative Markers") +
   scale_x_discrete(expand = c(.005, .005)) +
   scale_y_discrete(labels = delete_no_display) +
@@ -223,9 +212,9 @@ ggsave(AncestryPlot_Index, file = "Y150239Genomics--AncestryHeatmap_AIMs.png",
 
 # Creates POS plot ~
 AncestryPlot_POS <-
-  ggplot(fulldf, aes(x = POS, y = Individual, fill = as.factor(Ancestry))) +
+  ggplot(fulldf, aes(x = as.numeric(POS), y = Individual, fill = as.factor(Ancestry))) +
   geom_point(shape = 21, size = 1.25, colour = "#000000", stroke = 0) +
-  scale_fill_manual(values = c("#ee0000", "#FFD700", "#1E90FF"), na.translate = FALSE) +
+  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
   ggtitle("Ancestry-informative Markers") +
   scale_x_continuous(breaks = c(25000000, 50000000, 75000000, 100000000, 125000000),
                      labels = c("25Mb", "50Mb", "75Mb", "100Mb", "125Mb"),
@@ -256,8 +245,8 @@ AncestryPlot_POS <-
 # Saves Index plot ~
 ggsave(AncestryPlot_POS, file = "Y150239Genomics--AncestryHeatmap_GenomicAIMs.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 20, height = 12, dpi = 600)
-ggsave(AncestryPlot, file = "Y150239Genomics--AncestryHeatmapGenomicAIMs.png",
-       limitsize = FALSE, scale = 1, width = 40, height = 12, dpi = 600)
+ggsave(AncestryPlot_POS, file = "Y150239Genomics--AncestryHeatmapGenomicAIMs.png",
+       limitsize = FALSE, scale = 1, width = 20, height = 12, dpi = 600)
 
 
 
