@@ -353,15 +353,27 @@ load("Save.RData")
 
 
 # Expands fit_data & ld_data by adding a CHRType column ~
-fit_data$CHRType <- ifelse(grepl("Allosome", fit_data$File) & grepl("NoTreeSparrow", fit_data$File), "ChromosomeZ I",
-                    ifelse(grepl("Allosome", fit_data$File) & grepl("TreeSparrow", fit_data$File), "ChromosomeZ II",
+fit_data$CHRType <- ifelse(grepl("Allosome", fit_data$File) & grepl("NoTreeSparrow", fit_data$File), "Chromosome Z I",
+                    ifelse(grepl("Allosome", fit_data$File) & grepl("TreeSparrow", fit_data$File), "Chromosome Z II",
                     ifelse(grepl("Autosomes", fit_data$File) & grepl("NoTreeSparrow", fit_data$File), "Autosomes I",
                     ifelse(grepl("Autosomes", fit_data$File) & grepl("TreeSparrow", fit_data$File), "Autosomes II", "Error"))))
 
-ld_data$CHRType <- ifelse(grepl("Allosome", ld_data$File) & grepl("NoTreeSparrow", ld_data$File), "ChromosomeZ I",
-                   ifelse(grepl("Allosome", ld_data$File) & grepl("TreeSparrow", ld_data$File), "ChromosomeZ II",
+ld_data$CHRType <- ifelse(grepl("Allosome", ld_data$File) & grepl("NoTreeSparrow", ld_data$File), "Chromosome Z I",
+                   ifelse(grepl("Allosome", ld_data$File) & grepl("TreeSparrow", ld_data$File), "Chromosome Z II",
                    ifelse(grepl("Autosomes", ld_data$File) & grepl("NoTreeSparrow", ld_data$File), "Autosomes I",
                    ifelse(grepl("Autosomes", ld_data$File) & grepl("TreeSparrow", ld_data$File), "Autosomes II", "Error"))))
+
+
+# Filters data ~
+fit_data <- fit_data %>% filter(!CHRType %in% c("Chromosome Z II", "Autosomes II"))
+ld_data <- ld_data %>% filter(!CHRType %in% c("Chromosome Z II", "Autosomes II"))
+
+
+# Corrects Institution ~
+levels(fit_data$CHRType <- sub("Autosomes I", "Autosomes", fit_data$CHRType))
+levels(fit_data$CHRType <- sub("Chromosome Z I", "Chromosome Z", fit_data$CHRType))
+levels(ld_data$CHRType <- sub("Autosomes I", "Autosomes", ld_data$CHRType))
+levels(ld_data$CHRType <- sub("Chromosome Z I", "Chromosome Z", ld_data$CHRType))
 
 
 # Expands fit_data & ld_data by adding a PruningState column ~
@@ -369,11 +381,11 @@ fit_data$PruningState <- ifelse(grepl("Pruned", fit_data$File), "Pruned", "Not P
 ld_data$PruningState <- ifelse(grepl("Pruned", ld_data$File), "Pruned", "Not Pruned")
 
 
-# Reorders Sataset ~
+# Reorders CHRType ~
 fit_data$CHRType <- factor(fit_data$CHRType, ordered = TRUE,
-                          levels = c("Autosomes I", "ChromosomeZ I", "Autosomes II", "ChromosomeZ II"))
+                           levels = c("Autosomes", "Chromosome Z"))
 ld_data$CHRType <- factor(ld_data$CHRType, ordered = TRUE,
-                         levels = c("Autosomes I", "ChromosomeZ I", "Autosomes II", "ChromosomeZ II"))
+                          levels = c("Autosomes", "Chromosome Z"))
 
 
 # Reorders PruningState ~
@@ -429,36 +441,36 @@ if(opt$plot_data){
   lgr$debug("Plot data", data = toJSON(head(ld_data, n = 10)))
   
   
-# Adds points ~
-plot <- plot + 
-        geom_point(data = ld_data, aes(x = dist, y = value), colour = "#82526C", size = .05, alpha = .3)}
+  # Adds points ~
+  plot <- plot + 
+    geom_point(data = ld_data, aes(x = dist, y = value), colour = "#82526C", size = .05, alpha = .3)}
 
 
 # Adds LD decay best fit ~
 if(length(opt$ld) > 0) {
   
   
-# Selects variable fields ~
-header <- names(which(lapply(lapply(fit_data, unique), length) > 1))
+  # Selects variable fields ~
+  header <- names(which(lapply(lapply(fit_data, unique), length) > 1))
   
   
-# Excludes non-relevant fields ~
-grp <- header[!header %in% unique(c(as.character(opt$plot_wrap_formula), opt$plot_group, "dist", "value", "File", "ci_l", "ci_u"))]
-lgr$debug("LD decay best fit", groups = grp, plot_groups = opt$plot_group)
-  
-
-# Defines line type ~
-#if(length(grp) == 0) grp <- opt$plot_group
-#if(length(grp) > 1) stop(lgr$error("invalid number of linetype groups!"))
-plot <- 
-  plot + 
-  geom_line(data = fit_data, aes(x = dist, y = value), colour = "#82526C", linetype = 1)
+  # Excludes non-relevant fields ~
+  grp <- header[!header %in% unique(c(as.character(opt$plot_wrap_formula), opt$plot_group, "dist", "value", "File", "ci_l", "ci_u"))]
+  lgr$debug("LD decay best fit", groups = grp, plot_groups = opt$plot_group)
   
   
-# If plotting data, add a thin black line to help see the line ~
-if(opt$plot_data)
-plot <- plot +
- geom_line(data = fit_data, aes_string(x = "dist", y = "value"), linetype = 1, colour = "#82526C", linewidth = .1, alpha = 1) +
+  # Defines line type ~
+  #if(length(grp) == 0) grp <- opt$plot_group
+  #if(length(grp) > 1) stop(lgr$error("invalid number of linetype groups!"))
+  plot <- 
+    plot + 
+    geom_line(data = fit_data, aes(x = dist, y = value), colour = "#82526C", linetype = 1)
+  
+  
+  # If plotting data, add a thin black line to help see the line ~
+  if(opt$plot_data)
+    plot <- plot +
+    geom_line(data = fit_data, aes_string(x = "dist", y = "value"), linetype = 1, colour = "#82526C", linewidth = .1, alpha = 1) +
     scale_x_continuous("Genomic Distance (Kb)",
                        breaks = c(2.5e+04, 5e+04, 7.5e+04),
                        labels = c("25", "50", "75"),
@@ -473,13 +485,13 @@ plot <- plot +
           panel.border = element_blank(),
           panel.grid.major = element_line(color = "#E5E7E9", linetype = "dashed", linewidth = .005),
           panel.grid.minor = element_blank(),
-          axis.title.x = element_text(family = "Optima", size = 13, face = "bold", color = "#000000", margin = margin(t = 20, r = 0, b = 0, l = 0)), 
-          axis.title.y = element_text(family = "Optima", size = 13, face = "bold", color = "#000000", margin = margin(t = 0, r = 20, b = 0, l = 0)),
+          axis.title.x = element_text(family = "Optima", size = 14, face = "bold", color = "#000000", margin = margin(t = 20, r = 0, b = 0, l = 0)), 
+          axis.title.y = element_text(family = "Optima", size = 14, face = "bold", color = "#000000", margin = margin(t = 0, r = 20, b = 0, l = 0)),
           axis.text = element_text(family = "Optima", color = "#000000", size = 8, face = "bold"),
           axis.line = element_line(colour = "#000000", linewidth = .3),
           axis.ticks = element_line(color = "#000000", linewidth = .3),
           strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
-          strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
+          strip.text = element_text(family = "Optima", colour = "#000000", size = 15, face = "bold"),
           legend.position = "none",
           legend.background = element_blank(),
           legend.key = element_blank(),
@@ -489,13 +501,13 @@ plot <- plot +
           legend.box.margin = margin(t = 5, b = -20, r = 0, l = 30))
   
   
-# If plotting, apart from linetypes, also shapes (for B/W or color-blind printing) ~
-if(opt$plot_shape) {
-  smooth <- seq(1, opt$plot_x_lim, length = opt$plot_line_smooth)[seq(2, opt$plot_line_smooth,length = 5)]
-  sample_fit_data <- subset(fit_data, dist %in% smooth)
-  plot <- 
-    plot + 
-    geom_point(data = sample_fit_data, aes(x = dist, y = value, colour = .data[[opt$plot_group]], shape = .data[[opt$plot_group]]))}}
+  # If plotting, apart from linetypes, also shapes (for B/W or color-blind printing) ~
+  if(opt$plot_shape) {
+    smooth <- seq(1, opt$plot_x_lim, length = opt$plot_line_smooth)[seq(2, opt$plot_line_smooth,length = 5)]
+    sample_fit_data <- subset(fit_data, dist %in% smooth)
+    plot <- 
+      plot + 
+      geom_point(data = sample_fit_data, aes(x = dist, y = value, colour = .data[[opt$plot_group]], shape = .data[[opt$plot_group]]))}}
 
 
 ### Set plot size ~

@@ -89,7 +89,7 @@ fulldf$Species <- factor(fulldf$Species, ordered = T,
 
 
 # Defines the shapes to be used for each Group ~
-Shapes <- as.vector(c(1, 9, 13, 21, 11, 23))
+shapes.legend <- as.vector(c(1, 9, 13, 21, 11, 23))
 
 
 # Creates legend plot ~
@@ -97,7 +97,7 @@ MyLegend_Plot <-
   ggplot(data = fulldf, aes_string(x = "PCA_1", y = "PCA_2")) +
   geom_star(aes(starshape = Population, fill = Species), size = 2.8, starstroke = .15, alpha = .7) +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
-  scale_starshape_manual(values = Shapes, na.translate = FALSE) +
+  scale_starshape_manual(values = shapes.legend, na.translate = FALSE) +
   scale_x_continuous("PC 1 (10.9%)",
                      expand = c(.005, .005)) +
   scale_y_continuous("PC 2 (2.5%)",
@@ -111,10 +111,10 @@ MyLegend_Plot <-
         legend.background = element_blank(),
         legend.margin = margin(t = 0, b = 0, r = 15, l = 15),
         legend.box = "vertical",
-        legend.box.margin = margin(t = 20, b = 30, r = 0, l = 0)) +
+        legend.box.margin = margin(t = 10, b = 15, r = 0, l = 0)) +
   guides(starshape = guide_legend(title = "Population", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
                                   label.theme = element_text(size = 15, family = "Optima"),
-                                  override.aes = list(starshape = Shapes, size = 5, starstroke = .15), nrow = 1, order = 2),
+                                  override.aes = list(starshape = shapes.legend, size = 5, starstroke = .15), nrow = 1, order = 2),
          fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
                              label.theme = element_text(size = 15, family = "Optima"),
                              override.aes = list(starshape = 21, size = 5, starstroke = .15), nrow = 1, order = 1),
@@ -122,7 +122,7 @@ MyLegend_Plot <-
 
 
 # Defines the shapes to be used for each Group ~
-shapes.auto <- as.vector(c(1, 2, 3, 9, 13, 21, 14))
+shapes.auto <- as.vector(c(1, 9, 13, 21, 11, 23, 14))
 
 
 # Combines all populations from the Faroe Islands ~

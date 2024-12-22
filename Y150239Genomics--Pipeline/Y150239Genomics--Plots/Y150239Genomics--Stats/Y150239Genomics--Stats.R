@@ -73,24 +73,33 @@ fulldf$Population <- factor(fulldf$Population, ordered = T,
                                        "Tree Sparrow"))
 
 # Cleans DF ~
+#fulldf <- fulldf %>%
+#          select(Population, total_reads, reads_adaptors, percentage_retained_reads,
+#                 hits_raw_frac, hits_clonality, hits_unique_frac, hits_coverage)
+
+
 fulldf <- fulldf %>%
-          select(Population, total_reads, reads_adaptors, percentage_retained_reads,
-                 hits_raw_frac, hits_clonality, hits_unique_frac, hits_coverage)
+          select(Population, total_reads, percentage_retained_reads,
+                 hits_unique_frac, hits_coverage)
 
 
 # Converts DF from wide into long ~
-fulldfUp <- gather(fulldf, Stat, Value, "total_reads", "reads_adaptors", "percentage_retained_reads",
-                   "hits_raw_frac", "hits_clonality", "hits_unique_frac", "hits_coverage")
+#fulldfUp <- gather(fulldf, Stat, Value, "total_reads", "reads_adaptors", "percentage_retained_reads",
+#                   "hits_raw_frac", "hits_clonality", "hits_unique_frac", "hits_coverage")
+
+
+fulldfUp <- gather(fulldf, Stat, Value, "total_reads", "percentage_retained_reads",
+                   "hits_unique_frac", "hits_coverage")
 
 
 # Reorders Stat ~
 fulldfUp$Stat <- factor(fulldfUp$Stat, ordered = T,
                         levels = c("hits_coverage",
                                    "hits_unique_frac",
-                                   "hits_clonality",
-                                   "hits_raw_frac",
+                                   #"hits_clonality",
+                                   #"hits_raw_frac",
                                    "percentage_retained_reads",
-                                   "reads_adaptors",
+                                   #"reads_adaptors",
                                    "total_reads"))
 
 
@@ -100,10 +109,10 @@ fulldfUp %>% filter(Stat == "hits_coverage") %>%
 
 # Corrects facet labels ~
 ylabels <- c("total_reads" = "# of Reads",
-             "reads_adaptors" = "% of Reads With Adaptors",
+             #"reads_adaptors" = "% of Reads With Adaptors",
              "percentage_retained_reads" = "% of Reads Retained",
-             "hits_raw_frac" = "% of Mapped Reads",
-             "hits_clonality" = "% of Clonality",
+             #"hits_raw_frac" = "% of Mapped Reads",
+             #"hits_clonality" = "% of Clonality",
              "hits_unique_frac" = "% of Uniquely Mapped Reads",
              "hits_coverage" = "Mean Depth")
 
@@ -136,9 +145,9 @@ labels_fun <- function(z) {
   plot_index_labels <<- plot_index_labels + 1L
   switch(plot_index_labels,
          scales::label_number(accuracy = 1, suffix = "X")(z),
-         scales::label_percent(accuracy = 1, scale = 1, big.mark = "")(z),
-         scales::label_percent(accuracy = 1, scale = 1, big.mark = "")(z),
-         scales::label_percent(accuracy = 1, scale = 1, big.mark = "")(z),
+         #scales::label_percent(accuracy = 1, scale = 1, big.mark = "")(z),
+         #scales::label_percent(accuracy = 1, scale = 1, big.mark = "")(z),
+         #scales::label_percent(accuracy = 1, scale = 1, big.mark = "")(z),
          scales::label_percent(accuracy = 1, scale = 1, big.mark = "")(z),
          scales::label_percent(accuracy = 1, scale = 1, big.mark = "")(z),
          scales::label_number(accuracy = 1, scale = 1/1000000, big.mark = "", suffix = "M")(z))}
@@ -160,11 +169,11 @@ Y150239Genomics_Stat <-
         panel.spacing.y = unit(1, "cm"),
         axis.line = element_line(colour = "#000000", linewidth = .3),
         axis.title = element_blank(),
-        axis.text.x = element_text(family = "Optima", colour = "#000000", size = 10, face = "bold", angle = 45, vjust = 1, hjust = 1),
-        axis.text.y = element_text(family = "Optima", color = "#000000", size = 8, face = "bold"),
+        axis.text.x = element_text(family = "Optima", colour = "#000000", size = 11, face = "bold", angle = 45, vjust = 1, hjust = 1),
+        axis.text.y = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
         axis.ticks.x = element_line(color = "#000000", linewidth = .3),
         axis.ticks.y = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 9, face = "bold"),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 12, face = "bold"),
         strip.background.y = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         legend.position = "top",
         legend.margin = margin(t = 0, b = 0, r = 0, l = 0),
@@ -175,7 +184,7 @@ Y150239Genomics_Stat <-
 
 # Saves the panel ~
 ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.pdf",
-       device = cairo_pdf, width = 12, height = 17, scale = 1, dpi = 600)
+       device = cairo_pdf, width = 12, height = 12, scale = 1, dpi = 600)
 ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.png",
        width = 12, height = 17, scale = 1, dpi = 600)
 
