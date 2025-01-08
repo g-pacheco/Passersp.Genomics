@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# ~ Plots NLSparrow--evalAdmix | First written by Jose Samaniego with later modifications by George Pacheco.
+# ~ Plots Y150239Genomics--evalAdmix | Written by George Pacheco with help from Jose Samaniego.
 
 
 # Cleans the environment ~ 
@@ -8,12 +8,13 @@ rm(list=ls())
 
 
 # Loads required packages ~
-pacman::p_load(tidyverse, reshape2, pheatmap, scales, optparse, plyr, RColorBrewer, extrafont)
+pacman::p_load(tidyverse, reshape2, scales, optparse, plyr, RColorBrewer, extrafont)
 source("visFuns.R")
 
 
 # Sets working directory ~
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
 
 # Imports data while incorporating annotation ~
 corres <- list()
@@ -24,22 +25,22 @@ for (k in seq_along(annot_files)) {
   annot[[k]] <- read.table(annot_files[k], sep = "\t", header = FALSE, stringsAsFactors = FALSE)
   colnames(annot[[k]]) <- c("Sample_ID")
   annot[[k]]$Population <- ifelse(grepl("FR0", annot[[k]]$Sample_ID), "Sales",
-                                  ifelse(grepl("KAZ", annot[[k]]$Sample_ID), "Chokpak",
-                                         ifelse(grepl("Lesina", annot[[k]]$Sample_ID), "Lesina",
-                                                ifelse(grepl("Crotone", annot[[k]]$Sample_ID), "Crotone",
-                                                       ifelse(grepl("Guglionesi", annot[[k]]$Sample_ID), "Guglionesi",
-                                                              ifelse(grepl("PI22NLD0001M", annot[[k]]$Sample_ID), "Y150239",
-                                                                     ifelse(grepl("PD22NLD0146F", annot[[k]]$Sample_ID), "Garderen",
-                                                                            ifelse(grepl("PD22NLD0147F", annot[[k]]$Sample_ID), "Garderen",
-                                                                                   ifelse(grepl("PDOM2022NLD0077M", annot[[k]]$Sample_ID), "Meerkerk",
-                                                                                          ifelse(grepl("PDOM2022NLD0", annot[[k]]$Sample_ID), "Utrecht", "Error"))))))))))
+                           ifelse(grepl("KAZ", annot[[k]]$Sample_ID), "Chokpak",
+                           ifelse(grepl("Lesina", annot[[k]]$Sample_ID), "Lesina",
+                           ifelse(grepl("Crotone", annot[[k]]$Sample_ID), "Crotone",
+                           ifelse(grepl("Guglionesi", annot[[k]]$Sample_ID), "Guglionesi",
+                           ifelse(grepl("PI22NLD0001M", annot[[k]]$Sample_ID), "Y150239",
+                           ifelse(grepl("PD22NLD0146F", annot[[k]]$Sample_ID), "Garderen",
+                           ifelse(grepl("PD22NLD0147F", annot[[k]]$Sample_ID), "Garderen",
+                           ifelse(grepl("PDOM2022NLD0077M", annot[[k]]$Sample_ID), "Meerkerk",
+                           ifelse(grepl("PDOM2022NLD0", annot[[k]]$Sample_ID), "Utrecht", "Error"))))))))))
   corres_df <- as.data.frame(read.table(corres_files[k]))
   rownames(corres_df) <- annot[[k]]$Sample_ID
   colnames(corres_df) <- annot[[k]]$Sample_ID
   corres_df$CHRType <- str_extract(corres_files[k], "(Allosome|Autosomes)")
   corres_df$K <- str_extract(corres_files[k], "(K2|K3|K4|K5|K6|K7)")
-  corres[[k]] <- corres_df
-}
+  corres[[k]] <- corres_df}
+
 
 # Perform individual computation ~
 compute_on_matrices <- function(corres_ind_list, pop_list, ord_list) {
