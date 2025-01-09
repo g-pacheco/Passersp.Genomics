@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# ~ Plots Y150239Genomics--evalAdmix | Written by George Pacheco with help from Jose Samaniego.
+# ~ Plots Y150239Genomics--evalAdmix | Written by George Pacheco.
 
 
 # Cleans the environment ~ 
@@ -12,11 +12,43 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(tidyverse, ggnewscale, data.table)
-source("visFuns.R")
+pacman::p_load(tidyverse, ggnewscale, data.table, tidytext, patchwork)
 
 
-# Import and process data
+# Defines the orderInds function ~
+orderInds <- function(q=NULL, pop=NULL, popord=NULL){
+  ordpop <- function(x, pop, q){
+    idx <- which(pop==x)
+    main_k <- which.max(apply(as.matrix(q[idx,]),2,mean))
+    ord <- order(q[idx,main_k])
+    idx[ord]} 
+  
+  if(!is.null(pop)){
+    
+    if(is.null(popord)) popord <- unique(pop)
+    
+    if(!is.null(q)){ 
+      
+      ord <- unlist(sapply(popord, ordpop, pop=pop, q=q))
+      
+    } else if (is.null(q)) {
+      
+      ord <- unlist(sapply(popord, function(x) which(pop==x)))
+      
+    }
+  } else if (is.null(pop)&!is.null(q)) {
+    
+    # Gets index of k with max value per individual
+    main_k <- apply(q,1, which.max)
+    # Get max q per indivdiual ~
+    main_q <- q[cbind(1:nrow(q),main_k)]
+    ord <- order(main_k, main_q)
+    
+  } else {stop("Need at least an argument to order.")}
+  return(ord)}
+
+
+# Imports and process data
 corres <- list()
 annot <- list()
 ord_list <- list()
@@ -54,20 +86,20 @@ for (k in seq_along(annot_files)) {
   corres_df$Population_1 <- annot[[k]]$Population
   corres_df$CHRType <- str_extract(corres_files[k], "(Allosome|Autosomes)")
   corres_df$K <- str_extract(corres_files[k], "(K2|K3|K4|K5|K6|K7)")
-  corres_df$K <- ifelse(grepl("K2", corres_df$K), "2",
-                 ifelse(grepl("K3", corres_df$K), "3",
-                 ifelse(grepl("K4", corres_df$K), "4",
-                 ifelse(grepl("K5", corres_df$K), "5",
-                 ifelse(grepl("K6", corres_df$K), "6",
-                 ifelse(grepl("K7", corres_df$K), "7", "Error"))))))
+  corres_df$K <- ifelse(grepl("K2", corres_df$K), "K = 2",
+                 ifelse(grepl("K3", corres_df$K), "K = 3",
+                 ifelse(grepl("K4", corres_df$K), "K = 4",
+                 ifelse(grepl("K5", corres_df$K), "K = 5",
+                 ifelse(grepl("K6", corres_df$K), "K = 6",
+                 ifelse(grepl("K7", corres_df$K), "K = 7", "Error"))))))
   corres[[k]] <- corres_df}
 
-# Adjusted compute_mean_correlations function ~
+
+# Defines compute_mean_correlations function ~
 compute_mean_correlations <- function(cor_mat_list, ord_list, pop) {
   pop <- pop[ord]
   unique_pops <- unique(pop)
   num_pops <- length(unique_pops)
-  
   process_single_matrix <- function(cor_mat, ord, pop) {
     pop <- pop[ord]
     annotations <- cor_mat[, c("Sample_ID_1", "Population_1", "CHRType", "K")]
@@ -87,40 +119,28 @@ compute_mean_correlations <- function(cor_mat_list, ord_list, pop) {
     for (i1 in 1:(nrow(cor_mat) - 1)) {
       for (i2 in (i1 + 1):nrow(cor_mat)) {
         cor_mat[i2, i1] <- mean_cor_df[pop[i1], pop[i2]]
-        cor_mat[i1, i2] <- cor_mat[i1, i2]}
-    }
+        cor_mat[i1, i2] <- cor_mat[i1, i2]}}
     cor_mat <- cbind(annotations, cor_mat)
-    return(cor_mat)
-  }
+    return(cor_mat)}
   
-  # Create a list to store the data frames for each K
   final_list <- list()
   
   for (i in seq_along(cor_mat_list)) {
     cor_mat_list[[i]] <- process_single_matrix(cor_mat_list[[i]], ord_list[[i]], pop)
-    
-    # Store the result as a data frame for the current K
-    current_K <- unique(cor_mat_list[[i]]$K)  # Extract current K
-    final_list[[as.character(current_K)]] <- cor_mat_list[[i]]
-  }
-  
-  return(final_list)
-}
+    current_K <- unique(cor_mat_list[[i]]$K)
+    final_list[[as.character(current_K)]] <- cor_mat_list[[i]]}
+  return(final_list)}
 
-# Apply the updated function
+
+# Applies the compute_mean_correlations function ~
 final_list <- compute_mean_correlations(corres, ord_list, pop)
 
 
-# Convert all matrices to numeric type
-final_list <- lapply(final_list, as.matrix)
-final_list <- lapply(final_list, as.data.frame)
-
-
-# Combine all matrices for different K values into a single dataset
+# Combines all matrices for different Ks into data frame ~
 final_combined <- bind_rows(final_list, .id = "K_Value")
 
 
-# Pivot longer to convert from wide to long format
+# Converts data frame into long ~ 
 final_long_format <- final_combined %>%
   pivot_longer(cols = -c(K_Value, Sample_ID_1, Population_1, CHRType, K),
                names_to = "Sample_ID_2",
@@ -141,6 +161,55 @@ fulldf <- final_long_format %>%
                  select(1:3, Population_2, everything())
 
 
+# Defines the generate_ordered_permutations function ~ 
+generate_ordered_permutations <- function(individuals, k) {
+  perm <- do.call(rbind, lapply(individuals, function(id1) {
+    data.frame(Sample_ID_1 = id1, Sample_ID_2 = individuals, K = k)}))
+  return(perm)}
+
+all_permutations <- do.call(rbind, lapply(seq_along(corres), function(i) {
+  individuals <- corres[[i]]$Sample_ID_1
+  k <- corres[[i]]$K[1]
+  generate_ordered_permutations(individuals, k)}))
+
+
+# Sets the Order column per K ~
+all_permutations <- all_permutations %>%
+  group_by(K) %>%
+  mutate(Order = match(Sample_ID_1, unique(Sample_ID_1))) %>%
+  ungroup()
+
+
+# Defines the reorder_fulldf function ~
+reorder_fulldf <- function(df, permutations) {
+  permutations$order <- seq_len(nrow(permutations))
+  merged <- merge(permutations, df, by = c("Sample_ID_1", "Sample_ID_2", "K"), all.x = TRUE)
+  reordered <- merged[order(merged$order), ]
+  reordered$order <- NULL
+  return(reordered)}
+
+
+# Splits fulldf and all_permutations by K ~
+split_fulldf <- split(fulldf, fulldf$K)
+split_permutations <- split(all_permutations, all_permutations$K)
+
+
+# Applies the reordering function to each subset of fulldf ~
+fulldfUp <- do.call(rbind, lapply(names(split_fulldf), function(k) {
+  reordered_df <- reorder_fulldf(split_fulldf[[k]], split_permutations[[k]])
+  reordered_df$Order <- split_permutations[[k]]$Order
+  return(reordered_df)}))
+
+
+# Sets factor levels for Sample_ID_1 & Sample_ID_2 per K ~ 
+fulldfUp <- fulldfUp %>%
+  group_by(K) %>%
+  mutate(
+    Sample_ID_1 = factor(Sample_ID_1, levels = unique(Sample_ID_1)),
+    Sample_ID_2 = factor(Sample_ID_2, levels = unique(Sample_ID_1))) %>%
+  ungroup()
+
+
 # Defines color palette and breaks ~
 color_palette <- c("#023858", "#ffffff", "#a50f15")
 nHalf <- 10
@@ -159,43 +228,9 @@ rb2 <- seq(Thresh, Max, length.out = nHalf + 1)[-1]
 rampbreaks <- c(rb1, rb2)
 
 
-# Sets factor levels for Sample_ID_1 and Sample_ID_2 based on orderInds ~
-#ordered_labels <- unique(fulldf$Sample_ID_1)
-#fulldf$Sample_ID_1 <- factor(fulldf$Sample_ID_1, levels = ordered_labels)
-#fulldf$Sample_ID_2 <- factor(fulldf$Sample_ID_2, levels = ordered_labels)
-
-
-# Initialize an empty list
-ordered_labels_list <- list()
-
-# Iterate over the correlation matrices to store the ordered labels for each K
-for (k in seq_along(corres)) {
-  ordered_labels <- rownames(corres[[k]])  # Get the ordered labels for each matrix
-  ordered_K <- unique(corres[[k]]$K)  # Get the K value
-  ordered_labels_list[[as.character(ordered_K)]] <- ordered_labels}
-
-
-# Split fulldf into a list of data frames by K
-split_dfs <- split(fulldf, fulldf$K)
-
-
-processed_dfs <- lapply(names(split_dfs), function(k) {
-                        df <- split_dfs[[k]]
-                        k_order <- as.character(k)
-                        specific_order <- ordered_labels_list[[k_order]]
-                        df$Sample_ID_1 <- factor(df$Sample_ID_1, levels = specific_order)
-                        df$Sample_ID_2 <- factor(df$Sample_ID_2, levels = specific_order)
-                        return(df)})
-
-unique(processed_dfs[[3]]$Sample_ID_1)
-
-
-# Combine the processed data frames while preserving factor levels by K
-fulldfUp <- rbindlist(processed_dfs)
-
-
 # Safely convert to numeric factor
 fulldfUp <- fulldfUp %>% mutate(Sample_ID_Factor = as.numeric(Sample_ID_1))
+
 
 # Calculate population positions
 population_positions <- fulldfUp %>%
@@ -204,69 +239,112 @@ population_positions <- fulldfUp %>%
   summarise(center = (min(Sample_ID_Factor) + max(Sample_ID_Factor)) / 2)
 
 
+# Corrects CHRType ~
+levels(fulldfUp$CHRType <- sub("Allosome", "Chromosome Z", fulldfUp$CHRType))
+
+
 # Reorders CHRType ~
 fulldfUp$CHRType <- factor(fulldfUp$CHRType, ordered = TRUE,
                            levels = c("Autosomes",
-                                      "Allosome"))
+                                      "Chromosome Z"))
 
 
-# Reorders K ~
-fulldfUp$K <- factor(fulldfUp$K, ordered = TRUE,
-                     levels = c("7",
-                                "6", 
-                                "5",
-                                "4",
-                                "3",
-                                "2"))
+# Function to set the Triangle column ~
+assign_triangle <- function(df) {
+  df <- df %>%
+        mutate(Sample_ID_1 = as.character(Sample_ID_1),
+               Sample_ID_2 = as.character(Sample_ID_2),
+               Pair = paste0(pmin(Sample_ID_1, Sample_ID_2), "_", pmax(Sample_ID_1, Sample_ID_2)),
+               Triangle = case_when(Sample_ID_1 == Sample_ID_2 ~ "Diagonal", !duplicated(Pair) ~ "Individual", duplicated(Pair) ~ "Population")) %>%
+        select(-Pair)
+  return(df)}
 
 
-# Creates heatmap ~
-evalAdmix_Plot <- 
-  ggplot(fulldfUp, aes(x = Sample_ID_1, y = Sample_ID_2, fill = as.numeric(Value))) +
-  geom_tile(linewidth = .15, colour = "#000000") +
-  scale_fill_gradientn(colors = rampcols, na.value = "#d6d6d6", breaks = rampbreaks, limits = c(-.3, .3)) +
-  scale_x_discrete(labels = function(x) {
-    labels <- rep("", length(x))
-    for (i in seq_along(population_positions$center)) {
-      labels[population_positions$center[i]] <- population_positions$Population_1[i]}
-    return(labels)}, expand = c(0, 0), drop = FALSE) +
-  scale_y_discrete(labels = fulldf$Sample_ID_2, expand = c(0, 0), drop = FALSE) +
-  facet_grid(K ~ ., scales = "free", space = "free") +
-  theme(panel.background = element_rect(fill = "#ffffff"),
-        panel.border = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.spacing = unit(1, "lines"),
-        legend.position = "right",
-        legend.key = element_blank(),
-        legend.background = element_blank(),
-        legend.margin = margin(t = 0, b = 0, r = 15, l = 15),
-        legend.box = "vertical",
-        legend.box.margin = margin(t = 20, b = 30, r = 0, l = 0),
-        axis.title = element_blank(),
-        axis.text.x = element_text(color = "#000000", family = "Optima", size = 12, face = "bold", angle = 45, vjust = 1, hjust = 1),
-        axis.text.y = element_text(color = "#000000", family = "Optima", size = 9, face = "bold"),
-        axis.ticks.x = element_blank(),
-        axis.ticks.y = element_line(color = "#000000", linewidth = .15),
-        strip.text = element_text(colour = "#000000", size = 22, face = "bold", family = "Optima"),
-        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .15),
-        axis.line = element_line(colour = "#000000", linewidth = .15)) +
-  guides(fill = guide_legend(title = "", title.theme = element_text(size = 16, face = "bold"),
-                             label.theme = element_text(size = 15), ncol = 1, reverse = TRUE))
+# Applies the assign_triangle function per K ~
+fulldfUp <- fulldfUp %>%
+            group_by(K) %>%
+  do({df <- assign_triangle(.)
+      df$K <- unique(df$K)
+      df}) %>%
+  ungroup()
 
 
+# Defines plotting function ~ 
+plot_for_K <- function(k_value, facet_type = "default", show_x_labels = FALSE, is_last_plot = FALSE) {
+  subset_data <- fulldfUp %>%
+    filter(K == k_value) %>%
+    mutate(
+      Sample_ID_1_ordered = factor(Sample_ID_1, levels = unique(Sample_ID_1[order(Order)])),
+      Sample_ID_2_ordered = factor(Sample_ID_2, levels = unique(Sample_ID_2[order(Order)])))
+  
+  facet_formula <- if (facet_type == "CHRType") {as.formula("K ~ CHRType")}
+  else {as.formula("K ~ .")}
+  
+  ggplot(subset_data, aes(x = Sample_ID_1_ordered, y = Sample_ID_2_ordered, fill = as.numeric(Value))) +
+         geom_tile(data = subset(subset_data, Triangle == "Population"), linewidth = 0) +
+         geom_tile(data = subset(subset_data, Triangle != "Population"), linewidth = 0.15, colour = "#000000") +
+         scale_fill_gradientn(colors = rampcols, na.value = "#d6d6d6", breaks = c(-.3, 0, .3), rampbreaks, limits = c(-.3, .3)) +
+         scale_x_discrete(labels = if (show_x_labels) {
+        function(x) {
+          labels <- rep("", length(x))
+          for (i in seq_along(population_positions$center)) {
+            labels[population_positions$center[i]] <- population_positions$Population_1[i]
+          }
+          labels
+        }
+      } else NULL,
+      expand = c(0, 0),
+      drop = FALSE) +
+    scale_y_discrete(expand = c(0, 0), drop = FALSE) +
+    facet_grid(facet_formula, scales = "free", space = "free") +
+    theme(panel.background = element_rect(fill = "#ffffff"),
+          panel.border = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.spacing = unit(1, "lines"),
+          legend.position = ifelse(is_last_plot, "right", "none"),
+          legend.key = element_blank(),
+          legend.background = element_blank(),
+          legend.margin = margin(t = 0, b = 0, r = 15, l = 15),
+          legend.box = "vertical",
+          legend.box.margin = margin(t = 20, b = 30, r = 0, l = 0),
+          axis.title = element_blank(),
+          axis.text.x = if (show_x_labels) {element_text(color = "#000000", family = "Optima", size = 12, face = "bold", angle = 45, vjust = 1, hjust = 1)}
+                        else element_blank(),
+      axis.text.y = element_text(color = "#000000", family = "Optima", size = 9, face = "bold"),
+      axis.ticks.x = element_blank(),
+      axis.ticks.y = element_line(color = "#000000", linewidth = 0.15),
+      strip.text.x = element_text(colour = "#000000", size = 22, face = "bold", family = "Optima"),
+      strip.text.y = element_text(colour = "#000000", size = 18, face = "bold", family = "Optima"),
+      strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = 0.15),
+      axis.line = element_line(colour = "#000000", linewidth = 0.15)) +
+    guides(fill = guide_colourbar(title = "", title.theme = element_text(size = 16, face = "bold"),
+                                  label.theme = element_text(size = 10, face = "bold"), label.position = "right",
+                                  barwidth = 1.25, barheight = 18, order = 1, frame.linetype = 1, frame.colour = NA,
+                                  ticks.colour = NA, direction = "vertical", even.steps = TRUE,
+                                  draw.ulim = TRUE, draw.llim = TRUE))}
 
-# Saves plot (Boxplot) ~
-ggsave(evalAdmix_Plot, file = "Y150239Genomics--evalAdmix.pdf",
-       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 14, height = 38, dpi = 600)
+
+# Generate the facets for each K ~
+unique_K_values <- rev(unique(fulldfUp$K))
+plots <- lapply(seq_along(unique_K_values), function(i) {
+  facet_type <- if (i == 1) "CHRType" else "default"
+  show_x_labels <- (i == length(unique_K_values))
+  is_last_plot <- (i == 2)
+  plot_for_K(unique_K_values[i], facet_type = facet_type, show_x_labels = show_x_labels, is_last_plot = is_last_plot)})
+
+
+# Creates panel ~
+combined_plot <- wrap_plots(plots, ncol = 1)
+
+
+# Saves panel ~
+ggsave(combined_plot, file = "Y150239Genomics--evalAdmix.pdf",
+       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 14, height = 20, dpi = 600)
+ggsave(combined_plot, file = "Y150239Genomics--evalAdmix.png",
+       limitsize = FALSE, scale = 1, width = 14, height = 20, dpi = 600)
 
 
 #
 ##
 ### The END ~~~~~
-
-# Check factor levels for each K after recombination
-#for (k in unique(fulldfUp$K)) {
-#  print(paste("K =", k))
-#  print(levels(fulldfUp$Sample_ID_1[fulldfUp$K == k]))
-#  print(levels(fulldfUp$Sample_ID_2[fulldfUp$K == k]))}
