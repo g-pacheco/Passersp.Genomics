@@ -11,8 +11,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads packages ~
-pacman::p_load(tidyverse, scales, reshape2, lemon, patchwork, GenomicRanges, txdbmaker, rtracklayer,
-               GenomicFeatures, clusterProfiler, org.Hs.eg.db, AnnotationDbi, biomaRt, AnnotationHub)
+pacman::p_load(tidyverse, scales, reshape2, ggh4x, lemon, patchwork, GenomicRanges, txdbmaker, rtracklayer, GOstats, GSEABase, outliers, clusterProfiler)
 
 
 # Imports weights ~
@@ -134,34 +133,51 @@ generate_dynamic_breaks_and_labels <- function(min_val, max_val) {
 patterns <- unique(fulldfUp$CHR)
 
 
-# Creates an empty list to store the filtered results ~ 
-filtered_positions <- list()
+# Creates an empty lists to store the filtered results ~ 
+filtered_positions_upper <- list()
+filtered_positions_lower <- list()
+filtered_positions_outliers <- list()
 
 
-# Loop through each CHR
+# Sets function ~ 
 for (x in patterns) {
   subset_df <- subset(fulldfUp, CHR == x)
   max_mid <- max(as.numeric(subset_df$Mid), na.rm = TRUE)
   min_mid <- min(as.numeric(subset_df$Mid), na.rm = TRUE)
   breaks_and_labels <- generate_dynamic_breaks_and_labels(min_mid, max_mid)
   Mean_Delta <- mean(as.numeric(subset_df$Value)[subset_df$Estimation == "Delta" & as.numeric(subset_df$Value) >= 0], na.rm = TRUE)
-  Percentile_95 <- quantile(as.numeric(subset_df$Value)[subset_df$Estimation == "Delta" & as.numeric(subset_df$Value) >= 0], probs = .95, na.rm = TRUE)
-  Percentile_99 <- quantile(as.numeric(subset_df$Value)[subset_df$Estimation == "Delta" & as.numeric(subset_df$Value) >= 0], probs = .99, na.rm = TRUE)
-  Count_95 <- sum(as.numeric(subset_df$Value)[subset_df$Estimation == "Delta" & as.numeric(subset_df$Value) >= 0] >= Percentile_95, na.rm = TRUE)
-  Count_99 <- sum(as.numeric(subset_df$Value)[subset_df$Estimation == "Delta" & as.numeric(subset_df$Value) >= 0] >= Percentile_99, na.rm = TRUE)
-  filtered_subset <- subset(subset_df, Estimation == "Delta" & as.numeric(Value) >= 0 & as.numeric(Value) >= Percentile_95)
-  filtered_subset$Start <- as.numeric(filtered_subset$Mid) - 1
-  filtered_subset$End <- as.numeric(filtered_subset$Mid)
-  filtered_subset <- filtered_subset[, c("CHR", "Start", "End", "Value")]
-  filtered_positions[[x]] <- filtered_subset
-  
-  
-# Combines the list into a single data frame ~
-filtered_positions_df <- do.call(rbind, filtered_positions)
+  delta_subset <- subset(subset_df, Estimation == "Delta" & !is.na(Value))
+  if (nrow(delta_subset) > 0) {
+    delta_values <- as.numeric(delta_subset$Value)
+    Q1 <- quantile(delta_values, .25, na.rm = TRUE)
+    Q3 <- quantile(delta_values, .75, na.rm = TRUE)
+    IQR <- Q3 - Q1
+    lower_fence <- Q1 - 1.5 * IQR
+    upper_fence <- Q3 + 1.5 * IQR
+    upper_subset <- subset(delta_subset, delta_values > upper_fence)
+    lower_subset <- subset(delta_subset, delta_values < lower_fence)
+    outlier_subset <- subset(delta_subset, delta_values < lower_fence | delta_values > upper_fence)
+    for (df in list(upper_subset, lower_subset, outlier_subset)) {
+      df$Start <- as.numeric(df$Mid) - 1
+      df$End <- as.numeric(df$Mid)
+      df$Start <- as.numeric(df$Start)
+      df$End <- as.numeric(df$End)
+      df <- df[, c("CHR", "Start", "End", "Value")]}
+    filtered_positions_upper[[x]] <- upper_subset
+    filtered_positions_lower[[x]] <- lower_subset
+    filtered_positions_outliers[[x]] <- outlier_subset}
+
+
+# Combines filtered positions into separate data frames ~
+filtered_positions_upper_df <- do.call(rbind, filtered_positions_upper)
+filtered_positions_lower_df <- do.call(rbind, filtered_positions_lower)
+filtered_positions_outliers_df <- do.call(rbind, filtered_positions_outliers)
   
 
 # Saves the BED file with the filtered positions ~
-write.table(filtered_positions_df, "Y150239Genomics--TWISST_FilteredPositions95.bed", sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+write.table(filtered_positions_outliers_df, "Y150239Genomics--TWISST_Outliers.bed", sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+write.table(filtered_positions_upper_df, "Y150239Genomics--TWISST_Upper.bed", sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
+write.table(filtered_positions_lower_df, "Y150239Genomics--TWISST_Lower.bed", sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
 
 
 # Creates Y150239 plot ~
@@ -266,8 +282,7 @@ ggplot() +
         axis.title.y = element_text(family = "Optima", size = 36, face = "bold", color = "#000000", margin = margin(t = 0, r = 40, b = 0, l = 15)),
         axis.text = element_text(family = "Optima", size = 24, colour = "#000000", face = "bold"),
         axis.ticks = element_line(color = "#000000", linewidth = .3),
-        axis.line.x = element_line(colour = "#000000", linewidth = .3),
-        axis.line.y = element_line(colour = "#000000", linewidth = .3))
+        axis.line = element_line(colour = "#000000", linewidth = .3))
   
   
 # Arranges the plots into a single panel ~
@@ -281,305 +296,282 @@ ggsave(paste("Y150239Genomics--TWISST_SW150_FillArea_", x, ".pdf", sep = ""), pl
 #       limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
 
 
-# Loads protein dataset ~
-HouseSparrow_GOTerms <- read.delim("./GOTerms/house_sparrow_genome_assembly-18-11-14_masked.Protein_gffreads.fasta.tsv", header = FALSE, sep = "\t")
-HouseSparrow_GOTerms <- HouseSparrow_GOTerms[, c(1, 3, 4, 5, 14)]
-colnames(HouseSparrow_GOTerms) <- c("Gene_ID", "Gene_Size", "Analysis_Type", "Accession", "GOTerms")
+# Creates Delta boxplots per CHR ~
+Delta_Boxplots <- 
+  ggplot(data = fulldfUp %>% filter(Estimation == "Delta"), 
+         aes(x = CHR, y = as.numeric(Value)), fill = "#000000") +
+  geom_boxplot(outlier.shape = 21, alpha = .7) +
+  scale_y_continuous("Delta", 
+                     labels = scales::percent_format(scale = 1), 
+                     expand = c(0.02, 0)) +
+  scale_x_discrete("Chromosome", labels = y_strip_labels) +
+  theme(panel.background = element_rect(fill = "#ffffff"),
+        panel.border = element_blank(),
+        panel.grid.major = element_line(color = "#dddddd", linetype = "dashed"),
+        panel.grid.minor = element_blank(),
+        legend.position = "none",
+        axis.title = element_text(family = "Optima", face = "bold", size = 18),
+        axis.text.x = element_text(family = "Optima", size = 12, face = "bold", angle = 45, hjust = 1),
+        axis.text.y = element_text(family = "Optima", size = 12, face = "bold"),
+        axis.ticks = element_line(color = "#000000", linewidth = .3),
+        axis.line = element_line(colour = "#000000", linewidth = .3))
 
 
-# Extract accession and GO terms columns (adjust column names based on your file)
-accession_go <- HouseSparrow_GOTerms %>%
-                filter(GOTerms != "-" & GOTerms != "") %>%
-                dplyr::select(Accession, GOTerms)
+# Save Delta boxplots as a PDF ~
+ggsave(plot = Delta_Boxplots, "Y150239Genomics--TWISST_Delta_Boxplots_Per_CHR.pdf",
+       device = cairo_pdf, limitsize = FALSE, width = 18, height = 8, dpi = 600)
 
 
-# Split multiple GO terms in the GOTerms column into separate rows
-cleaned_data <- accession_go %>%
-                tidyr::separate_rows(GOTerms, sep = "\\|")
-
-
-go_term_freq <- table(cleaned_data$GOTerms)
-
-
-# Convert the result to a data frame
-go_term_freq_df <- as.data.frame(go_term_freq)
-
-
-# Perform GO enrichment analysis (assuming you have a list of GO terms)
-go_enrich <- enrichGO(gene = cleaned_data$GOTerms,
-                      OrgDb = org.Tguttata.eg.db,
-                      keyType = "GO",
-                      ont = "ALL",
-                      pvalueCutoff = 0.05)
-
-
-# Collapses GO Terms by GeneID ~ 
-HouseSparrow_GOTerms <- HouseSparrow_GOTerms %>%
-                        filter(GOTerms != "-" & GOTerms != "") %>%
-                        group_by(Gene_ID) %>%
-                        summarise(GOTerms = paste(unique(GOTerms), collapse = "|"))
-
-
-# Converts filtered_positions_df to GRanges object ~
-Regions_GR <- GRanges(seqnames = filtered_positions_df$CHR, ranges = IRanges(start = filtered_positions_df$Start, end = filtered_positions_df$End))
+###################################################################################################################################################################################
+###################################################################################################################################################################################
 
 
 # Imports the House Sparrow annotation ~
 HouseGFF <- import("house_sparrow.gff")
 
 
-# Finds gene overlaps ~
-GeneOverlaps <- findOverlaps(HouseGFF, Regions_GR)
-
-
-# Extract genes within the ranges
-GenesInRange <- HouseGFF[queryHits(GeneOverlaps)]
-GenesInRange_df <- data.frame(Chromosome = as.character(seqnames(GenesInRange)),
-                              Start = start(GenesInRange),
-                              End = end(GenesInRange),
-                              Gene_ID = mcols(GenesInRange)$ID,
-                              Gene_Name = mcols(GenesInRange)$Name,
-                              Type = mcols(GenesInRange)$type)
-
-
-# Merges data frames ~
-fulldf <- merge(HouseSparrow_GOTerms, GenesInRange_df, by = "Gene_ID")
-fulldf <- fulldf %>%
-          distinct(Gene_ID, .keep_all = TRUE)
-
-
-# Proceed with the select and summarise steps
-InGroupGOTerms <- fulldf %>%
-  tidyr::separate_rows(GOTerms, sep = "\\|") %>%
-  dplyr::select(Gene_ID, GOTerms) %>%
-  group_by(GOTerms) %>%
-  summarise(Genes = paste(Gene_ID, collapse = ", "), .groups = "drop")
-
-
-
-# Assuming 'fulldf' is your data frame and it has a 'Gene_ID' column
-gene_ids <- unique(fulldf$Gene_ID)
-
-# Write the gene IDs to a file 'gene_list.txt'
-writeLines(gene_ids, "gene_list.txt")
-
-
-# Split the GOTerms column into individual terms, and count their frequencies
-go_term_freq <- table(unlist(strsplit(InGroupGOTerms$GOTerms, "\\|")))
-
-
-# Inspect how many GO terms each gene has
-table(sapply(strsplit(InGroupGOTerms$GOTerms, "\\|"), length))
-
-
-# Split the GOTerms into separate rows
-split_goterms <- unlist(strsplit(InGroupGOTerms$GOTerms, "\\|"))
-
-
-head(go_term_freq)
-
-go_term_freq <- table(split_goterms)
-
-
-length(unique(split_goterms))
-
-
-head(split_goterms)
-
-
-# Plot GO term frequencies
-barplot(go_term_freq, las = 2, main = "GO Term Frequency", col = "lightblue", cex.names = 0.7)
-
-
-head(go_term_freq)
-
-
-
-
-
-# Imports House annotation ~
-HouseAnnot_File <- "house_sparrow.gff"
-HouseAnnot_Data <- import(HouseAnnot_File, format = "gff")
-
-
-# Gets Genes from House Annotation ~
-HouseGenes <- subset(HouseAnnot_Data, type == "gene")
-
-
-# Extract gene IDs from the House Annotation ~
-HouseGenes_IDs <- mcols(HouseGenes)$ID
-
-
-# Get overlapping gene indices and gene IDs
-overlapping_gene_ids <- HouseGenes_simple_df$Gene_ID[subjectHits(overlap_hits)]
-
-# Perform GO enrichment analysis using clusterProfiler
-go_results <- enrichGO(gene = mapped_genes$ensembl_gene_id, OrgDb = org.Hs.eg.db, keyType = "ENSEMBL", ont = "BP", pAdjustMethod = "BH", pvalueCutoff = .05)
-
-
-
-# Imports Zebra Annotation ~
-ZebraAnnot_File <- "Taeniopygia_guttata.bTaeGut1_v1.p.113.gff3"
-ZebraAnnot_Data <- import(ZebraAnnot_File, format = "gff3")
-
-
-# Gets Genes from Zebra Annotation ~
-ZebraGenes <- subset(ZebraAnnot_Data, type == "gene")
-
-
-# Extract gene IDs from the Zebra Annotation ~
-ZebraGenes_IDs <- mcols(ZebraGenes)$ID
-
-# Normalize Zebra Finch Gene IDs by removing the 'gene:' prefix
-ZebraGenes_IDs_Normalised <- sub("^gene:", "", ZebraGenes_IDs)
-length(ZebraGenes_IDs_Normalised)
-
-head(HouseGenes_IDs)
-head(ZebraGenes_IDs)
-
-# Identify common genes between house sparrow and zebra finch
-CommonGenes <- intersect(HouseGenes_IDs, ZebraGenes_IDs_Normalised)
-length(CommonGenes)
-
-# Identify genes that are unique to house sparrow
-house_unique_genes <- setdiff(HouseGenes_IDs, ZebraGenes_IDs)
-length(house_unique_genes)
-
-# Identify genes that are unique to zebra finch
-zebra_unique_genes <- setdiff(ZebraGenes_IDs, HouseGenes_IDs)
-length(zebra_unique_genes)
-
-
-
-ensembl_metazoa <- useMart("metazoa_mart", host = "https://metazoa.ensembl.org")
-datasets <- listDatasets(ensembl)
-
-datasets <- datasets[grep("zebra finch|Taeniopygia guttata", datasets$description, ignore.case = TRUE), ]
-
-listMarts()
-
-head(filtered_positions_df)
-
-
-# Simplify the data frame to only include essential columns
-HouseGenes_df <- HouseGenes_df[, c("Chromosome", "Start", "End", "Gene_ID")]
-
-
-# Connect to Ensembl (for zebra finch)
-ensembl <- useMart("ensembl", dataset = "bTaeGut1_v1.p", host = "https://ensembl.org")
-
-
-# Retrieve GO terms for zebra finch genes
-zebra_finch_go <- getBM(attributes = c("ensembl_gene_id", "go_id", "name_1006"),
-                        mart = ensembl)
-
-
-# Connect to Ensembl Metazoa mart
-ensembl_metazoa <- useMart("metazoa_mart", host = "https://metazoa.ensembl.org")
-
-# List available datasets to check if house sparrow is present
-datasets <- listDatasets(ensembl_metazoa)
-head(datasets)
-
-
-
-colnames(Layka) <- c("SeqName", "Source", "Feature", "Start", "End", 
-                      "Score", "Strand", "Frame", "Attribute")
-
-
-LaykaUp <- Layka %>% 
-  filter(Feature == "gene") %>% 
-  separate(Attribute, into = c("gene_id", "gene_name", "gene_biotype", "gene_info"), sep = ";") %>% 
-  select(SeqName, Source, Feature, Start, End, Score, Strand, Frame, gene_id, gene_name, gene_biotype, gene_info) %>%
-  filter(gene_info != "Note=")
-
-
-LaykaUp$Genes <- sub("^Note=Similar to ([^:]+):.*", "\\1", LaykaUp$gene_info)
-
-
-LaykaUpUp <- LaykaUp %>% 
-  select(SeqName, Source, Feature, Start, End, Score, Strand, Frame, Genes)
-
-
-# Filter rows not containing "Note=Similar"
-LaykaUpUpUp <- LaykaUpUp %>%
-  filter(!grepl("Note=", Genes))
-
-
-# Add "ID=" in front of each pattern in the 'attributes' column
-LaykaUpUpUp$Genes <- paste0("ID=", LaykaUpUpUp$Genes)
-
-
-# Remove column names
-colnames(LaykaUpUpUp) <- NULL
-
-
-# Save data frame as .gff file
-write.table(LaykaUpUpUp, file = "Layka.gff", sep = "\t", quote = FALSE, row.names = FALSE, col.names = FALSE)
-
-
-# Imports GTF file ~ 
-txdb <- makeTxDbFromGFF("Layka.gff", format = "gff")
-
-
-# Retrieves genes ~
-gene_info <- genes(txdb)
-
-
-# Converts data frame with filtered positions to a GRanges object ~
-GR <- with(filtered_positions_df,
-           GRanges(seqnames = CHR,
-                   ranges = IRanges(start = Start, end = End),
-                   metadata = list(Value = Value)))
-
-
-# Finds overlapping genes ~ 
-GeneHits <- findOverlaps(GR, genes(txdb))
-
-
-# Extracts gene information based on overlaps ~
-OverlappingGenes <- genes(txdb)[subjectHits(GeneHits)]
-
-
-# Extracts relevant information from overlapping genes
-OverlappingGenesInfo <- mcols(OverlappingGenes)
-
-
-# Extract gene IDs or symbols from overlapping genes info
-GeneIDs <- OverlappingGenesInfo$gene_id
-
-
-# Ensures that genes in GeneIDs are unique ~
-GeneIDs <- unique(GeneIDs)
-
-
-# Performs GO enrichment analysis ~ 
-GOResults <- enrichGO(gene = GeneIDs, 
-                      OrgDb = org.Hs.eg.db, 
-                      keyType = "SYMBOL",
-                      ont = "BP", 
-                      pvalueCutoff = .05)
-
-
-keytypes(org.Hs.eg.db)
-
-
-# Load the .gff file
-gff_file <- "house_sparrow.gff"
-gff_data <- import(gff_file)
-
-# Convert to a data frame for easier inspection
-gff_df <- as.data.frame(gff_data)
-
-# Inspect the first few rows to see the attributes
-head(gff_df)
-
-
-attributes_column <- gff_df$attributes
-
-
-# Imports GTF file ~ 
-txdb <- makeTxDbFromGFF("house_sparrow.gff", format = "gff")
+# Loads GOTerm table ~
+CercaGeneIDs_GOTerms <- read.delim("./Cerca/CercaGeneIDs-GOTerms.tsv", header = FALSE, sep = "\t", col.names = c("Gene_ID", "GO_Term"))
+GOTerms <- read.delim("./GOTerms/house_sparrow_genome_assembly-18-11-14_masked.Protein_gffreads.fasta.Edited.tsv", header = FALSE, sep = "\t", col.names = c("Gene_ID", "GO_Term"))
+GOTermsOrtho <- read.delim("./GOTerms/Orthogroups.tsv", header = TRUE, sep = "\t", col.names = c("Orthogroup", "Gene_ID_Zebra", "Gene_ID_House"))
+
+
+# Edits GOTerms lightly ~
+GOTerms <- GOTerms |> 
+           mutate(GO_Term = GO_Term |> 
+           str_replace_all("\\(InterPro\\)", "") |> 
+           str_replace_all("\\|", ", "),
+           Gene_ID = str_replace_all(Gene_ID, "-.*", ""))
+
+
+# Creates GOTermsWithData  ~
+GOTermsWithData <- GOTerms %>%
+                   filter(GO_Term != "-") %>%
+                   separate_rows(GO_Term, sep = ", ") %>%
+                   mutate(Evidence = "IEA") %>%
+                   dplyr::select(GO_Term, Evidence, Gene_ID)
+
+
+# Creates the GoFrame ~
+goFrame <- GOFrame(as.data.frame(GOTermsWithData, organism = "Passerd"))
+goAllFrame <- GOAllFrame(goFrame)
+GSC <- GeneSetCollection(goAllFrame, setType = GOCollection())
+
+
+# Sets Gene Universe ~
+GenesUniverse <- (unique(GOTerms$Gene_ID))
+
+
+# Defines categories
+categories <- c("upper", "lower", "outliers")
+
+
+# Initializes lists ~ 
+Regions_GR_list <- list()
+GeneOverlaps_list <- list()
+GenesInRange_df_list <- list()
+GenesInRangeOnlyGenes_df_list <- list()
+FocalGenes_list <- list()
+GOTermsOrtho_Edited_list <- list()
+GO_Params_list <- list()
+GO_Enrich_list <- list()
+GO_Enrich_Top50_list <- list()
+
+
+for (cat in categories) {df_name <- paste0("filtered_positions_", cat, "_df")
+                         Regions_GR_list[[cat]] <- GRanges(seqnames = get(df_name)$CHR,
+                                                   ranges = IRanges(start = as.numeric(get(df_name)$Start),
+                                                   end = as.numeric(get(df_name)$End)))
+  
+  # Finds overlaps ~
+  GeneOverlaps_list[[cat]] <- findOverlaps(HouseGFF, Regions_GR_list[[cat]])
+  
+  
+  # Extracts genes ~
+  GenesInRange <- HouseGFF[queryHits(GeneOverlaps_list[[cat]])]
+  GenesInRange_df_list[[cat]] <- data.frame(
+                                 Chromosome = as.character(seqnames(GenesInRange)),
+                                 Start = start(GenesInRange),
+                                 End = end(GenesInRange),
+                                 Gene_ID = mcols(GenesInRange)$ID,
+                                 Gene_Name = mcols(GenesInRange)$Name,
+                                 Type = mcols(GenesInRange)$type)
+  GenesInRange_df_list[[cat]]$Gene_ID <- sub("-.*", "", GenesInRange_df_list[[cat]]$Gene_ID)
+  
+  
+  # Filters for genes only ~
+  GenesInRangeOnlyGenes_df_list[[cat]] <- GenesInRange_df_list[[cat]] %>%
+                                          filter(Type == "gene") %>%
+                                          unique()
+  
+  
+  # Extracts focal genes ~
+  FocalGenes_list[[cat]] <- as.data.frame(GenesInRangeOnlyGenes_df_list[[cat]]$Gene_ID)
+  colnames(FocalGenes_list[[cat]]) <- "Gene_ID"
+  
+  
+  # Saves the lists of Focal Genes ~
+  write.table(FocalGenes_list[[cat]], file = paste0("Y150239Genomics--GOAnalysis--FocalGenes_", cat, ".csv"),
+              sep = "\t", quote = FALSE, row.names = FALSE)
+  
+  
+  # Edits GOTermsOrtho ~ 
+  GOTermsOrtho_Edited_list[[cat]] <- GOTermsOrtho %>%
+                                     filter(Gene_ID_Zebra != "" & Gene_ID_House != "") %>%
+                                     dplyr::select(Orthogroup, Gene_ID_House, Gene_ID_Zebra) %>%
+                                     mutate(Gene_ID_House = str_replace_all(Gene_ID_House, "-.*", "")) %>%
+                                     mutate(Gene_ID_House = strsplit(Gene_ID_House, ", ")) %>%
+                                     unnest(Gene_ID_House) %>%
+                                     filter(str_detect(Gene_ID_House, paste(FocalGenes_list[[cat]]$Gene_ID, collapse = "|"))) %>%
+                                     separate_rows(Gene_ID_Zebra, sep = ", ") %>%
+                                     dplyr::select(Gene_ID_Zebra)
+  
+  
+  # Saves GOTermsOrtho ~
+  write.table(GOTermsOrtho_Edited_list[[cat]], file = paste0("Y150239Genomics--GOAnalysis--GOTermsOrtho_Edited_", cat, ".csv"),
+              sep = "\t", quote = FALSE, row.names = FALSE)
+  
+  
+  # Sets GO Analysis parameters ~
+  GO_Params_list[[cat]] <- GSEAGOHyperGParams(name = paste0("Passerd GO Enrich - ", cat),
+                                              geneSetCollection = GSC,
+                                              geneIds = FocalGenes_list[[cat]]$Gene_ID,
+                                              universeGeneIds = GenesUniverse,
+                                              ontology = "BP",
+                                              pvalueCutoff = .05,
+                                              conditional = FALSE,
+                                              testDirection = "over")
+  
+  
+  # Runs GO analysis ~
+  Over <- hyperGTest(GO_Params_list[[cat]])
+  
+  
+  # Stores GO enrichment results ~
+  GO_Enrich_list[[cat]] <- as.data.frame(summary(Over))
+  
+  
+  # Saves full GO enrichment table ~
+  GO_Enrich_list[[cat]] %>% arrange(Pvalue) %>%
+                            write.csv(file = paste0("Y150239Genomics--GOAnalysis_", cat, ".csv"))
+  
+  
+  # Get top 50 enriched terms
+  GO_Enrich_Top50_list[[cat]] <- GO_Enrich_list[[cat]] %>%
+                                 arrange(Pvalue) %>%
+                                 head(50)
+  
+  
+  # Defines capitalization function ~
+  capitalise_words <- function(text) {
+    words <- str_split(text, " ")[[1]]
+    exclude_patterns <- c("of", "to", "and", "the", "in")
+    patterns_map <- setNames(exclude_patterns, tolower(exclude_patterns))
+    process_hyphenated <- function(word) {
+      parts <- str_split(word, "-", simplify = TRUE)
+      parts <- sapply(seq_along(parts), function(i) {
+        part <- parts[i]
+        if (i > 1) tolower(part) else str_to_title(part)})
+      str_c(parts, collapse = "-")}
+    words <- sapply(words, function(word) {
+      word_lower <- tolower(word)
+      if (word_lower %in% names(patterns_map)) {
+        patterns_map[[word_lower]]
+      } else if (str_detect(word, "-")) {
+        process_hyphenated(word)
+      } else {
+        str_to_title(word)}})
+    str_c(words, collapse = " ")}
+  GO_Enrich_Top50_list[[cat]]$Term <- sapply(GO_Enrich_Top50_list[[cat]]$Term, capitalise_words)
+  GO_Enrich_Top50_list[[cat]]$Category <- cat}
+
+
+# Combines GOEnrich_Top50 results ~
+GOEnrich_Top50_combined <- do.call(rbind, GO_Enrich_Top50_list)
+
+
+# Identifies native rows in GOEnrich_Top50_combined ~
+original_rows <- GOEnrich_Top50_combined %>%
+                 mutate(Count = as.character(Count), 
+                 Size = as.character(Size),
+                 is_expanded = FALSE)
+
+
+# Gets expands rows ~
+expanded_rows <- GOEnrich_Top50_combined %>%
+                 distinct(Term) %>%
+                 crossing(Category = unique(GOEnrich_Top50_combined$Category)) %>%
+                 anti_join(original_rows, by = c("Term", "Category")) %>%
+                 mutate(Pvalue = NA, Count = "", Size = "", is_expanded = TRUE)
+
+
+# Combines native and expanded rows ~
+expanded_df <- bind_rows(original_rows, expanded_rows) %>%
+               select(-is_expanded)
+
+
+# Ensures column order matches original ~
+expanded_df <- expanded_df %>% 
+               select(names(GOEnrich_Top50_combined)) %>%
+               arrange(desc(Term))
+
+
+# Reorders Category ~
+expanded_df$Category <- factor(expanded_df$Category, ordered = TRUE,
+                               levels = c("lower",
+                                          "upper",
+                                          "outliers"))
+
+# Saves file ~
+write.csv(expanded_df, file = "Y150239Genomics--GOAnalysis_Top50_Combined.csv", row.names = FALSE)
+
+
+# Defines y-strip facet labels ~
+y_strip_labels <- c("outliers" = "All Outliers",
+                    "upper" = "Upper Bound",
+                    "lower" = "Lower Bound")
+
+
+# Creates GoAnalysis plot ~
+GOAnalysis_Plot <-
+ggplot(expanded_df, aes(x = 1, y = Term)) +
+  geom_tile(aes(fill = -log(Pvalue), width = 4), colour = "#000000") +
+  geom_text(aes(label = ifelse(Count != "" & Size != "", paste(Count, "/", Size), "")), color = "#000000", size = 3) +
+  coord_fixed() +
+  scale_fill_gradient(low = "#e5f5f9", high = "#238b45", na.value = "#FAFAFA",) +
+  facet_nested(. ~ Category, labeller = labeller(Category = y_strip_labels),
+               strip = strip_nested(text_x = elem_list_text(size = 12, family = "Optima", face = "bold", angle = 90),
+                                    background_x = elem_list_rect(fill = "#FAFAFA", colour = "#000000", linewidth = .2),
+                                    by_layer_x = TRUE)) +
+  theme(panel.background = element_rect(fill = "#ffffff"),
+        panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(.25, "lines"),
+        legend.position = "right",
+        legend.box.margin = margin(0, 0, 0, 25),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(family = "Optima", color = "#000000", size = 16, face = "bold"),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(family = "Optima", color = "#000000", size = 8.5, face = "bold"),
+        axis.ticks.x = element_blank(),
+        axis.ticks.y = element_line(color = "#000000", linewidth = .2)) +
+  guides(fill = guide_colourbar(title = "Pvalue (-log)", title.theme = element_text(size = 12, family =  "Optima", face = "bold"),
+                                label.theme = element_text(size = 10, family =  "Optima", face = "bold"), label.position = "right",
+                                barwidth = 1.25, barheight = 12, order = 1, frame.linetype = 1, frame.colour = NA,
+                                ticks.colour = "#000000", direction = "vertical", even.steps = TRUE,
+                                draw.ulim = TRUE, draw.llim = TRUE))
+
+
+# Saves plot ~
+ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis_Tukey.pdf",
+       device = cairo_pdf, limitsize = FALSE, width = 12, height = 15, scale = 1, dpi = 600)
+ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis_Tukey.png",
+       limitsize = FALSE, width = 12, height = 15, scale = 1, dpi = 600)
+
+
+###################################################################################################################################################################################
+###################################################################################################################################################################################
 
 
 # Creates plot ~
@@ -722,10 +714,3 @@ ggsave(Weights_Line_Plot, file = "Meerkerkgenomics--TWISST_WithMeerkerk_LineReal
 #
 ##
 ### The END ~~~~~
-
-#fulldf_collapsed <- fulldf %>%
-#                    group_by(Gene_ID, Chromosome, Start, End, Gene_Name, Type) %>%
-#                    summarize(GOTerms = paste(unique(GOTerms), collapse = "|"), .groups = "drop")
-
-#Wlgz[[k]]$CHR <- gsub("AllSamples_bcftools.raw.vcf.Filtered.AllCHRs.NoKinship.NoITA.WithTreeSparrow.WithMeerkerk.Phased.MAFfiltered.", "", Wlistgz[k])
-#Wlgz[[k]]$CHR <- gsub(".SW50.Weights.csv.gz", "", Wlgz[[k]]$CHR)}

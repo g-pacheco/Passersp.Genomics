@@ -1,23 +1,23 @@
 plotCorRes <- function(cor_mat, pop=NULL, ord=NULL, superpop=NULL,
                        title="Correlation of residuals", min_z=NA,max_z=NA, 
-                       cex.main=1, cex.lab=1, cex.legend=1, color_palette=c("#001260", "#EAEDE9", "#601200"),
-                       pop_labels = c(T,T), plot_legend = T, adjlab = 0.05, rotatelabpop=0, rotatelabsuperpop=0,lineswidth=1, lineswidthsuperpop=2,
-                       adjlabsuperpop=0.16, cex.lab.2 = 1){
+                       cex.main=1.5, cex.lab=1.5, cex.legend=1.5, color_palette=c("#001260", "#EAEDE9", "#601200"),
+                       pop_labels = c(T,T), plot_legend = T, adjlab = 0.1, rotatelabpop=0, rotatelabsuperpop=0,lineswidth=1, lineswidthsuperpop=2,
+                       adjlabsuperpop=0.16,cex.lab.2 = 1.5){
   
   op <- par(mfrow=c(1,1) ,mar=c(5,4,4,2) +0.1,xpd=F, oma=c(0,0,0,0))
   on.exit(par(op))
   
   N <- dim(cor_mat)[1]
   
-
+  
   if(is.null(ord)&!is.null(pop)) ord <- order(pop)
   if(is.null(ord)&is.null(pop)) ord <- 1:nrow(cor_mat)
-
+  
   if(is.null(pop)){
-      pop <- rep(" ", nrow(cor_mat))
-      lineswidth <- 0
+    pop <- rep(" ", nrow(cor_mat))
+    lineswidth <- 0
   }
-    
+  
   pop<-pop[ord]
   
   N_pop <- vapply(unique(pop[ord]), function(x) sum(pop==x),1)
@@ -43,22 +43,32 @@ plotCorRes <- function(cor_mat, pop=NULL, ord=NULL, superpop=NULL,
   for(i1 in 1:(N-1)){
     for(i2 in (i1+1):N){
       cor_mat[i1, i2] <- mean_cors[pop[i2], pop[i1]]
+      
     }
   }
-
+  
+  # Convert matrix to a data frame
+  mean_cors_df <- as.data.frame(mean_cors)
+  
+  # Add row names as a column (optional, for better readability)
+  mean_cors_df <- cbind(Population = rownames(mean_cors), mean_cors_df)
+  
+  # Write to a CSV file
+  write.csv(mean_cors_df, file = "mean_cors.csv", row.names = FALSE)
+  
   z_lims <- c(min_z, max_z)
   
-    if(all(is.na(z_lims))) z_lims <- c(-max(abs(cor_mat[!is.na(cor_mat)])),
-                                         max(abs(cor_mat[!is.na(cor_mat)])))
+  if(all(is.na(z_lims))) z_lims <- c(-max(abs(cor_mat[!is.na(cor_mat)])),
+                                     max(abs(cor_mat[!is.na(cor_mat)])))
   #if(all(is.null(z_lims))) max_z <- max(abs(cor_mat[!is.na(cor_mat)]))
-
-    
+  
+  
   if(any(is.na(z_lims))) z_lims <- c(-z_lims[!is.na(z_lims)], z_lims[!is.na(z_lims)])
   #if(any(is.null(z_lims))) max_z <- z_lims[!is.null(z_lims)]
-
-    min_z <- z_lims[1]
-    max_z <- z_lims[2]
-    
+  
+  min_z <- z_lims[1]
+  max_z <- z_lims[2]
+  
   diag(cor_mat) <- 10
   nHalf <- 10
   
@@ -78,10 +88,6 @@ plotCorRes <- function(cor_mat, pop=NULL, ord=NULL, superpop=NULL,
   rb1 <- seq(Min, Thresh, length.out=nHalf+1)
   rb2 <- seq(Thresh, Max, length.out=nHalf+1)[-1]
   rampbreaks <- c(rb1, rb2)
-
-# Create a blank plot with appropriate limits
-png("NOord.png", width = 1400, height = 1400)
-plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 1), ylim = c(0, 1), axes = FALSE)
   
   rlegend <- as.raster(matrix(rampcols, ncol=1)[length(rampcols):1,])
   if(plot_legend){
@@ -99,18 +105,17 @@ plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 1), ylim = c(0, 1), axes =
   
   # put pop info
   if(pop_labels[2])
-    text(sort(tapply(1:length(pop),pop,mean)/length(pop)),-adjlab,unique(pop),xpd=NA,cex=cex.lab, srt = 90)
+    text(sort(tapply(1:length(pop),pop,mean)/length(pop)),-adjlab,unique(pop),xpd=NA,cex=cex.lab, srt=rotatelabpop)
   if(pop_labels[1])
-    text(-adjlab,sort(tapply(1:length(pop),pop,mean)/length(pop)),unique(pop),xpd=NA, cex=cex.lab, srt = 0)
+    text(-adjlab,sort(tapply(1:length(pop),pop,mean)/length(pop)),unique(pop),xpd=NA, cex=cex.lab,srt=90-rotatelabpop)
   abline(v=grconvertX(cumsum(sapply(unique(pop),function(x){sum(pop==x)}))/N,"npc","user"),
          col=1,lwd=lineswidth,xpd=F)
   abline(h=grconvertY(cumsum(sapply(unique(pop),function(x){sum(pop==x)}))/N, "npc", "user"),
          col=1,lwd=lineswidth,xpd=F)
-
   
   # put superpop if not null
-    if(!is.null(superpop)){
-        superpop <- superpop[ord]
+  if(!is.null(superpop)){
+    superpop <- superpop[ord]
     if(pop_labels[2])
       text(sort(tapply(1:length(superpop),superpop,mean)/length(superpop)),-adjlabsuperpop,unique(superpop),xpd=NA,cex=cex.lab.2, srt=rotatelabsuperpop, font=2)
     if(pop_labels[1])
@@ -129,16 +134,9 @@ plot(1, type = "n", xlab = "", ylab = "", xlim = c(0, 1), ylim = c(0, 1), axes =
     text(x=0.8, y = c(0.25,0.5, 0.75),
          labels = c(-max(abs(min_z),abs(max_z)), 0, max(abs(min_z),abs(max_z))),
          cex=cex.legend,xpd=NA)
-
-# Close the PNG device
-dev.off()
-
-# Step 2: Write the mean_cors matrix to a CSV file without quotes and separated by tabs
-write.table(mean_cors, file = "mean_cors.csv", sep = "\t", quote = FALSE, col.names = NA)
-# Step 3: Write the cor_mat matrix to a CSV file without quotes and separated by tabs
-write.table(cor_mat, file = "cor_mat.csv", sep = "\t", quote = FALSE, col.names = NA)
   }
 }
+
 
 orderInds <- function(q=NULL, pop=NULL, popord=NULL){
   # Function to order individuals for admixture and evalAdmix plots. 
@@ -176,7 +174,7 @@ orderInds <- function(q=NULL, pop=NULL, popord=NULL){
     ord <- order(main_k, main_q)
     
   } else {stop("Need at least an argument to order.")}
-
+  
   return(ord)
   
 }
@@ -192,13 +190,13 @@ orderK <- function(q, refinds= NULL,refpops = NULL, pop=NULL){
   kord <- integer(0)
   
   if(is.null(refinds)){
-  refpops <- refpops[1:k]
-  
-  for(p in refpops){
+    refpops <- refpops[1:k]
     
-    kord <- c(kord, which.max(apply(q[pop==p,],2,mean)))
-    
-  }
+    for(p in refpops){
+      
+      kord <- c(kord, which.max(apply(q[pop==p,],2,mean)))
+      
+    }
   } else {
     
     refinds <- refinds[1:k]
@@ -209,9 +207,9 @@ orderK <- function(q, refinds= NULL,refpops = NULL, pop=NULL){
     }
   }
   
-    # if(any(rowSums(q[,kord]!=1))) warning("reordered admixture proportions don't sum to 1, make sure every refind or refpop defines a unique cluster.")
-
-    return(kord)
+  # if(any(rowSums(q[,kord]!=1))) warning("reordered admixture proportions don't sum to 1, make sure every refind or refpop defines a unique cluster.")
+  
+  return(kord)
 }
 
 
