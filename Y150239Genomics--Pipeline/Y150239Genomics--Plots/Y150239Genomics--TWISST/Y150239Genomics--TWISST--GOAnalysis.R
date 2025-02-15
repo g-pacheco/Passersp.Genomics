@@ -290,10 +290,10 @@ Panel_Plot <- Y150239_Plot + Meerkerk_Plot + Delta_Plot + plot_layout(ncol = 1)
   
   
 # Save the panel ~
-ggsave(paste("Y150239Genomics--TWISST_SW150_FillArea_", x, ".pdf", sep = ""), plot = Panel_Plot,
-       device = cairo_pdf, limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
-#ggsave(paste("Y150239Genomics--TWISST_FillArea_", x, ".png", sep = ""), plot = Panel_Plot,
-#       limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
+#ggsave(paste("Y150239Genomics--TWISST_SW150_FillArea_", x, ".pdf", sep = ""), plot = Panel_Plot,
+#       device = cairo_pdf, limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
+ggsave(paste("Y150239Genomics--TWISST_FillArea_", x, ".jpeg", sep = ""), plot = Panel_Plot,
+       limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
 
 
 # Creates Delta boxplots per CHR ~
@@ -543,6 +543,8 @@ ggplot(expanded_df, aes(x = 1, y = Term)) +
                strip = strip_nested(text_x = elem_list_text(size = 12, family = "Optima", face = "bold", angle = 90),
                                     background_x = elem_list_rect(fill = "#FAFAFA", colour = "#000000", linewidth = .2),
                                     by_layer_x = TRUE)) +
+  scale_x_discrete(expand = c(0, 0)) + 
+  scale_y_discrete(expand = c(0, 0)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
         panel.border = element_blank(),
         panel.grid.major = element_blank(),
@@ -564,9 +566,9 @@ ggplot(expanded_df, aes(x = 1, y = Term)) +
 
 
 # Saves plot ~
-ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis_Tukey.pdf",
+ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis.pdf",
        device = cairo_pdf, limitsize = FALSE, width = 12, height = 15, scale = 1, dpi = 600)
-ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis_Tukey.png",
+ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis.jpeg",
        limitsize = FALSE, width = 12, height = 15, scale = 1, dpi = 600)
 
 
