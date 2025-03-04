@@ -1,4 +1,4 @@
-# _Y150239 Genomics_
+# _Focal Ind. Genomics_
 
 #### Code repository for analyses conducted in Pacheco et al. (2024).
 
@@ -6,6 +6,6 @@
 - The [LaTeX](https://en.wikipedia.org/wiki/LaTeX) code used to generate the Supplementary Information PDF of this manuscript is available from [`Y150239Genomics--SI`](https://github.com/g-pacheco/Y150239Genomics/tree/main/Y150239Genomics--SI).
 ***
 
-#### Individual of interest (Y150239) photographed in Garderen, The Netherlands.
+#### Focal individual photographed in Garderen, The Netherlands.
 ![](https://github.com/g-pacheco/Y150239Genomics/blob/main/Y150239Genomics--Pipeline/Y150239Genomics--GitHubAuxiliaryFiles/Y150239GenomicsProfile.png)
 ###### Photo courtesy of **Jaap Deene**.
