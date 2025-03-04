@@ -1,4 +1,4 @@
-# _Passer_ sp. Genomics_
+# _Passer_ sp. Genomics
 
 #### Code repository for analyses conducted in Pacheco et al. (2024).
 
