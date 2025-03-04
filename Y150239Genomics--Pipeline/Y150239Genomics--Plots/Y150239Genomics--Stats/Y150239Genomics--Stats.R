@@ -12,7 +12,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(scales, extrafont, dplyr, grid, lubridate, cowplot, egg, tidyverse, stringr, reshape)
+pacman::p_load(scales, extrafont, dplyr, grid, lubridate, cowplot, egg, tidyverse, ggh4x, stringr, reshape)
 library(lemon)
 
 
@@ -51,7 +51,7 @@ fulldf$Population <- ifelse(grepl("FR0", fulldf$Sample_ID), "Sales",
                      ifelse(grepl("Lesina", fulldf$Sample_ID), "Lesina",
                      ifelse(grepl("Crotone", fulldf$Sample_ID), "Crotone",
                      ifelse(grepl("Guglionesi", fulldf$Sample_ID), "Guglionesi",
-                     ifelse(grepl("PI22NLD0001M", fulldf$Sample_ID), "Y150239",
+                     ifelse(grepl("PI22NLD0001M", fulldf$Sample_ID), "Focal Ind.",
                      ifelse(grepl("PD22NLD0146F", fulldf$Sample_ID), "Garderen",
                      ifelse(grepl("PD22NLD0147F", fulldf$Sample_ID), "Garderen",
                      ifelse(grepl("PDOM2022NLD0077M", fulldf$Sample_ID), "Meerkerk",
@@ -62,32 +62,22 @@ fulldf$Population <- ifelse(grepl("FR0", fulldf$Sample_ID), "Sales",
 # Reorders Population ~
 fulldf$Population <- factor(fulldf$Population, ordered = T,
                             levels = c("Utrecht",
-                                       "Meerkerk",
-                                       "Garderen",
                                        "Sales",
                                        "Crotone",
                                        "Guglionesi",
                                        "Lesina",
                                        "Chokpak",
-                                       "Y150239",
+                                       "Focal Ind.",
+                                       "Garderen",
+                                       "Meerkerk",
                                        "Tree Sparrow"))
 
 # Cleans DF ~
-#fulldf <- fulldf %>%
-#          select(Population, total_reads, reads_adaptors, percentage_retained_reads,
-#                 hits_raw_frac, hits_clonality, hits_unique_frac, hits_coverage)
-
-
-fulldf <- fulldf %>%
-          select(Population, total_reads, percentage_retained_reads,
-                 hits_unique_frac, hits_coverage)
+fulldf <- fulldf %>% select(Population, total_reads, percentage_retained_reads,
+                            hits_unique_frac, hits_coverage)
 
 
 # Converts DF from wide into long ~
-#fulldfUp <- gather(fulldf, Stat, Value, "total_reads", "reads_adaptors", "percentage_retained_reads",
-#                   "hits_raw_frac", "hits_clonality", "hits_unique_frac", "hits_coverage")
-
-
 fulldfUp <- gather(fulldf, Stat, Value, "total_reads", "percentage_retained_reads",
                    "hits_unique_frac", "hits_coverage")
 
@@ -158,15 +148,15 @@ Y150239Genomics_Stat <-
  ggplot() +
   geom_boxplot(data = fulldfUp, aes(x = Population, y = Value),
                outlier.shape = NA, width = .5, lwd = .25, colour = "#000000", fill = "#C19EBE", alpha = .7) +
-  facet_rep_grid(Stat ~. , scales = "free", labeller = labeller(Stat = ylabels)) +
   scale_y_continuous(#limits = limits_fun,
                      #breaks = breaks_fun,
                      labels = labels_fun) +
+  facet_rep_grid(Stat ~., scales = "free", labeller = labeller(Stat = ylabels)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
         panel.grid.major = element_line(color = "#E5E7E9", linetype = "dashed", linewidth = .005),
         panel.grid.minor = element_blank(), 
         panel.border = element_blank(),
-        panel.spacing.y = unit(1, "cm"),
+        panel.spacing = unit(0, "in"),
         axis.line = element_line(colour = "#000000", linewidth = .3),
         axis.title = element_blank(),
         axis.text.x = element_text(family = "Optima", colour = "#000000", size = 11, face = "bold", angle = 45, vjust = 1, hjust = 1),
@@ -184,9 +174,9 @@ Y150239Genomics_Stat <-
 
 # Saves the panel ~
 ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.pdf",
-       device = cairo_pdf, width = 12, height = 12, scale = 1, dpi = 600)
+       device = cairo_pdf, width = 12, height = 13, scale = 1, dpi = 600)
 ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.png",
-       width = 12, height = 17, scale = 1, dpi = 600)
+       width = 12, height = 13, scale = 1, dpi = 600)
 
 
 #

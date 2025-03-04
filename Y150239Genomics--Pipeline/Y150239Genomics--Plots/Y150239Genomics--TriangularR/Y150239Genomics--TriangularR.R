@@ -27,7 +27,7 @@ annot_allo <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Focal.Allosome.AL
 
 
 # Gets AIMs ~
-VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.9)
+VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", w)
 VCF_allo.diff9 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.9)
 
 

@@ -528,8 +528,8 @@ write.csv(expanded_df, file = "Y150239Genomics--GOAnalysis_Top50_Combined.csv", 
 
 # Defines y-strip facet labels ~
 y_strip_labels <- c("outliers" = "All Outliers",
-                    "upper" = "Upper Bound",
-                    "lower" = "Lower Bound")
+                    "upper" = "Upper Fence",
+                    "lower" = "Lower Fence")
 
 
 # Creates GoAnalysis plot ~

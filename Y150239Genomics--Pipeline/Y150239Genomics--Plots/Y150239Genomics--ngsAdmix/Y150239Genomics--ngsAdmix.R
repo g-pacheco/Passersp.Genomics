@@ -15,12 +15,6 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 pacman::p_load(tidyverse, ggpattern, ggh4x, scales, optparse, plyr, RColorBrewer, extrafont, gtable, grid, ggtext, glue)
 
 
-# Loads extra fonts ~
-loadfonts()
-font_add_google("Cormorant Garamond", "cormorant")
-showtext_auto()
-
-
 # Creates colour palette ~
 nb.cols <- 15
 MyColours <- colorRampPalette(brewer.pal(8, "Paired"))(nb.cols)
@@ -242,10 +236,10 @@ ngsAdmix <-
   ggplot(fulldfUp, aes(x = Sample_ID, y = Ancestry, fill = fill_color, pattern = Status), colour = "#000000") +
   geom_col_pattern(width = .85, alpha = .7, pattern_size = .1, pattern_density = .01, pattern_spacing = .075, pattern_units = "in", pattern_colour = "#000000", pattern_fill = "#000000") +
   facet_nested(chrtype + K_Value ~ Group + Population, scales = "free_x", space = "free",
-               strip = strip_nested(text_x = elem_list_text(size = c(16, 13), family = c("cormorant", "cormorant"), face = c("bold", "bold"), angle = c(0, 90), margins = c(1, 2, 3, 4)),
+               strip = strip_nested(text_x = elem_list_text(size = c(16, 13), family = c("Optima", "Optima"), face = c("bold", "bold"), angle = c(0, 90), margins = c(1, 2, 3, 4)),
                                     background_x = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"), colour = c("#000000", "#000000"), linewidth = c(.3, .3)),
                                     by_layer_x = TRUE,
-                                    text_y = elem_list_text(size = c(16, 13), family = c("cormorant", "cormorant"), face = c("bold", "bold")),
+                                    text_y = elem_list_text(size = c(16, 13), family = c("Optima", "Optima"), face = c("bold", "bold")),
                                     background_y = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"), colour = c("#000000", "#000000"), linewidth = c(.3, .3)),
                                     by_layer_y = TRUE)) +
   scale_fill_identity() +
@@ -264,8 +258,8 @@ ngsAdmix <-
         axis.text.y = element_blank(),
         axis.ticks = element_blank())
         
-#strip.text.x = element_text(family = "cormorant", colour = "#000000", face = "bold", size = 14, angle = 90, margin = margin(0.5, 0.1, 0.5, 0.1, "cm")),
-#trip.text.y = element_text(family = "cormorant", colour = "#000000", face = "bold", size = 14, angle = 90, margin = margin(0, 0.1, 0, 0.1, "cm")))
+#strip.text.x = element_text(family = "Optima", colour = "#000000", face = "bold", size = 14, angle = 90, margin = margin(0.5, 0.1, 0.5, 0.1, "cm")),
+#trip.text.y = element_text(family = "Optima", colour = "#000000", face = "bold", size = 14, angle = 90, margin = margin(0, 0.1, 0, 0.1, "cm")))
 
 
 # Adds grob ~
@@ -275,16 +269,16 @@ ngsAdmix <-
 
 # Adds top strips ~
 #ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#1E90FF", alpha = .7, size = .75, lwd = .25)),
-#               textGrob("House Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "cormorant", col = "black"))),
+#               textGrob("House Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
 #               t = 6, l = 4, b = 6, r = 12, name = c("a", "b"))
 #ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#FFD700", alpha = .7, size = .5, lwd = .25)),
-#               textGrob("Italian Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "cormorant", col = "black"))),
+#               textGrob("Italian Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
 #               t = 6, l = 14, b = 6, r = 20, name = c("a", "b"))
 #ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#ee0000", alpha = .7, size = .75, lwd = .25)),
-#               textGrob("Spanish Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "cormorant", col = "black"))),
+#               textGrob("Spanish Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
 #               t = 6, l = 22, b = 6, r = 28, name = c("a", "b"))
 #ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#c994c7", alpha = .7, size = .75, lwd = .25)),
-#              textGrob("Focal Area", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "cormorant", col = "black"))),
+#              textGrob("Focal Area", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
 #              t = 6, l = 30, b = 6, r = 39, name = c("a", "b"))
 
 
@@ -295,10 +289,6 @@ ngsAdmix <-
 # Creates the final plot ~
 #grid.newpage()
 #grid.draw(ngsAdmix_G)
-
-
-# Save the plot object to an RDS file
-saveRDS(ngsAdmix, "ngsAdmix.rds")
 
 
 # Saves the final plot ~
