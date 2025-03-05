@@ -12,7 +12,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(scales, extrafont, dplyr, grid, lubridate, cowplot, egg, tidyverse, ggh4x, stringr, reshape)
+pacman::p_load(tidyverse, extrafont)
 library(lemon)
 
 
@@ -146,17 +146,17 @@ labels_fun <- function(z) {
 # Creates the panel ~
 Y150239Genomics_Stat <- 
  ggplot() +
-  geom_boxplot(data = fulldfUp, aes(x = Population, y = Value),
+  geom_boxplot(data = fulldfUp, aes(x = as.character(Population), y = Value),
                outlier.shape = NA, width = .5, lwd = .25, colour = "#000000", fill = "#C19EBE", alpha = .7) +
   scale_y_continuous(#limits = limits_fun,
                      #breaks = breaks_fun,
                      labels = labels_fun) +
-  facet_rep_grid(Stat ~., scales = "free", labeller = labeller(Stat = ylabels)) +
+  facet_rep_grid(Stat ~ . , scales = "free", labeller = labeller(Stat = ylabels)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
         panel.grid.major = element_line(color = "#E5E7E9", linetype = "dashed", linewidth = .005),
         panel.grid.minor = element_blank(), 
         panel.border = element_blank(),
-        panel.spacing = unit(0, "in"),
+        #panel.spacing = unit(0, "cm"),
         axis.line = element_line(colour = "#000000", linewidth = .3),
         axis.title = element_blank(),
         axis.text.x = element_text(family = "Optima", colour = "#000000", size = 11, face = "bold", angle = 45, vjust = 1, hjust = 1),
@@ -175,7 +175,7 @@ Y150239Genomics_Stat <-
 # Saves the panel ~
 ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.pdf",
        device = cairo_pdf, width = 12, height = 13, scale = 1, dpi = 600)
-ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.png",
+ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.jpeg",
        width = 12, height = 13, scale = 1, dpi = 600)
 
 
