@@ -385,11 +385,7 @@ INPUT ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--LD/Y1
 INPUT ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--LD/Y150239Genomics--LD.pdf
 INPUT ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--LD/Y150239Genomics--LD.pdf
 INPUT ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--LD/Y150239Genomics--LD.pdf
-INPUT ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf
-INPUT ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf
-INPUT ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf
-INPUT ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf
-INPUT ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf
+INPUT /usr/local/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm
 INPUT /usr/local/texlive/2024/texmf-dist/fonts/vf/bitstrea/charter/bchr7t.vf
 INPUT /usr/local/texlive/2024/texmf-dist/fonts/tfm/bitstrea/charter/bchr8r.tfm
 INPUT /usr/local/texlive/2024/texmf-dist/fonts/vf/bitstrea/charter/bchb7t.vf
@@ -406,3 +402,4 @@ INPUT /usr/local/texlive/2024/texmf-dist/fonts/type1/bitstrea/charter/bchr8a.pfb
 INPUT /usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb
 INPUT /usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb
 INPUT /usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb
+INPUT /usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb

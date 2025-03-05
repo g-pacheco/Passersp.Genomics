@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.8.19)  19 AUG 2024 13:09
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.8.19)  5 MAR 2025 16:31
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1171,11 +1171,11 @@ So I'll assume that you meant to type \cr instead.
 
 
 pdfTeX warning: pdflatex (file ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--Stats.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
-<../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--Stats.pdf, id=25, 867.24pt x 1228.59pt>
+<../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--Stats.pdf, id=25, 867.24pt x 867.24pt>
 File: ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--Stats.pdf Graphic file (type pdf)
 <use ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--Stats.pdf>
 Package pdftex.def Info: ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--Stats.pdf  used on input line 256.
-(pdftex.def)             Requested size: 497.92322pt x 705.4027pt.
+(pdftex.def)             Requested size: 497.92322pt x 497.93132pt.
 
 
 pdfTeX warning: pdflatex (file ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--MeanDepth.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
@@ -1201,13 +1201,20 @@ File: ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--LD/Y1
 Package pdftex.def Info: ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--LD/Y150239Genomics--LD.pdf  used on input line 280.
 (pdftex.def)             Requested size: 497.92322pt x 331.95421pt.
 
+LaTeX Warning: File `../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf' not found on input line 288.
 
-pdfTeX warning: pdflatex (file ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf): PDF inclusion: found PDF version <1.7>, but at most version <1.5> allowed
-<../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf, id=29, 2168.1pt x 3613.5pt>
-File: ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf Graphic file (type pdf)
-<use ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf>
-Package pdftex.def Info: ../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf  used on input line 288.
-(pdftex.def)             Requested size: 423.23776pt x 705.37404pt.
+
+/Users/georgep/Desktop/UiO Postdoc/Current/Y150239Genomics/Y150239Genomics--SI/Y150239Genomics--SI.tex:288: Package pdftex.def Error: File `../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.288 ...-ngsAdmix/Y150239Genomics--evalAdmix.pdf}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
 
 Package fancyhdr Warning: \headheight is too small (10.0pt): 
 (fancyhdr)                Make it at least 12.0pt, for example:
@@ -1262,7 +1269,7 @@ Package fancyhdr Warning: \headheight is too small (10.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.0pt}.
 
-[6 <../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf>] (./Y150239Genomics--SI.aux)
+[6] (./Y150239Genomics--SI.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
@@ -1295,18 +1302,18 @@ Package logreq Info: Writing requests to 'Y150239Genomics--SI.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 29925 strings out of 474116
- 571881 string characters out of 5743682
+ 29950 strings out of 474116
+ 574618 string characters out of 5743682
  1936187 words of memory out of 5000000
- 51875 multiletter control sequences out of 15000+600000
- 580338 words of font info for 82 fonts, out of 8000000 for 9000
+ 51899 multiletter control sequences out of 15000+600000
+ 580506 words of font info for 83 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  108i,11n,107p,794b,924s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2024/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/bitstrea/charter/bchb8a.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/bitstrea/charter/bchr8a.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb>
-Output written on Y150239Genomics--SI.pdf (8 pages, 3010181 bytes).
+</usr/local/texlive/2024/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/bitstrea/charter/bchb8a.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/bitstrea/charter/bchr8a.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
+Output written on Y150239Genomics--SI.pdf (8 pages, 2604199 bytes).
 PDF statistics:
- 147 PDF objects out of 1000 (max. 8388607)
- 103 compressed objects within 2 object streams
+ 136 PDF objects out of 1000 (max. 8388607)
+ 96 compressed objects within 1 object stream
  17 named destinations out of 1000 (max. 500000)
- 31 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 26 words of extra memory for PDF output out of 10000 (max. 10000000)
 

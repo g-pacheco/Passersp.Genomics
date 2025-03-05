@@ -1,17 +1,17 @@
 # Fdb version 4
-["biber Y150239Genomics--SI"] 0 "Y150239Genomics--SI.bcf" "Y150239Genomics--SI.bbl" "Y150239Genomics--SI" 1724065749.24051 0
+["biber Y150239Genomics--SI"] 0 "Y150239Genomics--SI.bcf" "Y150239Genomics--SI.bbl" "Y150239Genomics--SI" 1741188710.48568 0
   "FPGP--MainText.bib" 0 -1 0 ""
   "Y150239Genomics--SI.bcf" 0 -1 0 "pdflatex"
   (generated)
   "Y150239Genomics--SI.bbl"
   "Y150239Genomics--SI.blg"
   (rewritten before read)
-["pdflatex"] 1724065748.06323 "/Users/georgep/Desktop/UiO Postdoc/Current/Y150239Genomics/Y150239Genomics--SI/Y150239Genomics--SI.tex" "Y150239Genomics--SI.pdf" "Y150239Genomics--SI" 1724065749.24081 2
-  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Kinship/Y150239Genomics--Kinship.pdf" 1721933865.63363 14924 94a1adf590b393432b95fb45b0facbd1 ""
-  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--LD/Y150239Genomics--LD.pdf" 1722548765.99406 291236 45bb126a43898bda568628aa4d08f98f ""
-  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--MeanDepth.pdf" 1721823994.90427 16033 be6924f1c879e1e3331b607e639f1992 ""
-  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--Stats.pdf" 1721778497.19638 14151 39ad4819c646f630592dcf635a99b163 ""
-  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf" 1715963957.09276 279497 8d4b6a19703a8ec4eeb2720b11cb7d79 ""
+["pdflatex"] 1741188709.3152 "/Users/georgep/Desktop/UiO Postdoc/Current/Y150239Genomics/Y150239Genomics--SI/Y150239Genomics--SI.tex" "Y150239Genomics--SI.pdf" "Y150239Genomics--SI" 1741188710.48597 2
+  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Kinship/Y150239Genomics--Kinship.pdf" 1734109551.70462 16271 d55bf06f827e2c6effe430aeb01584d4 ""
+  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--LD/Y150239Genomics--LD.pdf" 1734515229.55667 150522 aff6f7cd0e693082c26e8f77dce4bd2e ""
+  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--MeanDepth.pdf" 1741188707.46275 16100 e972ab083225c78b09d075e7fe23ef1b ""
+  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--Stats.pdf" 1741182862.73977 11406 06d0b0364649030e3fc2cbc2c2d4315d ""
+  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--ngsAdmix/Y150239Genomics--evalAdmix.pdf" 0 -1 0 ""
   "/Users/georgep/Desktop/UiO Postdoc/Current/Y150239Genomics/Y150239Genomics--SI/Y150239Genomics--SI.tex" 1724065711.79637 8809 510ad9cef798f8b4d5f81025ff7c920a ""
   "/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/fontawesome/fontawesometwo.enc" 1463430686 2679 32dd8ae231bf4a0752b98f62dc097183 ""
@@ -38,12 +38,14 @@
   "/usr/local/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmsy6.tfm" 1136768653 1116 933a60c408fc0a863a92debe84b2d294 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmsy8.tfm" 1136768653 1120 8b7d695260f3cff42e636090a8002094 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmsy9.tfm" 1136768653 1116 25a7bf822c58caf309a702ef79f4afbb ""
+  "/usr/local/texlive/2024/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm" 1136768653 768 1321e9409b4137d6fb428ac9dc956269 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/tfm/public/fontawesome/FontAwesome--fontawesometwo.tfm" 1463430686 1360 76c648952c3cfb458d3ca1d9dde7e9bf ""
   "/usr/local/texlive/2024/texmf-dist/fonts/type1/bitstrea/charter/bchb8a.pfb" 1136849748 33799 6c8c18c1e1a138641a52c29f0b878445 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/type1/bitstrea/charter/bchr8a.pfb" 1136849748 34869 539b6fed90ef630e9049bc13079bc598 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb" 1248133631 31809 8670ca339bf94e56da1fc21c80635e2a ""
   "/usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb" 1248133631 32734 69e00a6b65cedb993666e42eedb3d48f ""
   "/usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb" 1248133631 33993 9b89b85fd2d9df0482bd47194d1d3bf3 ""
+  "/usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb" 1248133631 31099 c85edf1dd5b9e826d67c9c7293b6786c ""
   "/usr/local/texlive/2024/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb" 1463430686 173219 54847ac27638e1e28852258f5be2fa20 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/vf/bitstrea/charter/bchb7t.vf" 1136768653 1372 e6cfde23c168b1d1864ce6aa6dffa18b ""
   "/usr/local/texlive/2024/texmf-dist/fonts/vf/bitstrea/charter/bchr7t.vf" 1136768653 1372 955cf021d0094e95829436b7bdab6458 ""
@@ -183,10 +185,10 @@
   "/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1724025500.70243 5467645 128b85b7cde5f5edc5cb7f1dd7ff8736 ""
   "/usr/local/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1724025096 8221410 f94511c61a1dd3c3922c4a368a4c037f ""
   "/usr/local/texlive/2024/texmf.cnf" 1710266656 577 e590dabc9e28c5b61546e15f63eebcdf ""
-  "Y150239Genomics--SI.aux" 1724065749.07275 2001 9dc9371d4c764f836b0bb4b52ceea1d2 "pdflatex"
+  "Y150239Genomics--SI.aux" 1741188710.31425 2001 9dc9371d4c764f836b0bb4b52ceea1d2 "pdflatex"
   "Y150239Genomics--SI.bbl" 0 -1 0 "biber Y150239Genomics--SI"
-  "Y150239Genomics--SI.lof" 1724065749.07498 565 5bc3121b58cbf6b4420c8a6c302e00d7 "pdflatex"
-  "Y150239Genomics--SI.out" 1724065749.07337 198 f73a9a4439eaa0c11245648e2404b3f2 "pdflatex"
+  "Y150239Genomics--SI.lof" 1741188710.31667 565 5bc3121b58cbf6b4420c8a6c302e00d7 "pdflatex"
+  "Y150239Genomics--SI.out" 1741188710.31476 198 f73a9a4439eaa0c11245648e2404b3f2 "pdflatex"
   "Y150239Genomics--SI.tex" 1724065711.79637 8809 510ad9cef798f8b4d5f81025ff7c920a ""
   "Y150239Genomics_SIPicture.png" 1722210603.47354 2336989 531daf37d069af82fb23737e5e072e1c ""
   (generated)
