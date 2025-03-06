@@ -408,7 +408,7 @@ if(!is.null(opt$plot_wrap_formula)) {
   if(opt$plot_wrap) {
     plot <- plot + facet_rep_wrap(opt$plot_wrap_formula, ncol = opt$plot_wrap, scales = opt$plot_axis_scales)
   } else {
-    plot <- plot + facet_rep_grid(opt$plot_wrap_formula, scales = opt$plot_axis_scales)}}
+    plot <- plot + facet_grid2(opt$plot_wrap_formula, scales = opt$plot_axis_scales, axes = "all", remove_labels = "x")}}
 
 
 # Add LD decay fit CI ~ 
@@ -485,13 +485,13 @@ if(length(opt$ld) > 0) {
           panel.border = element_blank(),
           panel.grid.major = element_line(color = "#E5E7E9", linetype = "dashed", linewidth = .005),
           panel.grid.minor = element_blank(),
-          axis.title.x = element_text(family = "Optima", size = 14, face = "bold", color = "#000000", margin = margin(t = 20, r = 0, b = 0, l = 0)), 
-          axis.title.y = element_text(family = "Optima", size = 14, face = "bold", color = "#000000", margin = margin(t = 0, r = 20, b = 0, l = 0)),
-          axis.text = element_text(family = "Optima", color = "#000000", size = 8, face = "bold"),
+          axis.title.x = element_text(family = "Optima", size = 16, face = "bold", color = "#000000", margin = margin(t = 25, r = 0, b = 0, l = 0)), 
+          axis.title.y = element_text(family = "Optima", size = 16, face = "bold", color = "#000000", margin = margin(t = 0, r = 25, b = 0, l = 0)),
+          axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
           axis.line = element_line(colour = "#000000", linewidth = .3),
           axis.ticks = element_line(color = "#000000", linewidth = .3),
           strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
-          strip.text = element_text(family = "Optima", colour = "#000000", size = 15, face = "bold"),
+          strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
           legend.position = "none",
           legend.background = element_blank(),
           legend.key = element_blank(),
@@ -535,7 +535,7 @@ if(n_groups < 2 || opt$plot_no_legend) {
 # Saves plot ~
 ggsave(plot = plot, file = "Y150239Genomics--LD.pdf",
        device = cairo_pdf, scale = 1, width = 12, height = 8, dpi = 600, limitsize = FALSE)
-ggsave(plot = plot, file = "Y150239Genomics--LD.png",
+ggsave(plot = plot, file = "Y150239Genomics--LD.jpeg",
        scale = 1, width = 12, height = 8, dpi = 600, limitsize = FALSE)
 
 
