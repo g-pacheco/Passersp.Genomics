@@ -12,7 +12,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(optparse, tools, tidyverse, plyr, reshape2, RColorBrewer, extrafont, lemon, lgr, jsonlite)
+pacman::p_load(optparse, tools, tidyverse, plyr, reshape2, RColorBrewer, extrafont, ggh4x, lgr, jsonlite)
 
 
 # Imports extra fonts ~

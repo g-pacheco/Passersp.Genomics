@@ -12,7 +12,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(optparse, tidyverse, plyr, RColorBrewer, extrafont, ggforce, ggstar, ggrepel, RcppCNPy, reshape2, lemon,
+pacman::p_load(optparse, tidyverse, plyr, RColorBrewer, extrafont, ggforce, ggstar, ggrepel, RcppCNPy, reshape2,
                gridExtra, grid, ggpubr, rphylopic, viridis)
 
 
@@ -100,7 +100,7 @@ Kinship_Plot_Heatmap <-
         panel.border = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        panel.spacing = unit(1, "lines"),
+        panel.spacing = unit(.2, "cm"),
         legend.position = "right",
         legend.key = element_blank(),
         legend.background = element_blank(),
@@ -108,12 +108,12 @@ Kinship_Plot_Heatmap <-
         legend.box = "vertical",
         legend.box.margin = margin(t = 20, b = 30, r = 0, l = 0),
         axis.title = element_blank(),
-        axis.text.x = element_text(family = "Optima", color = "#000000", size = 8.25, face = "bold", angle = 45, vjust = 1, hjust = 1),
-        axis.text.y = element_text(family = "Optima", color = "#000000", size = 8.25, face = "bold"),
-        axis.ticks = element_line(color = "#000000", linewidth = .2),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 14, face = "bold"),
-        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .2),
-        axis.line = element_line(colour = "#000000", linewidth = .2)) +
+        axis.text.x = element_text(family = "Optima", color = "#000000", size = 8, face = "bold", angle = 45, vjust = 1, hjust = 1),
+        axis.text.y = element_text(family = "Optima", color = "#000000", size = 8, face = "bold"),
+        axis.ticks = element_line(color = "#000000", linewidth = .3),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
+        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
+        axis.line = element_line(colour = "#000000", linewidth = .3)) +
   guides(fill = guide_legend(title = "Rab", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
                              label.theme = element_text(family = "Optima", size = 15), reverse = TRUE))
 
@@ -121,7 +121,7 @@ Kinship_Plot_Heatmap <-
 # Saves plot (Heatmap) ~
 ggsave(Kinship_Plot_Heatmap, file = "Y150239Genomics--Kinship.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 12, height = 14, dpi = 600)
-ggsave(Kinship_Plot_Heatmap, file = "Y150239Genomics--Kinship.png",
+ggsave(Kinship_Plot_Heatmap, file = "Y150239Genomics--Kinship.jpeg",
        limitsize = FALSE, scale = 1, width = 12, height = 14, dpi = 600)
 
 

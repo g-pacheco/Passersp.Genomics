@@ -12,7 +12,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(tidyverse, lemon)
+pacman::p_load(tidyverse, extrafont, ggh4x)
 
 
 # Loads data ~
@@ -73,7 +73,7 @@ limits_fun <- function(x){
 GlobalCoverage <-
  ggplot(fulldf, aes(x = MEAN_DEPTH, fill = Type, colour = Type), alpha = .1) +
   geom_density(alpha = .15, linewidth = .3, adjust = 1) +
-  facet_rep_grid(chrtype ~., scales = "free") +
+  facet_grid2(chrtype ~., scales = "free", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#fa9fb5")) +
   scale_colour_manual(values = c("#000000")) +
   geom_label(data = quantiles_df, aes(x = value_x, y = Inf, vjust = v_just, label = label), alpha = .1,
@@ -91,12 +91,11 @@ GlobalCoverage <-
         panel.grid.major = element_line(color = "#d9d9d9", linetype = "dashed", linewidth = .05),
         panel.grid.minor = element_blank(), 
         panel.border = element_blank(),
-        panel.spacing.y = unit(1, "cm"),
+        panel.spacing.y = unit(.2, "cm"),
         axis.title.x = element_text(family = "Optima", size = 16, face = "bold", color = "#000000", margin = margin(t = 25, r = 0, b = 0, l = 0)),
         axis.title.y = element_text(family = "Optima", size = 16, face = "bold", color = "#000000", margin = margin(t = 0, r = 25, b = 0, l = 0)),
         axis.ticks = element_line(linewidth = .3, color = "#000000"),
-        axis.text.x = element_text(family = "Optima", size = 10, color = "#000000", face = "bold"),
-        axis.text.y = element_text(family = "Optima", size = 10, color = "#000000", face = "bold"),
+        axis.text = element_text(family = "Optima", size = 11, color = "#000000", face = "bold"),
         strip.text = element_text(colour = "#000000", size = 13, face = "bold", family = "Optima"),
         strip.background.y = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         axis.line = element_line(colour = "#000000", linewidth = .3),
@@ -106,7 +105,7 @@ GlobalCoverage <-
 # Saves plot ~
 ggsave(GlobalCoverage, file = "Y150239Genomics--MeanDepth.pdf",
        width = 12, height = 12, scale = 1, device = cairo_pdf, dpi = 600)
-ggsave(GlobalCoverage, file = "Y150239Genomics--MeanDepth.png",
+ggsave(GlobalCoverage, file = "Y150239Genomics--MeanDepth.jpeg",
        width = 12, height = 12, scale = 1, dpi = 600)
 
 

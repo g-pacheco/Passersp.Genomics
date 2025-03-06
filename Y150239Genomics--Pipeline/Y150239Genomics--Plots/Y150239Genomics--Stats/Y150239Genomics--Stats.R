@@ -12,8 +12,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(tidyverse, extrafont)
-library(lemon)
+pacman::p_load(tidyverse, extrafont, ggh4x)
 
 
 # Loads datasets ~
@@ -146,24 +145,22 @@ labels_fun <- function(z) {
 # Creates the panel ~
 Y150239Genomics_Stat <- 
  ggplot() +
-  geom_boxplot(data = fulldfUp, aes(x = as.character(Population), y = Value),
+  geom_boxplot(data = fulldfUp, aes(x = Population, y = Value),
                outlier.shape = NA, width = .5, lwd = .25, colour = "#000000", fill = "#C19EBE", alpha = .7) +
-  scale_y_continuous(#limits = limits_fun,
-                     #breaks = breaks_fun,
-                     labels = labels_fun) +
-  facet_rep_grid(Stat ~ . , scales = "free", labeller = labeller(Stat = ylabels)) +
+  scale_y_continuous(labels = labels_fun) +
+  facet_grid2(Stat ~ ., scales = "free", axes = "all", remove_labels = "x", labeller = labeller(Stat = ylabels)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
         panel.grid.major = element_line(color = "#E5E7E9", linetype = "dashed", linewidth = .005),
         panel.grid.minor = element_blank(), 
         panel.border = element_blank(),
-        #panel.spacing = unit(0, "cm"),
+        panel.spacing = unit(.2, "cm"),
         axis.line = element_line(colour = "#000000", linewidth = .3),
         axis.title = element_blank(),
         axis.text.x = element_text(family = "Optima", colour = "#000000", size = 11, face = "bold", angle = 45, vjust = 1, hjust = 1),
         axis.text.y = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
         axis.ticks.x = element_line(color = "#000000", linewidth = .3),
         axis.ticks.y = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 12, face = "bold"),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
         strip.background.y = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         legend.position = "top",
         legend.margin = margin(t = 0, b = 0, r = 0, l = 0),
@@ -174,9 +171,9 @@ Y150239Genomics_Stat <-
 
 # Saves the panel ~
 ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.pdf",
-       device = cairo_pdf, width = 12, height = 13, scale = 1, dpi = 600)
+       device = cairo_pdf, width = 12, height = 12, scale = 1, dpi = 600)
 ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.jpeg",
-       width = 12, height = 13, scale = 1, dpi = 600)
+       width = 12, height = 12, scale = 1, dpi = 600)
 
 
 #

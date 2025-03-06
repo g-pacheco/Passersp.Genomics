@@ -1,13 +1,13 @@
 # Fdb version 4
-["biber Y150239Genomics--SI"] 0 "Y150239Genomics--SI.bcf" "Y150239Genomics--SI.bbl" "Y150239Genomics--SI" 1741188710.48568 0
+["biber Y150239Genomics--SI"] 0 "Y150239Genomics--SI.bcf" "Y150239Genomics--SI.bbl" "Y150239Genomics--SI" 1741197839.20554 0
   "FPGP--MainText.bib" 0 -1 0 ""
   "Y150239Genomics--SI.bcf" 0 -1 0 "pdflatex"
   (generated)
   "Y150239Genomics--SI.bbl"
   "Y150239Genomics--SI.blg"
   (rewritten before read)
-["pdflatex"] 1741188709.3152 "/Users/georgep/Desktop/UiO Postdoc/Current/Y150239Genomics/Y150239Genomics--SI/Y150239Genomics--SI.tex" "Y150239Genomics--SI.pdf" "Y150239Genomics--SI" 1741188710.48597 2
-  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Kinship/Y150239Genomics--Kinship.pdf" 1734109551.70462 16271 d55bf06f827e2c6effe430aeb01584d4 ""
+["pdflatex"] 1741197837.82019 "/Users/georgep/Desktop/UiO Postdoc/Current/Y150239Genomics/Y150239Genomics--SI/Y150239Genomics--SI.tex" "Y150239Genomics--SI.pdf" "Y150239Genomics--SI" 1741197839.20582 2
+  "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Kinship/Y150239Genomics--Kinship.pdf" 1741197822.99725 16500 36b034414d2493cc2d9ea12e286c127a ""
   "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--LD/Y150239Genomics--LD.pdf" 1734515229.55667 150522 aff6f7cd0e693082c26e8f77dce4bd2e ""
   "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--MeanDepth.pdf" 1741188707.46275 16100 e972ab083225c78b09d075e7fe23ef1b ""
   "../Y150239Genomics--Pipeline/Y150239Genomics--Plots/Y150239Genomics--Stats/Y150239Genomics--Stats.pdf" 1741182862.73977 11406 06d0b0364649030e3fc2cbc2c2d4315d ""
@@ -185,10 +185,10 @@
   "/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1724025500.70243 5467645 128b85b7cde5f5edc5cb7f1dd7ff8736 ""
   "/usr/local/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1724025096 8221410 f94511c61a1dd3c3922c4a368a4c037f ""
   "/usr/local/texlive/2024/texmf.cnf" 1710266656 577 e590dabc9e28c5b61546e15f63eebcdf ""
-  "Y150239Genomics--SI.aux" 1741188710.31425 2001 9dc9371d4c764f836b0bb4b52ceea1d2 "pdflatex"
+  "Y150239Genomics--SI.aux" 1741197839.02488 2001 9dc9371d4c764f836b0bb4b52ceea1d2 "pdflatex"
   "Y150239Genomics--SI.bbl" 0 -1 0 "biber Y150239Genomics--SI"
-  "Y150239Genomics--SI.lof" 1741188710.31667 565 5bc3121b58cbf6b4420c8a6c302e00d7 "pdflatex"
-  "Y150239Genomics--SI.out" 1741188710.31476 198 f73a9a4439eaa0c11245648e2404b3f2 "pdflatex"
+  "Y150239Genomics--SI.lof" 1741197839.02706 565 5bc3121b58cbf6b4420c8a6c302e00d7 "pdflatex"
+  "Y150239Genomics--SI.out" 1741197839.02541 198 f73a9a4439eaa0c11245648e2404b3f2 "pdflatex"
   "Y150239Genomics--SI.tex" 1724065711.79637 8809 510ad9cef798f8b4d5f81025ff7c920a ""
   "Y150239Genomics_SIPicture.png" 1722210603.47354 2336989 531daf37d069af82fb23737e5e072e1c ""
   (generated)
