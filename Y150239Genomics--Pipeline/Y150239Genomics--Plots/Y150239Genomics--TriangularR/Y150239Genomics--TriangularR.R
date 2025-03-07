@@ -12,8 +12,8 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads packages ~
-pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, lemon, ggrepel, grid, gtable)
 devtools::install_github("omys-omics/triangulaR")
+pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, grid, gtable)
 
 
 # Loads VCF data ~
@@ -27,7 +27,7 @@ annot_allo <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Focal.Allosome.AL
 
 
 # Gets AIMs ~
-VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", w)
+VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.9)
 VCF_allo.diff9 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.9)
 
 
@@ -221,7 +221,7 @@ ggplot(fulldf, aes(x = Index, y = Individual, fill = as.factor(Ancestry))) +
   ggtitle("Ancestry-informative Markers") +
   scale_x_discrete(expand = c(.005, .005)) +
   scale_y_discrete(labels = delete_no_display) +
-  facet_grid(CHR ~ ., scales = "free", labeller = labeller(CHR = y_strip_labels)) +
+  facet_grid2(CHR ~ ., scales = "free", axes = "all", remove_labels = "x", labeller = labeller(CHR = y_strip_labels)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
         panel.border = element_blank(),
         panel.grid.major = element_blank(),
@@ -234,12 +234,12 @@ ggplot(fulldf, aes(x = Index, y = Individual, fill = as.factor(Ancestry))) +
         legend.box.margin = margin(t = 0, b = 0, r = 0, l = 0),
         plot.title = element_text(family = "Optima", size = 20, face = "bold", color = "#000000", hjust = .5, margin = margin(t = 0, r = 0, b = 15, l = 0)),
         axis.title = element_blank(),
-        axis.text.x = element_text(family = "Optima", color = "#000000", size = 5, face = "bold", angle = 45, vjust = 1, hjust = 1),
-        axis.text.y = element_text(family = "Optima", color = "#000000", size = 6.5, face = "bold"),
-        axis.ticks = element_line(color = "#000000", linewidth = .2),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 7, face = "bold"),
-        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .2),
-        axis.line = element_line(colour = "#000000", linewidth = .2)) +
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(family = "Optima", color = "#000000", size = 8, face = "bold"),
+        axis.ticks = element_line(color = "#000000", linewidth = .3),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 8, face = "bold"),
+        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
+        axis.line = element_line(colour = "#000000", linewidth = .3)) +
   guides(fill = guide_legend(title = "Ancestry", title.theme = element_text(family = "Optima", size = 12, face = "bold"),
                              label.theme = element_text(family = "Optima", size = 10), override.aes = list(shape = 21, size = 4, stroke = .15)))
 
@@ -247,7 +247,7 @@ ggplot(fulldf, aes(x = Index, y = Individual, fill = as.factor(Ancestry))) +
 # Saves Index plot ~
 ggsave(AncestryPlot_Index, file = "Y150239Genomics--AncestryHeatmap_AIMs.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
-ggsave(AncestryPlot_Index, file = "Y150239Genomics--AncestryHeatmap_AIMs.png",
+ggsave(AncestryPlot_Index, file = "Y150239Genomics--AncestryHeatmap_AIMs.jpeg",
        limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
 
 
@@ -309,7 +309,7 @@ HI_HET$Species <- factor(HI_HET$Species, ordered = T,
 
 
 # Expands PCA_Annot by adding Labels ~
-HI_HET$Labels <- ifelse(HI_HET$pop %in% c("Y150239"), "Y150239",
+HI_HET$Labels <- ifelse(HI_HET$pop %in% c("Y150239"), "Focal Ind.",
                  ifelse(HI_HET$pop %in% c("Meerkerk"), "Meerkerk_01",
                  ifelse(HI_HET$id %in% c("PD22NLD0146F_SAMPLE"), "Garderen_01",
                  ifelse(HI_HET$id %in% c("PD22NLD0147F_SAMPLE"), "Garderen_02", ""))))
@@ -331,11 +331,11 @@ ggplot() +
   geom_path(data = semicircle, aes(x = x, y = y), color = "#000000", linetype = 2, linewidth = .35) +
   geom_star(data = HI_HET, aes(x = hybrid.index, y = heterozygosity, fill = Species), starshape = 15, colour = "#000000", size = 2, starstroke = .15, alpha = .75) +
   #geom_star(data = fulldf, aes(x = hybrid.index, y = heterozygosity, fill = perc.missing), starshape = 15, colour = "#000000", size = 2, starstroke = .15, alpha = .75) +
-  facet_rep_grid(CHRType ~ ., scales = "free_y") +
+  facet_grid2(CHRType ~ ., scales = "free_y", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
   geom_label(data = HI_HET, aes(x = .15, y = .85, label = paste0("# of AIMs: ", scales::comma(SNPs))), alpha = 1,
              size = 4.5, fontface = "bold", fill = "#d6d6d6", label.padding = unit(.5, "lines"), family = "Optima", show.legend = FALSE) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Y150239"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
                    family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.05, nudge_y = .2,
                    point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
@@ -355,7 +355,7 @@ ggplot() +
                    point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z" & Labels == "Y150239"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+  geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
                    family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .1, nudge_y = 0,
                    point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
@@ -376,19 +376,19 @@ ggplot() +
                      limits = c(0, 1),
                      expand = c(.01, .01)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
-        panel.border = element_blank(),
         panel.grid.major = element_line(color = "#E5E7E9", linetype = "dashed", linewidth = .005),
         panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.spacing.y = unit(.2, "cm"),
         legend.position = "top",
         legend.box = "vertical",
         legend.margin = margin(t = 0, b = 0, r = 0, l = 0),
         legend.box.margin = margin(t = 10, b = 10, r = 0, l = 0),
-        axis.title.x = element_text(family = "Optima", size = 17, face = "bold", margin = margin(t = 18, r = 0, b = 0, l = 0)),
-        axis.title.y = element_text(family = "Optima", size = 17, face = "bold", margin = margin(t = 0, r = 18, b = 0, l = 0)),
-        axis.text.x = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
-        axis.text.y = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
+        axis.title.x = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 25, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
+        axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
         axis.ticks = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 14, face = "bold"),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
         strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         axis.line = element_line(colour = "#000000", linewidth = .3)) +
   guides(fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
@@ -401,210 +401,10 @@ ggplot() +
 # Saves plot ~
 ggsave(Panel, file = "Y150239Genomics--Triangular.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
-ggsave(Panel, file = "Y150239Genomics--Triangular.png",
+ggsave(Panel, file = "Y150239Genomics--Triangular.jpeg",
        limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
 
 
 #
 ##
 ### The END ~~~~~
-
-
-# Creates POS plot ~
-AncestryPlot_POS <-
-  ggplot(HI_HET, aes(x = POSMb, y = Individual, fill = as.factor(Ancestry))) +
-  geom_point(shape = 21, size = 1.25, colour = "#000000", stroke = 0) +
-  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
-  ggtitle("Ancestry-informative Markers") +
-  scale_x_continuous(breaks = c(25, 50, 75, 100, 125),
-                     labels = c("25Mb", "50Mb", "75Mb", "100Mb", "125Mb"),
-                     expand = c(.005, .005)) +
-  scale_y_discrete(labels = delete_no_display) +
-  facet_grid(CHR ~ ., scales = "free", labeller = labeller(CHR = y_strip_labels)) +
-  theme(panel.background = element_rect(fill = "#ffffff"),
-        panel.border = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.spacing = unit(.05, "cm"),
-        legend.position = c(.3, .25),
-        legend.key = element_blank(),
-        legend.background = element_blank(),
-        legend.margin = margin(t = 0, b = 0, r = 0, l = 0),
-        legend.box.margin = margin(t = 0, b = 0, r = 0, l = 0),
-        plot.title = element_text(family = "Optima", size = 20, face = "bold", color = "#000000", hjust = .5, margin = margin(t = 0, r = 0, b = 15, l = 0)),
-        axis.title = element_blank(),
-        axis.text = element_text(family = "Optima", color = "#000000", size = 6.5, face = "bold"),
-        axis.ticks = element_line(color = "#000000", linewidth = .2),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 7, face = "bold"),
-        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .2),
-        axis.line = element_line(colour = "#000000", linewidth = .2)) +
-  guides(fill = guide_legend(title = "Ancestry", title.theme = element_text(family = "Optima", size = 12, face = "bold"),
-                             label.theme = element_text(family = "Optima", size = 10), override.aes = list(shape = 21, size = 4, stroke = .15)))
-
-
-# Saves Index plot ~
-ggsave(AncestryPlot_POS, file = "Y150239Genomics--AncestryHeatmap_GenomicAIMs_News.pdf",
-       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 8, height = 12, dpi = 600)
-ggsave(AncestryPlot_POS, file = "Y150239Genomics--AncestryHeatmapGenomicAIMs.png",
-       limitsize = FALSE, scale = 1, width = 20, height = 12, dpi = 600)
-
-# Fills the CheckY150239 column ~
-chr_rows <- grep("chr", rownames(VCF_auto.diff9_geno))
-for (ROW in chr_rows) {
-  background <- which(grepl("House", VCF_auto.diff9_geno["Species", ]))
-  Y150239 <- which(grepl("Y150239", VCF_auto.diff9_geno["Species", ]))
-  if (length(background) > 0 & length(Y150239) > 0) {
-    VCF_auto.diff9_geno[ROW, "CheckY150239"] <-
-      ifelse(all(VCF_auto.diff9_geno[ROW, background] %in% c(0, 1, -1)) &
-               all(VCF_auto.diff9_geno[ROW, Y150239] %in% c(2)), "PassAlt",
-             ifelse(all(VCF_auto.diff9_geno[ROW, background] %in% c(2, 1, -1)) &
-                      all(VCF_auto.diff9_geno[ROW, Y150239] %in% c(0)), "PassRef", "Other"))}}
-
-
-# Fills the HetMeerkerk column ~
-chr_rows <- grep("chr", rownames(VCF_auto.diff9_geno))
-for(ROW in chr_rows) {
-  background <- which(grepl("House", VCF_auto.diff9_geno["Species", ]))
-  Y150239 <- which(grepl("Y150239", VCF_auto.diff9_geno["Species", ]))
-  if (length(background) > 0 & length(Y150239) > 0) {
-    VCF_auto.diff9_geno[ROW, "HetY150239"] <-
-      ifelse(all(VCF_auto.diff9_geno[ROW, Y150239] %in% c(1)), "PassHet", "Other")}}
-
-
-table(VCF_auto.diff9_geno$HetY150239)
-
-
-# Fills the CheckMeerkerk column ~
-chr_rows <- grep("chr", rownames(VCF_auto.diff9_geno))
-for(ROW in chr_rows) {
-  background <- which(grepl("House", VCF_auto.diff9_geno["Species", ]))
-  Meerkerk <- which(grepl("Meerkerk", VCF_auto.diff9_geno["Species", ]))
-  if (length(background) > 0 & length(Meerkerk) > 0) {
-    VCF_auto.diff9_geno[ROW, "CheckMeerkerk"] <-
-      ifelse(all(VCF_auto.diff9_geno[ROW, background] %in% c(0, -1)) &
-               all(VCF_auto.diff9_geno[ROW, Meerkerk] %in% c(1)), "PassAlt",
-             ifelse(all(VCF_auto.diff9_geno[ROW, background] %in% c(0, -1)) &
-                      all(VCF_auto.diff9_geno[ROW, Meerkerk] %in% c(1)), "PassRef", "Other"))}}
-
-
-# Fills the HetMeerkerk column ~
-chr_rows <- grep("chr", rownames(VCF_auto.diff9_geno))
-for(ROW in chr_rows) {
-  background <- which(grepl("House", VCF_auto.diff9_geno["Species", ]))
-  Meerkerk <- which(grepl("Meerkerk", VCF_auto.diff9_geno["Species", ]))
-  if (length(background) > 0 & length(Meerkerk) > 0) {
-    VCF_auto.diff9_geno[ROW, "HetMeerkerk"] <-
-      ifelse(all(VCF_auto.diff9_geno[ROW, Meerkerk] %in% c(1)), "PassHet", "Other")}}
-
-
-table(VCF_auto.diff9_geno$HetMeerkerk)
-
-VCF_auto.diff95 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.95)
-HI_HET_auto.diff95 <- hybridIndex(vcfR = VCF_auto.diff95, pm = annot_auto, p1 = "House", p2 = "Spanish")
-
-VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.9)
-HI_HET_auto.diff9 <- hybridIndex(vcfR = VCF_auto.diff9, pm = annot_auto, p1 = "House", p2 = "Spanish")
-
-VCF_auto.diff8 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.8)
-HI_HET_auto.diff8 <- hybridIndex(vcfR = VCF_auto.diff8, pm = annot_auto, p1 = "House", p2 = "Spanish")
-
-VCF_auto.diff7 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.7)
-HI_HET_auto.diff7 <- hybridIndex(vcfR = VCF_auto.diff7, pm = annot_auto, p1 = "House", p2 = "Spanish")
-
-VCF_allo.diff1 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 1)
-HI_HET_allo.diff1 <- hybridIndex(vcfR = VCF_allo.diff1, pm = annot_allo, p1 = "House", p2 = "Spanish")
-
-VCF_allo.diff95 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.95)
-HI_HET_allo.diff95 <- hybridIndex(vcfR = VCF_allo.diff95, pm = annot_allo, p1 = "House", p2 = "Spanish")
-
-VCF_allo.diff9 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.9)
-HI_HET_allo.diff9 <- hybridIndex(vcfR = VCF_allo.diff9, pm = annot_allo, p1 = "House", p2 = "Spanish")
-
-VCF_allo.diff8 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.8)
-HI_HET_allo.diff8 <- hybridIndex(vcfR = VCF_allo.diff8, pm = annot_allo, p1 = "House", p2 = "Spanish")
-
-VCF_allo.diff7 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.7)
-HI_HET_allo.diff7 <- hybridIndex(vcfR = VCF_allo.diff7, pm = annot_allo, p1 = "House", p2 = "Spanish")
-
-
-# Loads data ~
-HI_HET_auto.diff1$CHRType <- "Autosomes"
-HI_HET_auto.diff1$Diff <- "1.00"
-HI_HET_auto.diff1$SNPs <- nrow(VCF_auto.diff1@fix)
-
-HI_HET_auto.diff95$CHRType <- "Autosomes"
-HI_HET_auto.diff95$Diff <- "0.95"
-HI_HET_auto.diff95$SNPs <- nrow(VCF_auto.diff95@fix)
-
-HI_HET_auto.diff9$CHRType <- "Autosomes"
-HI_HET_auto.diff9$Diff <- "0.90"
-HI_HET_auto.diff9$SNPs <- nrow(VCF_auto.diff9@fix)
-
-HI_HET_auto.diff8$CHRType <- "Autosomes"
-HI_HET_auto.diff8$Diff <- "0.80"
-HI_HET_auto.diff8$SNPs <- nrow(VCF_auto.diff8@fix)
-
-HI_HET_auto.diff7$CHRType <- "Autosomes"
-HI_HET_auto.diff7$Diff <- "0.70"
-HI_HET_auto.diff7$SNPs <- nrow(VCF_auto.diff7@fix)
-
-HI_HET_allo.diff1$CHRType <- "Chromosome Z"
-HI_HET_allo.diff1$Diff <- "1.00"
-HI_HET_allo.diff1$SNPs <- nrow(VCF_allo.diff1@fix)
-
-HI_HET_allo.diff95$CHRType <- "Chromosome Z"
-HI_HET_allo.diff95$Diff <- "0.95"
-HI_HET_allo.diff95$SNPs <- nrow(VCF_allo.diff95@fix)
-
-HI_HET_allo.diff9$CHRType <- "Chromosome Z"
-HI_HET_allo.diff9$Diff <- "0.90"
-HI_HET_allo.diff9$SNPs <- nrow(VCF_allo.diff9@fix)
-
-HI_HET_allo.diff8$CHRType <- "Chromosome Z"
-HI_HET_allo.diff8$Diff <- "0.80"
-HI_HET_allo.diff8$SNPs <- nrow(VCF_allo.diff8@fix)
-
-HI_HET_allo.diff7$CHRType <- "Chromosome Z"
-HI_HET_allo.diff7$Diff <- "0.70"
-HI_HET_allo.diff7$SNPs <- nrow(VCF_allo.diff7@fix)
-
-
-# Combines fulldf_auto and fulldf_allo ~
-fulldf <- rbind(HI_HET_auto.diff9, # Creates POS plot ~
-                AncestryPlot_POS <-
-                  ggplot(HI_HET, aes(x = POSMb, y = Individual, fill = as.factor(Ancestry))) +
-                  geom_point(shape = 21, size = 1.25, colour = "#000000", stroke = 0) +
-                  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
-                  ggtitle("Ancestry-informative Markers") +
-                  scale_x_continuous(breaks = c(25, 50, 75, 100, 125),
-                                     labels = c("25Mb", "50Mb", "75Mb", "100Mb", "125Mb"),
-                                     expand = c(.005, .005)) +
-                  scale_y_discrete(labels = delete_no_display) +
-                  facet_grid(CHR ~ ., scales = "free", labeller = labeller(CHR = y_strip_labels)) +
-                  theme(panel.background = element_rect(fill = "#ffffff"),
-                        panel.border = element_blank(),
-                        panel.grid.major = element_blank(),
-                        panel.grid.minor = element_blank(),
-                        panel.spacing = unit(.05, "cm"),
-                        legend.position = c(.3, .25),
-                        legend.key = element_blank(),
-                        legend.background = element_blank(),
-                        legend.margin = margin(t = 0, b = 0, r = 0, l = 0),
-                        legend.box.margin = margin(t = 0, b = 0, r = 0, l = 0),
-                        plot.title = element_text(family = "Optima", size = 20, face = "bold", color = "#000000", hjust = .5, margin = margin(t = 0, r = 0, b = 15, l = 0)),
-                        axis.title = element_blank(),
-                        axis.text = element_text(family = "Optima", color = "#000000", size = 6.5, face = "bold"),
-                        axis.ticks = element_line(color = "#000000", linewidth = .2),
-                        strip.text = element_text(family = "Optima", colour = "#000000", size = 7, face = "bold"),
-                        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .2),
-                        axis.line = element_line(colour = "#000000", linewidth = .2)) +
-                  guides(fill = guide_legend(title = "Ancestry", title.theme = element_text(family = "Optima", size = 12, face = "bold"),
-                                             label.theme = element_text(family = "Optima", size = 10), override.aes = list(shape = 21, size = 4, stroke = .15)))
-                
-                
-                # Saves Index plot ~
-                ggsave(AncestryPlot_POS, file = "Y150239Genomics--AncestryHeatmap_GenomicAIMs_News.pdf",
-                       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 8, height = 12, dpi = 600)
-                ggsave(AncestryPlot_POS, file = "Y150239Genomics--AncestryHeatmapGenomicAIMs.png",
-                       limitsize = FALSE, scale = 1, width = 20, height = 12, dpi = 600))
-#HI_HET_auto.diff95, HI_HET_auto.diff9, HI_HET_auto.diff8, HI_HET_auto.diff7, HI

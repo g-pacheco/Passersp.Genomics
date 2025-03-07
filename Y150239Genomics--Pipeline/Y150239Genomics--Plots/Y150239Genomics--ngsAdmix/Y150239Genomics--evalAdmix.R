@@ -12,7 +12,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(tidyverse, ggh4x, ggstar, ggrepel, ggnewscale, lemon, data.table, tidytext, patchwork)
+pacman::p_load(tidyverse, ggh4x, ggstar, ggrepel, ggnewscale, data.table, tidytext, patchwork)
 
 
 # Defines the orderInds function ~
@@ -85,7 +85,7 @@ compute_mean_correlations <- function(cor_mat_list, ord_list, pop) {
   return(final_list)}
 
 
-# Initialize empty lists for storing data separately for Allosome and Autosomes
+# Initializes lists for storing data separately for Allosome and Autosomes
 corres_allosome <- list()
 corres_autosomes <- list()
 final_list_allosome <- list()
@@ -190,10 +190,7 @@ for (folder in folder_paths) {
     } else {
       corres_autosomes[[k]] <- corres_df
       # Apply compute_mean_correlations for Autosomes
-      final_list_autosomes[[k]] <- compute_mean_correlations(cor_mat_list = list(corres_df), ord_list = list(ord), pop = pop_auto)
-    }
-  }
-}
+      final_list_autosomes[[k]] <- compute_mean_correlations(cor_mat_list = list(corres_df), ord_list = list(ord), pop = pop_auto)}}}
 
                                             
 # Combines all matrices for different Ks into data frame ~
@@ -442,10 +439,10 @@ Y150239Genomics_evalAdmix_Points_Plot <-
                        breaks = c(-.15, 0, .15),
                        labels = c(-0.15, 0, 0.15)) +
   facet_nested(CHRType + K ~ Triangle, scales = "free_x", remove_labels = "y", 
-               strip = strip_nested(text_x = elem_list_text(size = 16, family = "Optima", face = "bold"),
+               strip = strip_nested(text_x = elem_list_text(size = 15, family = "Optima", face = "bold"),
                                     background_x = elem_list_rect(fill = "#d6d6d6", colour = "#000000", linewidth = .3),
                                     by_layer_x = TRUE,
-                                    text_y = elem_list_text(size = c(16, 14), family = c("Optima", "Optima"), face = c("bold", "bold")),
+                                    text_y = elem_list_text(size = c(15, 13), family = c("Optima", "Optima"), face = c("bold", "bold")),
                                     background_y = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"), colour = c("#000000", "#000000"), linewidth = c(.3, .3)),
                                     by_layer_y = TRUE)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
@@ -464,7 +461,7 @@ Y150239Genomics_evalAdmix_Points_Plot <-
         legend.background = element_blank(), 
         axis.line = element_line(colour = "#000000", linewidth = .3),
         axis.title = element_blank(),
-        axis.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
+        axis.text = element_text(family = "Optima", colour = "#000000", size = 11, face = "bold"),
         axis.ticks = element_line(color = "#000000", linewidth = .3),
         strip.placement = "outside") +
   guides(fill = guide_colourbar(title = "Residual Correlation", 
