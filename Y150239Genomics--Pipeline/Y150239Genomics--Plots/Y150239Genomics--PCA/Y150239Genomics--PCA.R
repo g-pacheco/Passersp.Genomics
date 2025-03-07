@@ -98,10 +98,6 @@ MyLegend_Plot <-
   geom_star(aes(starshape = Population, fill = Species), size = 2.8, starstroke = .15, alpha = .7) +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
   scale_starshape_manual(values = shapes.legend, na.translate = FALSE) +
-  scale_x_continuous("PC 1 (10.9%)",
-                     expand = c(.005, .005)) +
-  scale_y_continuous("PC 2 (2.5%)",
-                     expand = c(.03, .03)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
         panel.border = element_blank(),
         panel.grid.minor = element_blank(), 

@@ -85,7 +85,7 @@ compute_mean_correlations <- function(cor_mat_list, ord_list, pop) {
   return(final_list)}
 
 
-# Initializes lists for storing data separately for Allosome and Autosomes
+# Initializes lists ~
 corres_allosome <- list()
 corres_autosomes <- list()
 final_list_allosome <- list()
@@ -95,10 +95,10 @@ annot_autosomes <- list()
 ord_list_allosome <- list()
 ord_list_autosomes <- list()
 
-# Define the two folder paths
+# Defines the two folder paths ~
 folder_paths <- c("./Autosomes", "./Allosome")
 
-# Loop over each folder (for Allosome and Autosomes)
+# Loops over each folder ~
 for (folder in folder_paths) {
   
   # Get the files in the folder
@@ -106,18 +106,16 @@ for (folder in folder_paths) {
   annot_files <- dir(folder, pattern = ".labels")
   qopt_files <- dir(folder, pattern = ".qopt")
   
-  # Check if files exist
+  # Checks if files exist ~
   if (length(corres_files) == 0 || length(annot_files) == 0 || length(qopt_files) == 0) {
-    stop(paste("Missing files in folder:", folder))
-  }
+    stop(paste("Missing files in folder:", folder))}
   
-  # Process each file
+  # Processes each file ~
   for (k in seq_along(annot_files)) {
-    # Read annotation file
     annot <- read.table(file.path(folder, annot_files[k]), sep = "\t", header = FALSE, stringsAsFactors = FALSE)
     colnames(annot) <- c("Annot")
     
-    # Assign populations based on the annotations
+    # Assigns populations based on the annotations ~
     annot$Population <- ifelse(grepl("FR0", annot$Annot), "Sales",
                         ifelse(grepl("KAZ", annot$Annot), "Chokpak",
                         ifelse(grepl("Lesina", annot$Annot), "Lesina",
@@ -130,30 +128,27 @@ for (folder in folder_paths) {
                         ifelse(grepl("PDOM2022NLD0", annot$Annot), "Utrecht", "Error"))))))))))
     annot$Ind <- with(annot, ave(Population, Population, FUN = function(x) sprintf("%s_%02d", x, seq_along(x))))
     
-    # Read qopt file if it exists
+    # Reads qopt file if it exists ~
     qopt_df <- NULL
     if (length(qopt_files) >= k && file.exists(file.path(folder, qopt_files[k]))) {
       qopt_df <- as.matrix(read.table(file.path(folder, qopt_files[k]), header = FALSE))
     } else {
-      warning(paste("Missing or empty qopt file:", qopt_files[k], "in folder:", folder))
-    }
+      warning(paste("Missing or empty qopt file:", qopt_files[k], "in folder:", folder))}
     
-    # Read corres file
+    # Reads corres file ~
     corres_df <- as.data.frame(read.table(file.path(folder, corres_files[k])))
     if (nrow(corres_df) == 0 || ncol(corres_df) == 0) {
-      stop(paste("Empty or invalid corres file:", corres_files[k], "in folder:", folder))
-    }
+      stop(paste("Empty or invalid corres file:", corres_files[k], "in folder:", folder))}
     
     labels <- annot$Annot
     pop <- annot$Population
     ord <- orderInds(q = qopt_df, pop = pop)
     
-    # Check if ord is valid
+    # Checks if ord is valid ~
     if (length(ord) != nrow(corres_df)) {
-      stop(paste("Invalid ordering vector (ord) for file:", corres_files[k], "in folder:", folder))
-    }
+      stop(paste("Invalid ordering vector (ord) for file:", corres_files[k], "in folder:", folder))}
     
-    # Update the correct ord_list and annot_list depending on the CHRType
+    # Updates the correct ord_list and annot_list depending on the CHRType ~
     if (grepl("Allosome", folder)) {
       ord_list_allosome[[k]] <- ord
       annot_allosome[[k]] <- annot  # Store annot separately for Allosome
@@ -161,10 +156,9 @@ for (folder in folder_paths) {
     } else {
       ord_list_autosomes[[k]] <- ord
       annot_autosomes[[k]] <- annot  # Store annot separately for Autosomes
-      pop_auto <- annot$Population
-    }
+      pop_auto <- annot$Population}
     
-    # Reorder corres_df based on ord
+    # Reorders corres_df based on ord ~
     corres_df <- corres_df[ord, ord]
     ordered_labels <- labels[ord]
     rownames(corres_df) <- ordered_labels
@@ -174,7 +168,7 @@ for (folder in folder_paths) {
     corres_df$CHRType <- str_extract(corres_files[k], "(Allosome|Autosomes)")
     corres_df$K <- str_extract(corres_files[k], "(K2|K3|K4|K5|K6|K7)")
     
-    # Format K values
+    # Formats K values ~
     corres_df$K <- ifelse(grepl("K2", corres_df$K), "K = 2",
                    ifelse(grepl("K3", corres_df$K), "K = 3",
                    ifelse(grepl("K4", corres_df$K), "K = 4",
@@ -182,14 +176,14 @@ for (folder in folder_paths) {
                    ifelse(grepl("K6", corres_df$K), "K = 6",
                    ifelse(grepl("K7", corres_df$K), "K = 7", "Error"))))))
     
-    # Add the data to the corresponding CHRType list
+    # Adds the data to the corresponding CHRType list ~
     if (grepl("Allosome", corres_df$CHRType[1])) {
       corres_allosome[[k]] <- corres_df
-      # Apply compute_mean_correlations for Allosome
+      # Apply compute_mean_correlations for Allosome ~
       final_list_allosome[[k]] <- compute_mean_correlations(cor_mat_list = list(corres_df), ord_list = list(ord), pop = pop_allo)
     } else {
       corres_autosomes[[k]] <- corres_df
-      # Apply compute_mean_correlations for Autosomes
+      # Applies compute_mean_correlations for Autosomes ~
       final_list_autosomes[[k]] <- compute_mean_correlations(cor_mat_list = list(corres_df), ord_list = list(ord), pop = pop_auto)}}}
 
                                             
@@ -449,7 +443,7 @@ Y150239Genomics_evalAdmix_Points_Plot <-
         panel.grid.major = element_line(color = "#E5E7E9", linetype = "dashed", linewidth = .005),
         panel.grid.minor = element_blank(), 
         panel.border = element_blank(),
-        panel.spacing = unit(.1, "cm"),
+        panel.spacing = unit(.2, "cm"),
         legend.position = "top",
         legend.title.align = .5,
         legend.title = element_text(family = "Optima", size = 16, face = "bold"),
@@ -473,9 +467,9 @@ Y150239Genomics_evalAdmix_Points_Plot <-
 
 
 # Saves the panel ~
-ggsave(Y150239Genomics_evalAdmix_Points_Plot, file = "Y150239Genomics--evalAdmix_Points.pdf",
+ggsave(Y150239Genomics_evalAdmix_Points_Plot, file = "Y150239Genomics--evalAdmix.pdf",
        device = cairo_pdf, width = 12, height = 14, scale = 1, dpi = 600)
-ggsave(Y150239Genomics_evalAdmix_Points_Plot, file = "Y150239Genomics--evalAdmix_Points.jpeg",
+ggsave(Y150239Genomics_evalAdmix_Points_Plot, file = "Y150239Genomics--evalAdmix.jpeg",
        width = 12, height = 14, scale = 1, dpi = 600)
 
 
@@ -558,42 +552,3 @@ ggsave(combined_plot, file = "Y150239Genomics--evalAdmix.jpeg",
 #
 ##
 ### The END ~~~~~
-
-
-#TEST <-
-#  fulldfUp |>
-#  mutate(Sample_ID_2 = reorder_within(Sample_ID_2, as.numeric(Value), K), linewidth = .15, colour = "#000000") |>
-#  ggplot(aes(Sample_ID_1, Sample_ID_2)) +
-#  facet_grid(K ~ ., scales = "free", space = "free") +
-#  geom_tile(aes(fill = as.numeric(Value)), linewidth = .15, colour = "#000000") +
-#  scale_y_reordered() +
-#  theme(panel.background = element_rect(fill = "#ffffff"),
-#        panel.border = element_blank(),
-#        panel.grid.major = element_blank(),
-#        panel.grid.minor = element_blank(),
-#        panel.spacing = unit(1, "lines"),
-#        legend.position = "right",
-#        legend.key = element_blank(),
-#        legend.background = element_blank(),
-#        legend.margin = margin(t = 0, b = 0, r = 15, l = 15),
-#        legend.box = "vertical",
-#        legend.box.margin = margin(t = 20, b = 30, r = 0, l = 0),
-#        axis.title = element_blank(),
-#        axis.text.x = element_text(color = "#000000", family = "Optima", size = 9, face = "bold"),
-#        axis.text.y = element_text(color = "#000000", family = "Optima", size = 9, face = "bold"),
-#        axis.ticks.x = element_blank(),
-#        axis.ticks.y = element_line(color = "#000000", linewidth = 0.15),
-#        strip.text.x = element_text(colour = "#000000", size = 22, face = "bold", family = "Optima"),
-#        strip.text.y = element_text(colour = "#000000", size = 18, face = "bold", family = "Optima"),
-#        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = 0.15),
-#        axis.line = element_line(colour = "#000000", linewidth = 0.15)) +
-#  guides(fill = guide_colourbar(title = "", title.theme = element_text(size = 16, face = "bold"),
-#                                label.theme = element_text(size = 10, face = "bold"), label.position = "right",
-#                               barwidth = 1.25, barheight = 18, order = 1, frame.linetype = 1, frame.colour = NA,
-#                                ticks.colour = NA, direction = "vertical", even.steps = TRUE,
-#                                draw.ulim = TRUE, draw.llim = TRUE))
-
-
-# Saves panel ~
-#ggsave(TEST, file = "TEST.png",
-#       limitsize = FALSE, scale = 1, width = 10, height = 10, dpi = 600)
