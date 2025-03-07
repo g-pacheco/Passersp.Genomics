@@ -12,14 +12,8 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(optparse, tidyverse, plyr, RColorBrewer, extrafont, ggforce, ggstar, ggrepel, RcppCNPy, reshape2, lemon, plotly,
+pacman::p_load(optparse, tidyverse, ggh4x, plyr, RColorBrewer, extrafont, ggforce, ggstar, ggrepel, RcppCNPy, reshape2,
                gridExtra, grid, cowplot, patchwork, ggpubr, rphylopic)
-
-
-# Loads extra fonts ~
-loadfonts()
-font_add_google("Cormorant Garamond", "cormorant")
-showtext_auto()
 
 
 # Loads data ~
@@ -118,11 +112,11 @@ MyLegend_Plot <-
         legend.margin = margin(t = 0, b = 0, r = 15, l = 15),
         legend.box = "vertical",
         legend.box.margin = margin(t = 10, b = 15, r = 0, l = 0)) +
-  guides(starshape = guide_legend(title = "Population", title.theme = element_text(family = "cormorant", size = 16, face = "bold"),
-                                  label.theme = element_text(size = 15, family = "cormorant"),
+  guides(starshape = guide_legend(title = "Population", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
+                                  label.theme = element_text(size = 15, family = "Optima"),
                                   override.aes = list(starshape = shapes.legend, size = 5, starstroke = .15), nrow = 1, order = 2),
-         fill = guide_legend(title = "Species", title.theme = element_text(family = "cormorant", size = 16, face = "bold"),
-                             label.theme = element_text(size = 15, family = "cormorant"),
+         fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
+                             label.theme = element_text(size = 15, family = "Optima"),
                              override.aes = list(starshape = 21, size = 5, starstroke = .15), nrow = 1, order = 1),
          colour = "none")
 
@@ -182,28 +176,28 @@ PCAauto_Eigenval_Sum <- sum(PCAauto$values)
 PCAauto_12 <-
   ggplot(data = subset(fulldf, CHR == "Autosomes"), aes_string(x = "PCA_1", y = "PCA_2")) +
   geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.15, starstroke = .15) +
-  facet_rep_grid(CHR ~. , scales = "free_x") +
+  facet_grid2(CHR ~. , scales = "free_x", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
   scale_starshape_manual(values = shapes.auto) +
   geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Y150239", "Garderen_02")), aes(label = Labels),
-                   family = "cormorant", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.06, nudge_y = 0,
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.06, nudge_y = 0,
                    point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                    ends = "last", type = "open")) +
   geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Garderen_01", "Meerkerk_01")), aes(label = Labels),
-                   family = "cormorant", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = -.1,
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = -.1,
                    point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
   geom_mark_ellipse(aes(filter = Species == "House", label = "House\nSparrow"), con.colour = "#1E90FF", colour = "#1E90FF",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
-                    con.type = "straight", label.family = "cormorant", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
+                    con.type = "straight", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Spanish", label = "Spanish\nSparrow"), con.colour = "#ee0000", colour = "#ee0000",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
-                    con.type = "elbow", label.family = "cormorant", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
+                    con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Italian", label = "Italian\nSparrow"), con.colour = "#FFD700", colour = "#FFD700",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
-                    con.type = "elbow", label.family = "cormorant", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
+                    con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   scale_x_continuous("PC 1 (5.55%)",
                      breaks = c(-.1, 0, .1, .2),
                      labels = c("-0.1", "0", ".01", ".02"),
@@ -215,16 +209,16 @@ PCAauto_12 <-
                      limits = c(-.31, .35),
                      expand = c(0, 0)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
-        panel.border = element_blank(),
-        panel.grid.minor = element_blank(), 
         panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.spacing = unit(.2, "cm"),
         legend.position = "none",
-        axis.title.x = element_text(family = "cormorant", size = 15, face = "bold", margin = margin(t = 18, r = 0, b = 0, l = 0)),
-        axis.title.y = element_text(family = "cormorant", size = 15, face = "bold", margin = margin(t = 0, r = 18, b = 0, l = 0)),
-        axis.text.x = element_text(family = "cormorant", color = "#000000", size = 11, face = "bold"),
-        axis.text.y = element_text(family = "cormorant", color = "#000000", size = 11, face = "bold"),
+        axis.title.x = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 25, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
+        axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
         axis.ticks = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "cormorant", colour = "#000000", size = 14, face = "bold"),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
         strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         axis.line = element_line(colour = "#000000", linewidth = .3))
 
@@ -243,23 +237,23 @@ shapes.allo <- as.vector(c(1, 9, 13, 21, 11, 23, 14))
 PCAallo_12 <-
   ggplot(data =  subset(fulldf, CHR == "Chromosome Z"), aes_string(x = "PCA_1", y = "PCA_2")) +
   geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.15, starstroke = .15) +
-  facet_rep_grid(CHR ~. , scales = "free_x") +
+  facet_grid2(CHR ~. , scales = "free_x", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
   scale_starshape_manual(values = shapes.allo) +
   geom_label_repel(data = subset(fulldf, CHR == "Chromosome Z"), aes(label = Labels),
-                   family = "cormorant", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.03, nudge_y = .015,
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.03, nudge_y = .015,
                    point.padding = .6, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
   geom_mark_ellipse(aes(filter = Species == "House", label = "House\nSparrow"), con.colour = "#1E90FF", colour = "#1E90FF",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
-                    con.type = "straight", label.family = "cormorant", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
+                    con.type = "straight", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Spanish", label = "Spanish\nSparrow"), con.colour = "#ee0000", colour = "#ee0000",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
-                    con.type = "elbow", label.family = "cormorant", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
+                    con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Italian", label = "Italian\nSparrow"), con.colour = "#FFD700", colour = "#FFD700",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
-                    con.type = "elbow", label.family = "cormorant", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
+                    con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   scale_x_continuous("PC 1 (8.90%)",
                      limits = c(-.19, .25),
                      expand = c(0, 0)) +
@@ -267,16 +261,16 @@ PCAallo_12 <-
                      limits = c(-.31, .35),
                      expand = c(0, 0)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
-        panel.border = element_blank(),
-        panel.grid.minor = element_blank(), 
         panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.spacing = unit(.2, "cm"),
         legend.position = "none",
-        axis.title.x = element_text(family = "cormorant", size = 15, face = "bold", margin = margin(t = 18, r = 0, b = 0, l = 0)),
-        axis.title.y = element_text(family = "cormorant", size = 15, face = "bold", margin = margin(t = 0, r = 18, b = 0, l = 0)),
-        axis.text.x = element_text(family = "cormorant", color = "#000000", size = 11, face = "bold"),
-        axis.text.y = element_text(family = "cormorant", color = "#000000", size = 11, face = "bold"),
+        axis.title.x = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 25, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
+        axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
         axis.ticks = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "cormorant", colour = "#000000", size = 14, face = "bold"),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
         strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         axis.line = element_line(colour = "#000000", linewidth = .3))
 
@@ -287,10 +281,6 @@ MyLegendBlog <- get_legend(MyLegend_Plot)
 
 # Gets final plot ~
 PCA_Plot <- ggarrange(PCAauto_12, PCAallo_12, nrow = 2, legend.grob = MyLegendBlog)
-
-
-# Save the plot object to an RDS file
-saveRDS(PCA_Plot, "PCA.rds")
 
 
 # Saves plot ~

@@ -236,10 +236,10 @@ ngsAdmix <-
   ggplot(fulldfUp, aes(x = Sample_ID, y = Ancestry, fill = fill_color, pattern = Status), colour = "#000000") +
   geom_col_pattern(width = .85, alpha = .7, pattern_size = .1, pattern_density = .01, pattern_spacing = .075, pattern_units = "in", pattern_colour = "#000000", pattern_fill = "#000000") +
   facet_nested(chrtype + K_Value ~ Group + Population, scales = "free_x", space = "free",
-               strip = strip_nested(text_x = elem_list_text(size = c(16, 13), family = c("Optima", "Optima"), face = c("bold", "bold"), angle = c(0, 90), margins = c(1, 2, 3, 4)),
+               strip = strip_nested(text_x = elem_list_text(size = c(15, 13), family = c("Optima", "Optima"), face = c("bold", "bold"), angle = c(0, 90), margins = c(1, 2, 3, 4)),
                                     background_x = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"), colour = c("#000000", "#000000"), linewidth = c(.3, .3)),
                                     by_layer_x = TRUE,
-                                    text_y = elem_list_text(size = c(16, 13), family = c("Optima", "Optima"), face = c("bold", "bold")),
+                                    text_y = elem_list_text(size = c(15, 13), family = c("Optima", "Optima"), face = c("bold", "bold")),
                                     background_y = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"), colour = c("#000000", "#000000"), linewidth = c(.3, .3)),
                                     by_layer_y = TRUE)) +
   scale_fill_identity() +
@@ -249,7 +249,8 @@ ngsAdmix <-
   theme(panel.background = element_rect(fill = "#ffffff"),
         panel.grid.minor.x = element_blank(),
         panel.grid.major = element_blank(),
-        panel.spacing = unit(.1, "cm"),
+        panel.border = element_blank(),
+        panel.spacing.y = unit(.2, "cm"),
         plot.title = element_blank(),
         legend.position = "none",
         axis.title = element_blank(),
@@ -257,38 +258,6 @@ ngsAdmix <-
         #axis.text.x.bottom = element_text(colour = "#000000", face = "bold", angle = 90, vjust = .5, hjust = .5),
         axis.text.y = element_blank(),
         axis.ticks = element_blank())
-        
-#strip.text.x = element_text(family = "Optima", colour = "#000000", face = "bold", size = 14, angle = 90, margin = margin(0.5, 0.1, 0.5, 0.1, "cm")),
-#trip.text.y = element_text(family = "Optima", colour = "#000000", face = "bold", size = 14, angle = 90, margin = margin(0, 0.1, 0, 0.1, "cm")))
-
-
-# Adds grob ~
-#ngsAdmix_G <- ggplotGrob(ngsAdmix)
-#ngsAdmix_G <- gtable_add_rows(ngsAdmix_G, unit(1.25, "cm"), pos = 5)
-
-
-# Adds top strips ~
-#ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#1E90FF", alpha = .7, size = .75, lwd = .25)),
-#               textGrob("House Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
-#               t = 6, l = 4, b = 6, r = 12, name = c("a", "b"))
-#ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#FFD700", alpha = .7, size = .5, lwd = .25)),
-#               textGrob("Italian Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
-#               t = 6, l = 14, b = 6, r = 20, name = c("a", "b"))
-#ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#ee0000", alpha = .7, size = .75, lwd = .25)),
-#               textGrob("Spanish Sparrow", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
-#               t = 6, l = 22, b = 6, r = 28, name = c("a", "b"))
-#ngsAdmix_G <- gtable_add_grob(ngsAdmix_G, list(rectGrob(gp = gpar(col = "#000000", fill = "#c994c7", alpha = .7, size = .75, lwd = .25)),
-#              textGrob("Focal Area", gp = gpar(cex = 1.5, fontface = 'bold', fontfamily = "Optima", col = "black"))),
-#              t = 6, l = 30, b = 6, r = 39, name = c("a", "b"))
-
-
-# Controls separation ~
-#ngsAdmix_G <- gtable_add_rows(ngsAdmix_G, unit(2 / 10, "line"), 6)
-
-
-# Creates the final plot ~
-#grid.newpage()
-#grid.draw(ngsAdmix_G)
 
 
 # Saves the final plot ~
