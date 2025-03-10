@@ -13,7 +13,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Loads required packages ~
 pacman::p_load(optparse, tidyverse, plyr, RColorBrewer, extrafont, ggforce, ggstar, ggrepel, RcppCNPy, reshape2,
-               gridExtra, grid, ggpubr, rphylopic, viridis)
+               gridExtra, grid, ggpubr, rphylopic, viridis, forcats)
 
 
 # Loads data while loading accompanying annotations ~
@@ -34,7 +34,7 @@ for (k in 1:length(annotL)) {
   annot[[k]] <- annot[[k]] %>%
     mutate(SubPopulation = case_when(Ind1 %in% c("PD22NLD0146F", "PD22NLD0147F") ~ "Garderen",
                                      Ind1 == "PDOM2022NLD0077M" ~ "Meerkerk",
-                                     Ind1 == "PI22NLD0001M" ~ "Y150239", TRUE ~ Population))
+                                     Ind1 == "PI22NLD0001M" ~ "Focal Ind.", TRUE ~ Population))
   annot[[k]]$CHRType <- str_extract(annotL[k], "(Allosome|Autosomes)")
   annot[[k]] <- annot[[k]] %>%
     group_by(SubPopulation) %>% mutate(Ind1b = paste(SubPopulation, sprintf("%02d", row_number()), sep = "_")) %>%
@@ -50,8 +50,15 @@ for (k in 1:length(annotL)) {
   rab[[k]]$b <- annot[[k]]$Ind2[match(rab[[k]]$b, seq_along(annot[[k]]$Ind1))]
   rab[[k]]$Pair <- paste(rab[[k]]$Ind1, "Vs", rab[[k]]$Ind2)
   
-  ### Only needed because the individual Meerkerk_01 is amidst the Utrecht subpopulation ~
+  # Only needed because the individual Meerkerk_01 is amidst the Utrecht subpopulation ~
   rab[[k]] <- rab[[k]] %>% mutate(Invert = str_detect(Ind2, "Meerkerk") & !Ind1 %in% c("Garderen_01", "Garderen_02"),
+                                  Temp_Ind1 = Ind1,
+                                  Temp_Ind2 = Ind2,
+                                  Ind1 = ifelse(Invert, Temp_Ind2, Temp_Ind1),
+                                  Ind2 = ifelse(Invert, Temp_Ind1, Temp_Ind2),
+                                  Pair = paste(Ind1, "Vs", Ind2)) %>%
+                                  select(-Invert, -Temp_Ind1, -Temp_Ind2)
+  rab[[k]] <- rab[[k]] %>% mutate(Invert = str_detect(Ind2, "Focal Ind."),
                                   Temp_Ind1 = Ind1,
                                   Temp_Ind2 = Ind2,
                                   Ind1 = ifelse(Invert, Temp_Ind2, Temp_Ind1),
@@ -70,23 +77,23 @@ fulldf <- bind_rows(rab)
 
 
 # Fixes individual Y150239 ~
-fulldf <- fulldf %>% mutate(across(c(Ind1, Ind2, Pair), ~ str_replace_all(., "Y150239_01", "Focal Ind.")))
+fulldf <- fulldf %>% mutate(across(c(Ind1, Ind2, Pair), ~ str_replace_all(., "Focal Ind._01", "Focal Ind.")))
 
 
 # Corrects Population names ~
 levels(fulldf$Population <- sub("TreeSparrow", "Tree Sparrow", fulldf$Population))
+levels(fulldf$Population <- sub("Utrecht", "Focal Area", fulldf$Population))
 
 
 # Reorders Population ~
 fulldf$Population <- factor(fulldf$Population, ordered = T,
-                            levels = c("Utrecht",
+                            levels = c("Focal Area",
                                        "Sales",
                                        "Crotone",
                                        "Guglionesi", 
                                        "Lesina",
                                        "Chokpak",
                                        "Tree Sparrow"))
-
 
 # Creates plot (Heatmap) ~
 Kinship_Plot_Heatmap <-

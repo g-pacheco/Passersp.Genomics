@@ -26,9 +26,9 @@ samples.allo <- read.table("Y150239Genomics--ngsAdmix.Allosome.popfile", strings
 
 
 # Reads the annotation file ~
-ids.auto <- read.table("./LABELs/AllSamples_bcftools.raw.vcf.Filtered.Autosomes.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.K2.labels",
+ids.auto <- read.table("./Autosomes/AllSamples_bcftools.raw.vcf.Filtered.Autosomes.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.K2.labels",
                        stringsAsFactors = FALSE, sep = "\t", header = FALSE, col.names = c("Sample_ID"))
-ids.allo <- read.table("./LABELs/AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MalesOnly.MAFfiltered.Pruned.K2.labels",
+ids.allo <- read.table("./Allosome/AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.K2.labels",
                        stringsAsFactors = FALSE, sep = "\t", header = FALSE, col.names = c("Sample_ID"))
 
 
@@ -123,19 +123,19 @@ fulldf.allo <- data.frame()
 
 
 x.auto <- list(c(3, 2, 1, 4, 6, 5, 7),
-               #c(4, 5, 1, 2, 6, 3),
-               #c(4, 2, 5, 3, 1),
-               #c(4, 3, 1, 2),
+               c(4, 5, 1, 2, 6, 3),
+               c(4, 2, 5, 3, 1),
+               c(4, 3, 1, 2),
                c(1, 3, 2),
                c(1, 2))
 
 
-x.allo <- list(c(3, 5, 1, 6, 7, 4, 2),
-               #c(1, 4, 2, 6, 3, 5),
-               #c(4, 3, 2, 1, 5),
-               #c(3, 2, 1, 4),
-               c(3, 1, 2),
-               c(1, 2))
+x.allo <- list(c(1, 2, 3, 4, 5, 6, 7),
+               c(1, 2, 3, 4, 5, 6),
+               c(1, 3, 2, 5, 4),
+               c(2, 4, 1, 3),
+               c(2, 1, 3),
+               c(2, 1))
 
 
 # Defines samples' IDs ~
@@ -261,10 +261,10 @@ ngsAdmix <-
 
 
 # Saves the final plot ~
-ggsave(ngsAdmix, file = "Y150239Genomics--ngsAdmix.pdf",
-       device = cairo_pdf, width = 20, height = 8, scale = 1, dpi = 600)
-ggsave(ngsAdmix, file = "Y150239Genomics--ngsAdmix.jpeg",
-       width = 20, height = 8, scale = 1, dpi = 600)
+ggsave(ngsAdmix, file = "Y150239Genomics--ngsAdmix_OLD.pdf",
+       device = cairo_pdf, width = 20, height = 12, scale = 1, dpi = 600)
+#ggsave(ngsAdmix, file = "Y150239Genomics--ngsAdmix.jpeg",
+#       width = 20, height = 8, scale = 1, dpi = 600)
 
 
 #
