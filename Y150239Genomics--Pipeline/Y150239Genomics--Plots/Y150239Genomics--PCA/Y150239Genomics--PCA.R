@@ -19,14 +19,14 @@ pacman::p_load(optparse, tidyverse, ggh4x, plyr, RColorBrewer, extrafont, ggforc
 # Loads data ~
 data.auto <- as.matrix(read.table("AllSamples_bcftools.raw.vcf.Filtered.Autosomes.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.PCAone.SVD0.cov"),
                       header = FALSE, stringsAsFactors = FALSE)
-data.allo <- as.matrix(read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MalesOnly.MAFfiltered.Pruned.PCAone.SVD0.cov"),
+data.allo <- as.matrix(read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.PCAone.SVD0.cov"),
                       header = FALSE, stringsAsFactors = FALSE)
 
 
 # Loads annotations files ~
 annot.auto <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Autosomes.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.labels",
                          sep = "\t", header = FALSE, stringsAsFactors = FALSE)
-annot.allo <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MalesOnly.MAFfiltered.Pruned.labels",
+annot.allo <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Allosome.NoKinship.NoTreeSparrow.MAFfiltered.Pruned.labels",
                          sep = "\t", header = FALSE, stringsAsFactors = FALSE)
 
 
@@ -156,7 +156,7 @@ fulldf$Species <- factor(fulldf$Species, ordered = T,
 
 
 # Expands PCA_Annot by adding Labels ~
-fulldf$Labels <- ifelse(fulldf$Sample_ID %in% c("PI22NLD0001M"), "Y150239",
+fulldf$Labels <- ifelse(fulldf$Sample_ID %in% c("PI22NLD0001M"), "Focal Ind.",
                  ifelse(fulldf$Sample_ID %in% c("PD22NLD0146F"), "Garderen_01",
                  ifelse(fulldf$Sample_ID %in% c("PD22NLD0147F"), "Garderen_02",
                  ifelse(fulldf$Sample_ID %in% c("PDOM2022NLD0077M"), "Meerkerk_01", ""))))
@@ -175,7 +175,7 @@ PCAauto_12 <-
   facet_grid2(CHR ~. , scales = "free_x", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
   scale_starshape_manual(values = shapes.auto) +
-  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Y150239", "Garderen_02")), aes(label = Labels),
+  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Focal Ind.", "Garderen_02")), aes(label = Labels),
                    family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.06, nudge_y = 0,
                    point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
@@ -250,10 +250,10 @@ PCAallo_12 <-
   geom_mark_ellipse(aes(filter = Species == "Italian", label = "Italian\nSparrow"), con.colour = "#FFD700", colour = "#FFD700",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
-  scale_x_continuous("PC 1 (8.90%)",
+  scale_x_continuous("PC 1 (9.10%)",
                      limits = c(-.19, .25),
                      expand = c(0, 0)) +
-  scale_y_continuous("PC 2 (4.75%)",
+  scale_y_continuous("PC 2 (4.80%)",
                      limits = c(-.31, .35),
                      expand = c(0, 0)) +
   theme(panel.background = element_rect(fill = "#ffffff"),

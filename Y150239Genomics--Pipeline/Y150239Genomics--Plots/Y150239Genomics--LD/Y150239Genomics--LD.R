@@ -353,27 +353,11 @@ load("Save.RData")
 
 
 # Expands fit_data & ld_data by adding a CHRType column ~
-fit_data$CHRType <- ifelse(grepl("Allosome", fit_data$File) & grepl("NoTreeSparrow", fit_data$File), "Chromosome Z I",
-                    ifelse(grepl("Allosome", fit_data$File) & grepl("TreeSparrow", fit_data$File), "Chromosome Z II",
-                    ifelse(grepl("Autosomes", fit_data$File) & grepl("NoTreeSparrow", fit_data$File), "Autosomes I",
-                    ifelse(grepl("Autosomes", fit_data$File) & grepl("TreeSparrow", fit_data$File), "Autosomes II", "Error"))))
+fit_data$CHRType <- ifelse(grepl("Autosomes", fit_data$File), "Autosomes",
+                    ifelse(grepl("Allosome", fit_data$File), "Chromosome Z", "Error"))
 
-ld_data$CHRType <- ifelse(grepl("Allosome", ld_data$File) & grepl("NoTreeSparrow", ld_data$File), "Chromosome Z I",
-                   ifelse(grepl("Allosome", ld_data$File) & grepl("TreeSparrow", ld_data$File), "Chromosome Z II",
-                   ifelse(grepl("Autosomes", ld_data$File) & grepl("NoTreeSparrow", ld_data$File), "Autosomes I",
-                   ifelse(grepl("Autosomes", ld_data$File) & grepl("TreeSparrow", ld_data$File), "Autosomes II", "Error"))))
-
-
-# Filters data ~
-fit_data <- fit_data %>% filter(!CHRType %in% c("Chromosome Z II", "Autosomes II"))
-ld_data <- ld_data %>% filter(!CHRType %in% c("Chromosome Z II", "Autosomes II"))
-
-
-# Corrects Institution ~
-levels(fit_data$CHRType <- sub("Autosomes I", "Autosomes", fit_data$CHRType))
-levels(fit_data$CHRType <- sub("Chromosome Z I", "Chromosome Z", fit_data$CHRType))
-levels(ld_data$CHRType <- sub("Autosomes I", "Autosomes", ld_data$CHRType))
-levels(ld_data$CHRType <- sub("Chromosome Z I", "Chromosome Z", ld_data$CHRType))
+ld_data$CHRType <- ifelse(grepl("Autosomes", ld_data$File), "Autosomes",
+                   ifelse(grepl("Allosome", ld_data$File), "Chromosome Z", "Error"))
 
 
 # Expands fit_data & ld_data by adding a PruningState column ~
@@ -408,7 +392,7 @@ if(!is.null(opt$plot_wrap_formula)) {
   if(opt$plot_wrap) {
     plot <- plot + facet_rep_wrap(opt$plot_wrap_formula, ncol = opt$plot_wrap, scales = opt$plot_axis_scales)
   } else {
-    plot <- plot + facet_grid2(opt$plot_wrap_formula, scales = opt$plot_axis_scales, axes = "all", remove_labels = "x")}}
+    plot <- plot + facet_grid2(opt$plot_wrap_formula, scales = opt$plot_axis_scales, axes = "all", remove_labels = "all")}}
 
 
 # Add LD decay fit CI ~ 
@@ -477,9 +461,9 @@ if(length(opt$ld) > 0) {
                        limits = c(0, 100000),
                        expand = c(0, 0)) +
     scale_y_continuous("Linkage Disequilibrium (r2)",
-                       breaks = c(0.05, 0.1, 0.15),
-                       labels = c("0.05", "0.10", "0.15"),
-                       limits = c(0, .2),
+                       breaks = c(0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35),
+                       labels = c("0.05", "0.10", "0.15", "0.20", "0.25", "0.30", "0.35"),
+                       limits = c(0, .375),
                        expand = c(0, 0)) +
     theme(panel.background = element_rect(fill = "#ffffff"),
           panel.border = element_blank(),

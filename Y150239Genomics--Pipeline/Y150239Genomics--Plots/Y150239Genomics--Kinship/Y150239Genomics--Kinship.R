@@ -70,7 +70,7 @@ fulldf <- bind_rows(rab)
 
 
 # Fixes individual Y150239 ~
-fulldf <- fulldf %>% mutate(across(c(Ind1, Ind2, Pair), ~ str_replace_all(., "Y150239_01", "Y150239")))
+fulldf <- fulldf %>% mutate(across(c(Ind1, Ind2, Pair), ~ str_replace_all(., "Y150239_01", "Focal Ind.")))
 
 
 # Corrects Population names ~
