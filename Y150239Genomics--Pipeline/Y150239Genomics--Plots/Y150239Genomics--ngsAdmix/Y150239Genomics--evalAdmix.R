@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# ~ Plots Y150239Genomics--evalAdmix | Written by George Pacheco.
+# ~ Plots Passer sp. Genomics -- evalAdmix | Written by George Pacheco.
 
 
 # Cleans the environment ~ 

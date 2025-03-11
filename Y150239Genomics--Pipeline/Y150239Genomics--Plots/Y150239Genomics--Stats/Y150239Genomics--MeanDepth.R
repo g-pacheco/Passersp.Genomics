@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# ~ Creates Y150239Genomics--GlobalDepth by George Pacheco.
+# ~ Plots Passer sp. Genomics -- GlobalDepth | Written by George Pacheco.
 
 
 # Cleans the environment ~ 

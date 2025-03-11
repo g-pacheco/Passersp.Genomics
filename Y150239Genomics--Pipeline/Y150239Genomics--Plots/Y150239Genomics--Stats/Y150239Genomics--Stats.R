@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# ~ Plots Y1502239Genomics--Stats by George Pacheco.
+# ~ Plots Passer sp. Genomics -- Stats | Written by George Pacheco.
 
 
 # Cleans the environment ~ 

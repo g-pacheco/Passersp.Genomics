@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# Y150239Genomics--LD | First written by Filipe G. Vieira & Emma Fox with later slight modifications by George Pacheco.
+# Plots Passer sp. Genomics -- LD | First written by Filipe G. Vieira & Emma Fox with later slight modifications by George Pacheco.
 
 
 # Cleans the environment ~ 

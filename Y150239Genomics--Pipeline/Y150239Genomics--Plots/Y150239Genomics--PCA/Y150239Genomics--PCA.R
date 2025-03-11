@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# Y150239Genomics--PCA by George Pacheco ~
+# Plots Passer sp. Genomics -- PCA | Written by George Pacheco ~
 
 
 # Cleans the environment ~ 

@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# Y150239Genomics--TriangularR by George Pacheco ~
+# Plots Passer sp. Genomics -- TriangularR | Written by George Pacheco ~
 
 
 # Cleans the environment ~ 
