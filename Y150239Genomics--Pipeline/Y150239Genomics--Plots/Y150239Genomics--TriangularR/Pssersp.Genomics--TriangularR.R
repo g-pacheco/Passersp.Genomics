@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# Plots Passer sp. Genomics -- TriangularR | Written by George Pacheco ~
+# Plots Passer sp. Genomics -- Triangular Plot | Written by George Pacheco ~
 
 
 # Cleans the environment ~ 
@@ -17,18 +17,173 @@ pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, gri
 
 
 # Loads VCF data ~
-VCF_auto <- read.vcfR("../../../../LargeFiles/Y150239--TriangularR/AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.Focal.All.vcf", verbose = TRUE)
-VCF_allo <- read.vcfR("../../../../LargeFiles/Y150239--TriangularR/AllSamples_bcftools.raw.vcf.Filtered.Focal.Allosome.ALL.vcf", verbose = TRUE)
+VCF_auto <- read.vcfR("../../../../LargeFiles/Y150239--TriangularR/AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.Focal.ALL.vcf", verbose = TRUE)
+VCF_allo <- read.vcfR("../../../../LargeFiles/Y150239--TriangularR/AllSamples_bcftools.raw.vcf.Allosome.TriangularR.Focal.All.vcf", verbose = TRUE)
 
 
 # Loads annotation file ~
-annot_auto <- read.table("AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.Focal.All.annot",  sep = " ", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
-annot_allo <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Focal.Allosome.ALL.annot",  sep = " ", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
+annot_auto <- read.table("AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.Focal.ALL.annot",  sep = "\t", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
+annot_allo <- read.table("AllSamples_bcftools.raw.vcf.Allosome.TriangularR.Focal.ALL.annot",  sep = "\t", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
 
 
 # Gets AIMs ~
 VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.9)
 VCF_allo.diff9 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.9)
+
+
+# Calculates differentiation indexes ~
+HI_HET_auto.diff9 <- hybridIndex(vcfR = VCF_auto.diff9, pm = annot_auto, p1 = "House", p2 = "Spanish")
+HI_HET_allo.diff9 <- hybridIndex(vcfR = VCF_allo.diff9, pm = annot_allo, p1 = "House", p2 = "Spanish")
+
+
+# Expands HI_HET ~
+HI_HET_auto.diff9$CHRType <- "Autosomes"
+HI_HET_auto.diff9$Diff <- "0.90"
+HI_HET_auto.diff9$SNPs <- nrow(VCF_auto.diff9@fix)
+HI_HET_allo.diff9$CHRType <- "Chromosome Z"
+HI_HET_allo.diff9$Diff <- "0.90"
+HI_HET_allo.diff9$SNPs <- nrow(VCF_allo.diff9@fix)
+
+
+# Combines fulldf_auto and fulldf_allo ~
+HI_HET <- rbind(HI_HET_auto.diff9, HI_HET_allo.diff9)
+
+
+# Expands PCA_Annot by adding Population ~
+HI_HET$Population <- ifelse(grepl("FR0", HI_HET$id), "Sales",
+                     ifelse(grepl("KAZ", HI_HET$id), "Chokpak",
+                     ifelse(grepl("Lesina", HI_HET$id), "Lesina",
+                     ifelse(grepl("Crotone", HI_HET$id), "Crotone",
+                     ifelse(grepl("Guglionesi", HI_HET$id), "Guglionesi",
+                     ifelse(grepl("PI22NLD0001M", HI_HET$id), NA,
+                     ifelse(grepl("PD22NLD0146F", HI_HET$id), NA,
+                     ifelse(grepl("PD22NLD0147F", HI_HET$id), NA,
+                     ifelse(grepl("PDOM2022NLD0077M", HI_HET$id), NA,
+                     ifelse(grepl("PDOM2022NLD0", HI_HET$id), "Utrecht", "Error"))))))))))
+
+
+# Reorders Population ~
+HI_HET$Population <- factor(HI_HET$Population, ordered = T,
+                            levels = c("Utrecht",
+                                       "Sales",
+                                       "Crotone",
+                                       "Guglionesi",
+                                       "Lesina",
+                                       "Chokpak",
+                                       NA))
+
+
+# Expands fulldf by adding Species ~
+HI_HET$Species <- ifelse(HI_HET$Population %in% c("Utrecht", "Sales"), "House",
+                  ifelse(HI_HET$Population %in% c("Chokpak", "Lesina"), "Spanish",
+                  ifelse(HI_HET$Population %in% c("Crotone", "Guglionesi"), "Italian",
+                  ifelse(HI_HET$Population %in% c(NA), NA, "Error"))))
+
+
+# Reorders Population ~
+HI_HET$Species <- factor(HI_HET$Species, ordered = T,
+                         levels = c("House",
+                                    "Italian",
+                                    "Spanish",
+                                    NA))
+
+
+# Expands PCA_Annot by adding Labels ~
+HI_HET$Labels <- ifelse(HI_HET$pop %in% c("Focal Ind."), "Focal Ind.",
+                 ifelse(HI_HET$pop %in% c("Meerkerk"), "Meerkerk_01",
+                 ifelse(HI_HET$id %in% c("PD22NLD0146F_SAMPLE"), "Garderen_01",
+                 ifelse(HI_HET$id %in% c("PD22NLD0147F_SAMPLE"), "Garderen_02", ""))))
+
+
+# Creates triangle ~
+triangle <- data.frame(x = c(0, 1, 0.5, 0), y = c(0, 0, 1, 0))
+
+
+# Creates semicircle ~
+x_vals <- seq(0, 1, length.out = 100)
+semicircle <- data.frame(x = x_vals, y = 2 * x_vals * (1 - x_vals))
+
+
+# Create the plot
+Panel <-
+  ggplot() +
+  geom_path(data = triangle, aes(x = x, y = y), color = "#000000", linetype = 2, linewidth = .35) +
+  geom_path(data = semicircle, aes(x = x, y = y), color = "#000000", linetype = 2, linewidth = .35) +
+  geom_star(data = HI_HET, aes(x = hybrid.index, y = heterozygosity, fill = Species), starshape = 15, colour = "#000000", size = 2, starstroke = .15, alpha = .75) +
+  #geom_star(data = fulldf, aes(x = hybrid.index, y = heterozygosity, fill = perc.missing), starshape = 15, colour = "#000000", size = 2, starstroke = .15, alpha = .75) +
+  facet_grid2(CHRType ~ ., scales = "free_y", axes = "all", remove_labels = "x") +
+  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
+  geom_label(data = HI_HET, aes(x = .15, y = .85, label = paste0("# of AIMs: ", scales::comma(SNPs))), alpha = 1,
+             size = 4.5, fontface = "bold", fill = "#d6d6d6", label.padding = unit(.5, "lines"), family = "Optima", show.legend = FALSE) +
+  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.05, nudge_y = .135,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Garderen_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .125, nudge_y = 0,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Garderen_02"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .2, nudge_y = 0,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Meerkerk_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .1, nudge_y = -.025,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  
+  geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .1, nudge_y = 0,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z" & Labels == "Meerkerk_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = 0, nudge_y = .175,
+                   point.padding = 1.85, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  scale_x_continuous("Hybird Index",
+                     breaks = c(.25, .5, .75),
+                     labels = c("0.25", "0.50", "0.75"),
+                     limits = c(0, 1),
+                     expand = c(.01, .01)) +
+  scale_y_continuous("Interclass Heterozygozity",
+                     breaks = c(.25, .5, .75),
+                     labels = c("0.25", "0.50", "0.75"),
+                     limits = c(0, 1),
+                     expand = c(.01, .01)) +
+  theme(panel.background = element_rect(fill = "#ffffff"),
+        panel.grid.major = element_line(color = "#E5E7E9", linetype = "dashed", linewidth = .005),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.spacing.y = unit(.2, "cm"),
+        legend.position = "top",
+        legend.box = "vertical",
+        legend.margin = margin(t = 0, b = 0, r = 0, l = 0),
+        legend.box.margin = margin(t = 10, b = 10, r = 0, l = 0),
+        axis.title.x = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 25, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
+        axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
+        axis.ticks = element_line(color = "#000000", linewidth = .3),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
+        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
+        axis.line = element_line(colour = "#000000", linewidth = .3)) +
+  guides(fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
+                             label.theme = element_text(size = 14, family = "Optima"),
+                             override.aes = list(starshape = 15, size = 5, starstroke = .15), nrow = 1, order = 1),
+         starshape = "none",
+         colour = "none")
+
+
+# Saves plot ~
+ggsave(Panel, file = "Y150239Genomics--Triangular.pdf",
+       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
+ggsave(Panel, file = "Y150239Genomics--Triangular.jpeg",
+      limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
 
 
 # Gets AIMs´ genotypes ~
@@ -248,160 +403,6 @@ ggplot(fulldf, aes(x = Index, y = Individual, fill = as.factor(Ancestry))) +
 ggsave(AncestryPlot_Index, file = "Y150239Genomics--AncestryHeatmap_AIMs.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
 ggsave(AncestryPlot_Index, file = "Y150239Genomics--AncestryHeatmap_AIMs.jpeg",
-       limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
-
-
-# Calculates differentiation indexes ~
-HI_HET_auto.diff9 <- hybridIndex(vcfR = VCF_auto.diff9, pm = annot_auto, p1 = "House", p2 = "Spanish")
-HI_HET_allo.diff9 <- hybridIndex(vcfR = VCF_allo.diff9, pm = annot_allo, p1 = "House", p2 = "Spanish")
-
-
-# Expands HI_HET ~
-HI_HET_auto.diff9$CHRType <- "Autosomes"
-HI_HET_auto.diff9$Diff <- "0.90"
-HI_HET_auto.diff9$SNPs <- nrow(VCF_auto.diff9@fix)
-HI_HET_allo.diff9$CHRType <- "Chromosome Z"
-HI_HET_allo.diff9$Diff <- "0.90"
-HI_HET_allo.diff9$SNPs <- nrow(VCF_allo.diff9@fix)
-
-
-# Combines fulldf_auto and fulldf_allo ~
-HI_HET <- rbind(HI_HET_auto.diff9, HI_HET_allo.diff9)
-
-
-# Expands PCA_Annot by adding Population ~
-HI_HET$Population <- ifelse(grepl("FR0", HI_HET$id), "Sales",
-                     ifelse(grepl("KAZ", HI_HET$id), "Chokpak",
-                     ifelse(grepl("Lesina", HI_HET$id), "Lesina",
-                     ifelse(grepl("Crotone", HI_HET$id), "Crotone",
-                     ifelse(grepl("Guglionesi", HI_HET$id), "Guglionesi",
-                     ifelse(grepl("PI22NLD0001M", HI_HET$id), NA,
-                     ifelse(grepl("PD22NLD0146F", HI_HET$id), NA,
-                     ifelse(grepl("PD22NLD0147F", HI_HET$id), NA,
-                     ifelse(grepl("PDOM2022NLD0077M", HI_HET$id), NA,
-                     ifelse(grepl("PDOM2022NLD0", HI_HET$id), "Utrecht", "Error"))))))))))
-
-
-# Reorders Population ~
-HI_HET$Population <- factor(HI_HET$Population, ordered = T,
-                            levels = c("Utrecht",
-                                       "Sales",
-                                       "Crotone",
-                                       "Guglionesi",
-                                       "Lesina",
-                                       "Chokpak",
-                                       NA))
-
-
-# Expands fulldf by adding Species ~
-HI_HET$Species <- ifelse(HI_HET$Population %in% c("Utrecht", "Sales"), "House",
-                  ifelse(HI_HET$Population %in% c("Chokpak", "Lesina"), "Spanish",
-                  ifelse(HI_HET$Population %in% c("Crotone", "Guglionesi"), "Italian",
-                  ifelse(HI_HET$Population %in% c(NA), NA, "Error"))))
-
-
-# Reorders Population ~
-HI_HET$Species <- factor(HI_HET$Species, ordered = T,
-                         levels = c("House",
-                                    "Italian",
-                                    "Spanish",
-                                    NA))
-
-
-# Expands PCA_Annot by adding Labels ~
-HI_HET$Labels <- ifelse(HI_HET$pop %in% c("Y150239"), "Focal Ind.",
-                 ifelse(HI_HET$pop %in% c("Meerkerk"), "Meerkerk_01",
-                 ifelse(HI_HET$id %in% c("PD22NLD0146F_SAMPLE"), "Garderen_01",
-                 ifelse(HI_HET$id %in% c("PD22NLD0147F_SAMPLE"), "Garderen_02", ""))))
-
-
-# Creates triangle ~
-triangle <- data.frame(x = c(0, 1, 0.5, 0), y = c(0, 0, 1, 0))
-
-
-# Creates semicircle ~
-x_vals <- seq(0, 1, length.out = 100)
-semicircle <- data.frame(x = x_vals, y = 2 * x_vals * (1 - x_vals))
-
-
-# Create the plot
-Panel <-
-ggplot() +
-  geom_path(data = triangle, aes(x = x, y = y), color = "#000000", linetype = 2, linewidth = .35) +
-  geom_path(data = semicircle, aes(x = x, y = y), color = "#000000", linetype = 2, linewidth = .35) +
-  geom_star(data = HI_HET, aes(x = hybrid.index, y = heterozygosity, fill = Species), starshape = 15, colour = "#000000", size = 2, starstroke = .15, alpha = .75) +
-  #geom_star(data = fulldf, aes(x = hybrid.index, y = heterozygosity, fill = perc.missing), starshape = 15, colour = "#000000", size = 2, starstroke = .15, alpha = .75) +
-  facet_grid2(CHRType ~ ., scales = "free_y", axes = "all", remove_labels = "x") +
-  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
-  geom_label(data = HI_HET, aes(x = .15, y = .85, label = paste0("# of AIMs: ", scales::comma(SNPs))), alpha = 1,
-             size = 4.5, fontface = "bold", fill = "#d6d6d6", label.padding = unit(.5, "lines"), family = "Optima", show.legend = FALSE) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.05, nudge_y = .2,
-                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Garderen_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.01, nudge_y = .16,
-                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Garderen_02"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .2, nudge_y = 0,
-                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Meerkerk_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .2, nudge_y = .08,
-                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .1, nudge_y = 0,
-                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z" & Labels == "Meerkerk_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = 0, nudge_y = .175,
-                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
-  scale_x_continuous("Hybird Index",
-                     breaks = c(.25, .5, .75),
-                     labels = c("0.25", "0.50", "0.75"),
-                     limits = c(0, 1),
-                     expand = c(.01, .01)) +
-  scale_y_continuous("Interclass Heterozygozity",
-                     breaks = c(.25, .5, .75),
-                     labels = c("0.25", "0.50", "0.75"),
-                     limits = c(0, 1),
-                     expand = c(.01, .01)) +
-  theme(panel.background = element_rect(fill = "#ffffff"),
-        panel.grid.major = element_line(color = "#E5E7E9", linetype = "dashed", linewidth = .005),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank(),
-        panel.spacing.y = unit(.2, "cm"),
-        legend.position = "top",
-        legend.box = "vertical",
-        legend.margin = margin(t = 0, b = 0, r = 0, l = 0),
-        legend.box.margin = margin(t = 10, b = 10, r = 0, l = 0),
-        axis.title.x = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 25, r = 0, b = 0, l = 0)),
-        axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
-        axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
-        axis.ticks = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
-        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
-        axis.line = element_line(colour = "#000000", linewidth = .3)) +
-  guides(fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
-                                      label.theme = element_text(size = 14, family = "Optima"),
-                                      override.aes = list(starshape = 15, size = 5, starstroke = .15), nrow = 1, order = 1),
-         starshape = "none",
-         colour = "none")
-
-
-# Saves plot ~
-ggsave(Panel, file = "Y150239Genomics--Triangular.pdf",
-       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
-ggsave(Panel, file = "Y150239Genomics--Triangular.jpeg",
        limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
 
 
