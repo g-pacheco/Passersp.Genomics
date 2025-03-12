@@ -1,0 +1,21 @@
+\ifthenelse{\equal{\getLanguage}{portuguese}}{%
+    \addtocontents{toc}{\protect\contentsline{chapter}{Apêndices}{}{}}
+}{%
+    \addtocontents{toc}{\protect\contentsline{chapter}{Cartas de Apoio (PT • EN)}{}{}}
+    \pdfbookmark[0]{Cartas de Apoio (PT • EN)}{letters}
+}
+
+\newgeometry{margin=4cm}
+\begin{center}
+    \scshape % Font style
+    \thispagestyle{empty}
+        
+    \vspace*{\fill}
+    \ifthenelse{\equal{\getLanguage}{portuguese}}{%
+        {\LARGE\fontsize{20}{26}\selectfont\textcolor{darkred}{Apêndices}\par}
+    }{%
+        {\LARGE\fontsize{20}{26}\selectfont\textcolor{darkred}{Cartas de Apoio (PT • EN)}\par}
+    }
+    \vspace*{\fill}
+\end{center}
+\restoregeometry

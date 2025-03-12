@@ -1,0 +1,75 @@
+\ifthenelse{\equal{\getLanguage}{portuguese}}{%
+    \pdfbookmark[1]{Primeira Página}{primeirapagina}
+}{%
+    \pdfbookmark[1]{Folha de Rosto}{frontpage}
+}
+
+% Add background picture
+%\newcommand\BackgroundPicFrontPage{%
+%    \put(0,0){%
+%   \parbox[b][\paperheight]{\paperwidth}{%
+%    \vfill
+%    \centering
+%    \includegraphics[width=\paperwidth,height=\paperheight,keepaspectratio]{Figures/Theme/Front-Page-BG.pdf}%
+%   \vfill
+%}}}
+%\AddToShipoutPictureBG*{\BackgroundPicFrontPage}
+
+\newgeometry{margin=1.98cm, top=2.15cm, bottom=1.47cm}
+\begin{titlepage}
+    \latofont % Switch to Lato font for the title page
+    \color{frontpagedark} % Define the color to use within this page
+    \vspace*{\baselineskip} % White space at the top of the page
+
+    \vspace{4\baselineskip}
+
+    % Title
+	\noindent
+    \makebox[\textwidth][l]{%
+        \parbox{\dimexpr\textwidth-0.5cm\relax}{
+            \setstretch{1.2}
+            \raggedright\bfseries\fontsize{22}{20}\selectfont\textcolor[HTML]{525252}\thetitle
+        }
+    }
+
+    \vspace{1\baselineskip}
+
+    % Subtitle
+    \noindent
+    \makebox[\textwidth][l]{%
+        %\fbox{%
+            \parbox{\dimexpr\textwidth-0.5cm\relax}{
+                \setstretch{1.2}
+                \raggedright\bfseries\fontsize{18}{16}\selectfont\subname
+            }
+        %}
+    }
+
+    \vspace{2\baselineskip}
+
+% Sets authorship ~
+\small\noindent 
+George Pacheco\,$^{1}$\textsuperscript{\orcid{0000-0002-9367-6813}},
+Ruth Fawthrop\,$^{2}$\textsuperscript{\orcid{0009-0006-4046-8304}},
+Peter de Vries\,$^{1}$\textsuperscript{\orcid{0000-00000-0000-0000}},
+Glenn-Peter Sætre\,$^{1}$\textsuperscript{\orcid{0000-0002-6236-4905}},
+Mark Ravinet\,$^{1}$\textsuperscript{\orcid{0000-0002-2841-1798}},
+Melissah Rowe\,$^{2}$\textsuperscript{\orcid{0000-0001-9747-041X}} \textsuperscript{\faEnvelope[regular]}
+\myhline
+
+% Sets affiliations ~
+\noindent\scriptsize{$^1$Centre for Ecological and Evolutionary Synthesis (CEES), University of Oslo, Oslo, Norway. \\ $^2$Department of Animal Ecology, Netherlands Institute of Ecology (NIOO‐KNAW), Wageningen, The Netherlands. \\ $^3$University of Nottingham, Nottingham, United Kingdom. \\ \textsuperscript{\faEnvelope[regular]} Correspondence should be addressed to \href{mailto:M.Rowe@nioo.knaw.nl}{M.Rowe@nioo.knaw.nl}.}
+
+
+
+\vspace{6\baselineskip}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=1\textwidth]{./Figures/Cover/Y150239Genomics_SIPicture.png}
+\caption*{Focal individual photographed in Garderen, The Netherlands. \textbf{Photo courtesy of Jaap Deene.}}
+\label{SI:SIPictire}
+\end{figure}
+
+\end{titlepage}
+\restoregeometry

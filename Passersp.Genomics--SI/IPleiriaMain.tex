@@ -1,0 +1,41 @@
+% Packages & Document Configurations
+\documentclass[en]{IPLeiriaThesis}
+
+\sloppy
+
+% Sets font
+\setmainfont{Cormorant Garamond}
+
+% Document Variables (Title, Author, etc.)
+\input{Variables/Variables}
+
+% Make and Load Glossary & Acronyms
+\makeglossaries
+\loadglsentries{Matter/04-Glossary}
+\loadglsentries[\acronymtype]{Matter/05-Acronyms}
+
+\begin{document}
+
+% Front Matter
+\include{Matter/01-FPage}
+
+% Roman numeration
+\pagenumbering{roman}
+
+\renewcommand{\contentsname}{Table of Contents}
+
+% List of contents, figures, and tables
+\tableofcontents
+
+\newpage
+
+% Arabic numeration
+\pagenumbering{arabic}
+
+
+
+% Chapters
+\include{Chapters/01-Tables-SI}
+\include{Chapters/02-Figures-SI}
+
+\end{document}

@@ -21,8 +21,8 @@ MyColours <- colorRampPalette(brewer.pal(8, "Paired"))(nb.cols)
 
 
 # Loads the data ~
-samples.auto <- read.table("Y150239Genomics--ngsAdmix.Autosomes.popfile", stringsAsFactors = FALSE, sep = "\t")
-samples.allo <- read.table("Y150239Genomics--ngsAdmix.Allosome.popfile", stringsAsFactors = FALSE, sep = "\t")
+samples.auto <- read.table("Passersp.Genomics--ngsAdmix.Autosomes.popfile", stringsAsFactors = FALSE, sep = "\t")
+samples.allo <- read.table("Passersp.Genomics--ngsAdmix.Allosome.popfile", stringsAsFactors = FALSE, sep = "\t")
 
 
 # Reads the annotation file ~
@@ -122,7 +122,7 @@ fulldf.auto <- data.frame()
 fulldf.allo <- data.frame()
 
 
-x.auto <- list(c(3, 2, 1, 4, 6, 5, 7),
+x.auto <- list(c(3, 5, 1, 4, 6, 2, 7),
                c(4, 5, 1, 2, 6, 3),
                c(4, 2, 5, 3, 1),
                c(4, 3, 1, 2),
@@ -130,8 +130,8 @@ x.auto <- list(c(3, 2, 1, 4, 6, 5, 7),
                c(1, 2))
 
 
-x.allo <- list(c(1, 2, 3, 4, 5, 6, 7),
-               c(1, 2, 3, 4, 5, 6),
+x.allo <- list(c(4, 1, 6, 5, 7, 2, 3),
+               c(1, 4, 3, 2, 6, 5),
                c(1, 3, 2, 5, 4),
                c(2, 4, 1, 3),
                c(2, 1, 3),
@@ -261,10 +261,10 @@ ngsAdmix <-
 
 
 # Saves the final plot ~
-ggsave(ngsAdmix, file = "Y150239Genomics--ngsAdmix_OLD.pdf",
+ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix.pdf",
        device = cairo_pdf, width = 20, height = 12, scale = 1, dpi = 600)
-#ggsave(ngsAdmix, file = "Y150239Genomics--ngsAdmix.jpeg",
-#       width = 20, height = 8, scale = 1, dpi = 600)
+ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix.jpeg",
+       width = 20, height = 12, scale = 1, dpi = 600)
 
 
 #
