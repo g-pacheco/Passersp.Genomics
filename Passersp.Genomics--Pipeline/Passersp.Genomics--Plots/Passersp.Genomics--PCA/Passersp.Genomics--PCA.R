@@ -280,9 +280,9 @@ PCA_Plot <- ggarrange(PCAauto_12, PCAallo_12, nrow = 2, legend.grob = MyLegendBl
 
 
 # Saves plot ~
-ggsave(PCA_Plot, file = "Y150239Genomics--PCA.pdf",
+ggsave(PCA_Plot, file = "Passersp.enomics--PCA.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 12, height = 12, dpi = 600)
-ggsave(PCA_Plot, file = "Y150239Genomics--PCA.jpeg",
+ggsave(PCA_Plot, file = "Passersp.Genomics--PCA.jpeg",
       limitsize = FALSE, scale = 1, width = 12, height = 12, dpi = 600)
 
 
