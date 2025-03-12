@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# Y150239Genomics--Kinship by George Pacheco ~
+# Plots Passer sp. Genomics -- Kinship | Written by George Pacheco ~
 
 
 # Cleans the environment ~ 
@@ -126,10 +126,18 @@ Kinship_Plot_Heatmap <-
 
 
 # Saves plot (Heatmap) ~
-ggsave(Kinship_Plot_Heatmap, file = "Y150239Genomics--Kinship.pdf",
+ggsave(Kinship_Plot_Heatmap, file = "Passersp.Genomics--Kinship.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 12, height = 14, dpi = 600)
-ggsave(Kinship_Plot_Heatmap, file = "Y150239Genomics--Kinship.jpeg",
+ggsave(Kinship_Plot_Heatmap, file = "Passersp.Genomics--Kinship.jpeg",
        limitsize = FALSE, scale = 1, width = 12, height = 14, dpi = 600)
+
+
+#
+##
+### The END ~~~~~
+
+
+##################################################################################################################################
 
 
 # Creates plot (Boxplot) ~
@@ -170,11 +178,7 @@ Kinship_Plot_Boxplot <-
 
 
 # Saves plot (Boxplot) ~
-ggsave(Kinship_Plot_Boxplot, file = "Y150239Genomics--Kinship_Boxplot.pdf",
+ggsave(Kinship_Plot_Boxplot, file = "Passersp.Genomics--Kinship_Boxplot.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 8, height = 5, dpi = 600)
-ggsave(Kinship_Plot_Boxplot, file = "Y150239Genomics--Kinship_Boxplot.png",
+ggsave(Kinship_Plot_Boxplot, file = "Passersp.Genomics--Kinship_Boxplot.png",
        limitsize = FALSE, scale = 1, width = 8, height = 5, dpi = 600)
-
-#
-##
-### The END ~~~~~

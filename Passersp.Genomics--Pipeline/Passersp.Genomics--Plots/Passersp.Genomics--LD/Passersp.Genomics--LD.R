@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# Plots Passer sp. Genomics -- LD | First written by Filipe G. Vieira & Emma Fox with later slight modifications by George Pacheco.
+# Plots Passer sp. Genomics -- LD | First written by Filipe G. Vieira & Emma Fox with later slight modifications by George Pacheco ~
 
 
 # Cleans the environment ~ 
@@ -60,7 +60,7 @@ opt_parser = OptionParser(option_list = option_list)
 opt = parse_args(opt_parser)
 
 
-opt$ld_files = "Y150239Genomics--LD.list"
+opt$ld_files = "Passersp.Genomics--LD.list"
 opt$plot_x_lim = 100
 opt$fit_level = 100
 opt$plot_size = "2,5"
@@ -517,9 +517,9 @@ if(n_groups < 2 || opt$plot_no_legend) {
 
 
 # Saves plot ~
-ggsave(plot = plot, file = "Y150239Genomics--LD.pdf",
+ggsave(plot = plot, file = "Passersp.Genomics--LD.pdf",
        device = cairo_pdf, scale = 1, width = 12, height = 8, dpi = 600, limitsize = FALSE)
-ggsave(plot = plot, file = "Y150239Genomics--LD.jpeg",
+ggsave(plot = plot, file = "Passersp.Genomics--LD.jpeg",
        scale = 1, width = 12, height = 8, dpi = 600, limitsize = FALSE)
 
 
