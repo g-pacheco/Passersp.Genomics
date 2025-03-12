@@ -16,9 +16,9 @@ pacman::p_load(tidyverse, extrafont, ggh4x)
 
 
 # Loads datasets ~
-Stats <- read.table("Y150239Genomics--Stats.txt", sep = "\t", header = TRUE,
+Stats <- read.table("Passersp.Genomics--Stats.txt", sep = "\t", header = TRUE,
                     stringsAsFactors = FALSE)
-Adaptors <- read.table("Y150239Genomics--Stats_Adaptors.txt", sep = "\t", header = FALSE,
+Adaptors <- read.table("Passersp.Genomics--Stats_Adaptors.txt", sep = "\t", header = FALSE,
                        stringsAsFactors = FALSE); colnames(Adaptors) <- c("Sample_ID", "reads_adaptors")
 
 
@@ -170,9 +170,9 @@ Y150239Genomics_Stat <-
 
 
 # Saves the panel ~
-ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.pdf",
+ggsave(Y150239Genomics_Stat, file = "Passersp.Genomics--Stats.pdf",
        device = cairo_pdf, width = 12, height = 12, scale = 1, dpi = 600)
-ggsave(Y150239Genomics_Stat, file = "Y150239Genomics--Stats.jpeg",
+ggsave(Y150239Genomics_Stat, file = "Passersp.Genomics--Stats.jpeg",
        width = 12, height = 12, scale = 1, dpi = 600)
 
 

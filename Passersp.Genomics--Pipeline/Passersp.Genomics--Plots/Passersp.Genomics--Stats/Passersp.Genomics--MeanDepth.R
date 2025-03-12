@@ -103,9 +103,9 @@ GlobalCoverage <-
 
   
 # Saves plot ~
-ggsave(GlobalCoverage, file = "Y150239Genomics--MeanDepth.pdf",
+ggsave(GlobalCoverage, file = "Passersp.Genomics--MeanDepth.pdf",
        width = 12, height = 12, scale = 1, device = cairo_pdf, dpi = 600)
-ggsave(GlobalCoverage, file = "Y150239Genomics--MeanDepth.jpeg",
+ggsave(GlobalCoverage, file = "Passersp.Genomics--MeanDepth.jpeg",
        width = 12, height = 12, scale = 1, dpi = 600)
 
 
