@@ -17,12 +17,12 @@ pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, gri
 
 
 # Loads VCF data ~
-VCF_auto <- read.vcfR("../../../../LargeFiles/Y150239--TriangularR/AllSamples_bcftools.raw.vcf.Filtered.Focal.Autosomes.ALL.vcf", verbose = TRUE)
+VCF_auto <- read.vcfR("../../../../LargeFiles/Y150239--TriangularR/AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.Focal.All.vcf", verbose = TRUE)
 VCF_allo <- read.vcfR("../../../../LargeFiles/Y150239--TriangularR/AllSamples_bcftools.raw.vcf.Filtered.Focal.Allosome.ALL.vcf", verbose = TRUE)
 
 
 # Loads annotation file ~
-annot_auto <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Focal.Autosomes.ALL.annot",  sep = " ", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
+annot_auto <- read.table("AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.Focal.All.annot",  sep = " ", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
 annot_allo <- read.table("AllSamples_bcftools.raw.vcf.Filtered.Focal.Allosome.ALL.annot",  sep = " ", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
 
 
