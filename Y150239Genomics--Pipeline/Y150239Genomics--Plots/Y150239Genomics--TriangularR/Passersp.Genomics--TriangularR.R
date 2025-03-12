@@ -17,8 +17,8 @@ pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, gri
 
 
 # Loads VCF data ~
-VCF_auto <- read.vcfR("../../../../LargeFiles/Y150239--TriangularR/AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.Focal.ALL.vcf", verbose = TRUE)
-VCF_allo <- read.vcfR("../../../../LargeFiles/Y150239--TriangularR/AllSamples_bcftools.raw.vcf.Allosome.TriangularR.Focal.All.vcf", verbose = TRUE)
+VCF_auto <- read.vcfR("../../../../LargeFiles/Passersp.Genomics--TriangularR/AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.Focal.ALL.vcf", verbose = TRUE)
+VCF_allo <- read.vcfR("../../../../LargeFiles/Passersp.Genomics--TriangularR/AllSamples_bcftools.raw.vcf.Allosome.TriangularR.Focal.All.vcf", verbose = TRUE)
 
 
 # Loads annotation file ~
@@ -180,9 +180,9 @@ Panel <-
 
 
 # Saves plot ~
-ggsave(Panel, file = "Y150239Genomics--Triangular.pdf",
+ggsave(Panel, file = "Passersp.Genomics--Triangular.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
-ggsave(Panel, file = "Y150239Genomics--Triangular.jpeg",
+ggsave(Panel, file = "Passersp.Genomics--Triangular.jpeg",
       limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
 
 
@@ -400,9 +400,9 @@ ggplot(fulldf, aes(x = Index, y = Individual, fill = as.factor(Ancestry))) +
 
 
 # Saves Index plot ~
-ggsave(AncestryPlot_Index, file = "Y150239Genomics--AncestryHeatmap_AIMs.pdf",
+ggsave(AncestryPlot_Index, file = "Passersp.Genomics--AncestryHeatmap_AIMs.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
-ggsave(AncestryPlot_Index, file = "Y150239Genomics--AncestryHeatmap_AIMs.jpeg",
+ggsave(AncestryPlot_Index, file = "Passersp.Genomics--AncestryHeatmap_AIMs.jpeg",
        limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
 
 
