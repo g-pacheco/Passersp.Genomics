@@ -1,0 +1,229 @@
+# -*- mode: Yaml; -*-
+# Default options.
+# Can also be specific for a set of samples, libraries, and lanes,
+# by including the "Options" hierarchy at the same level as those
+# samples, libraries, or lanes below.
+Options:
+  # Sequencing platform, see SAM/BAM reference for valid values
+  Platform: Illumina
+  # Quality offset for Phred scores, either 33 (Sanger/Illumina 1.8+)
+  # or 64 (Illumina 1.3+ / 1.5+). For Bowtie2 it is also possible to
+  # specify 'Solexa', to handle reads on the Solexa scale. This is
+  # used during adapter-trimming and sequence alignment
+  QualityOffset: 33
+
+  # Settings for trimming of reads, see AdapterRemoval man-page
+  AdapterRemoval:
+     # Set and uncomment to override defaults adapter sequences
+     --adapter1: CTGTCTCTTATACACATCT
+     --adapter2: CTGTCTCTTATACACATCT
+     # Some BAM pipeline defaults differ from AR defaults;
+     # To override, change these value(s):
+     --mm: 3
+     --minlength: 30
+     --minquality: 30
+     --maxns: 30
+     # Extra features enabled by default; change 'yes' to 'no' to disable
+     --collapse: yes
+     --trimns: yes
+     --trimqualities: yes
+     # Increase the maximum Phred allowed for input FASTQs, as well as for merged bases
+     # when using --collapse (default = 41). This is needed for some modern FASTQs.
+#     --qualitymax: 42
+
+  # Settings for aligners supported by the pipeline
+  Aligners:
+    # Choice of aligner software to use, either "BWA" or "Bowtie2"
+    Program: BWA
+
+    # Settings for mappings performed using BWA
+    BWA:
+      # One of "backtrack", "bwasw", or "mem"; see the BWA documentation
+      # for a description of each algorithm (defaults to 'backtrack')
+      Algorithm: mem
+      # Filter aligned reads with a mapping quality (Phred) below this value
+      MinQuality: 30
+      # Filter reads that did not map to the reference sequence
+      FilterUnmappedReads: yes
+      # May be disabled ("no") for aDNA alignments with the 'aln' algorithm.
+      # Post-mortem damage localizes to the seed region, which BWA expects to
+      # have few errors (sets "-l"). See http://pmid.us/22574660
+      UseSeed: yes
+      # Additional command-line options may be specified below. For 'backtrack' these
+      # are applied to the "bwa aln". See Bowtie2 for more examples.
+#      -n: 0.04
+
+  # Command-line options for mapDamage; use long-form options(--length not -l):
+  mapDamage:
+    # By default, the pipeline will downsample the input to 100k hits
+    # when running mapDamage; remove to use all hits
+    # --downsample: 100000
+
+  # Set to 'yes' exclude a type of trimmed reads from alignment / analysis;
+  # possible read-types reflect the output of AdapterRemoval
+  ExcludeReads:
+    # Exclude single-end reads (yes / no)?
+    Single: no
+    # Exclude non-collapsed paired-end reads (yes / no)?
+    Paired: no
+    # Exclude paired-end reads for which the mate was discarded (yes / no)?
+    Singleton: no
+    # Exclude overlapping paired-ended reads collapsed into a single sequence
+    # by AdapterRemoval (yes / no)?
+    Collapsed: no
+    # Like 'Collapsed', but only for collapsed reads truncated due to the
+    # presence of ambiguous or low quality bases at read termini (yes / no).
+    CollapsedTruncated: no
+
+  # Optional steps to perform during processing.
+  Features:
+    # If set to 'filter', PCR duplicates are removed from the output files; if set to
+    # 'mark', PCR duplicates are flagged with bit 0x400, and not removed from the
+    # output files; if set to 'no', the reads are assumed to not have been amplified.
+    PCRDuplicates: filter
+    # Set to 'no' to disable mapDamage; set to 'plots' to build basic mapDamage plots;
+    # set to 'model' to build plots and post-mortem damage models; and set to 'rescale'
+    # to build plots, models, and BAMs with rescaled quality scores. All analyses are
+    # carried out per library.
+    mapDamage: no
+    # Generate coverage information for the final BAM and for each 'RegionsOfInterest'
+    # specified in 'Prefixes' (yes / no).
+    Coverage: yes
+    # Generate histograms of number of sites with a given read-depth, from 0 to 200,
+    # for each BAM and for each 'RegionsOfInterest' specified in 'Prefixes' (yes / no).
+    Depths: yes
+    # Generate summary table for each target (yes / no)
+    Summary: yes
+
+
+# Map of prefixes by name, each having a Path, which specifies the location of the
+# BWA/Bowtie2 index, and optional regions for which additional statistics are produced.
+Prefixes:
+  # Replace 'NAME_OF_PREFIX' with name of the prefix; this name is used in summary
+  # statistics and as part of output filenames.
+#  TreeSparrow_PacBio_V2:
+#    Path: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/REF/tree_sparrow_PacBio_V2.fasta
+  HouseSparrow_18-11-14_Masked:
+    Path: /cluster/projects/nn9244k/sparrow/ref/house_sparrow_genome_assembly-18-11-14_masked.fasta
+
+    # (Optional) Uncomment and replace 'PATH_TO_BEDFILE' with the path to a .bed file
+    # listing extra regions for which coverage / depth statistics should be calculated;
+    # if no names are specified for the BED records, results are named after the
+    # chromosome / contig. Replace 'NAME' with the desired name for these regions.
+#    RegionsOfInterest:
+#      NAME: PATH_TO_BEDFILE
+
+
+# Mapping targets are specified using the following structure. Replace 'NAME_OF_TARGET'
+# with the desired prefix for filenames.
+
+
+# HOUSE Utrech / 20 Samples ~
+
+PDOM2022NLD0041J:
+  PDOM2022NLD0041J_SAMPLE:
+    PDOM2022NLD0041J_LIBRARY:
+      PDOM2022NLD0041J_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0041J_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0042M:
+  PDOM2022NLD0042M_SAMPLE:
+    PDOM2022NLD0042M_LIBRARY:
+      PDOM2022NLD0042M_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0042M_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0043F:
+  PDOM2022NLD0043F_SAMPLE:
+    PDOM2022NLD0043F_LIBRARY:
+      PDOM2022NLD0043F_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0043F_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0044M:
+  PDOM2022NLD0044M_SAMPLE:
+    PDOM2022NLD0044M_LIBRARY:
+      PDOM2022NLD0044M_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0044M_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0045M:
+  PDOM2022NLD0045M_SAMPLE:
+    PDOM2022NLD0045M_LIBRARY:
+      PDOM2022NLD0045M_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0045M_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0046M:
+  PDOM2022NLD0046M_SAMPLE:
+    PDOM2022NLD0046M_LIBRARY:
+      PDOM2022NLD0046M_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0046M_EKDL230009953-1A_HJJ35DSX5_L1_{Pair}.fq.gz
+
+PDOM2022NLD0047F:
+  PDOM2022NLD0047F_SAMPLE:
+    PDOM2022NLD0047F_LIBRARY:
+      PDOM2022NLD0047F_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0047F_EKDL230009953-1A_HJJ35DSX5_L1_{Pair}.fq.gz
+
+PDOM2022NLD0048F:
+  PDOM2022NLD0048F_SAMPLE:
+    PDOM2022NLD0048F_LIBRARY:
+      PDOM2022NLD0048F_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0048F_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0062F:
+  PDOM2022NLD0062F_SAMPLE:
+    PDOM2022NLD0062F_LIBRARY:
+      PDOM2022NLD0062F_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0062F_EKDL230009953-1A_HJJ35DSX5_L1_{Pair}.fq.gz
+
+PDOM2022NLD0070M:
+  PDOM2022NLD0070M_SAMPLE:
+    PDOM2022NLD0070M_LIBRARY:
+      PDOM2022NLD0070M_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0070M_EKDL230009953-1A_HJJ35DSX5_L1_{Pair}.fq.gz
+
+PDOM2022NLD0072M:
+  PDOM2022NLD0072M_SAMPLE:
+    PDOM2022NLD0072M_LIBRARY:
+      PDOM2022NLD0072M_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0072M_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0078F:
+  PDOM2022NLD0078F_SAMPLE:
+    PDOM2022NLD0078F_LIBRARY:
+      PDOM2022NLD0078F_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0078F_EKDL230009953-1A_HJJ35DSX5_L1_{Pair}.fq.gz
+
+PDOM2022NLD0079M:
+  PDOM2022NLD0079M_SAMPLE:
+    PDOM2022NLD0079M_LIBRARY:
+      PDOM2022NLD0079M_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0079M_EKDL230009953-1A_HJJ35DSX5_L1_{Pair}.fq.gz
+
+PDOM2022NLD0080F:
+  PDOM2022NLD0080F_SAMPLE:
+    PDOM2022NLD0080F_LIBRARY:
+      PDOM2022NLD0080F_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0080F_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0081F:
+  PDOM2022NLD0081F_SAMPLE:
+    PDOM2022NLD0081F_LIBRARY:
+      PDOM2022NLD0081F_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0081F_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0082F:
+  PDOM2022NLD0082F_SAMPLE:
+    PDOM2022NLD0082F_LIBRARY:
+      PDOM2022NLD0082F_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0082F_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0083F:
+  PDOM2022NLD0083F_SAMPLE:
+    PDOM2022NLD0083F_LIBRARY:
+      PDOM2022NLD0083F_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0083F_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0084F:
+  PDOM2022NLD0084F_SAMPLE:
+    PDOM2022NLD0084F_LIBRARY:
+      PDOM2022NLD0084F_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0084F_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0107J:
+  PDOM2022NLD0107J_SAMPLE:
+    PDOM2022NLD0107J_LIBRARY:
+      PDOM2022NLD0107J_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0107J_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+PDOM2022NLD0108J:
+  PDOM2022NLD0108J_SAMPLE:
+    PDOM2022NLD0108J_LIBRARY:
+      PDOM2022NLD0108J_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/PDOM2022NLD0108J_EKDL230009954-1A_HJJ35DSX5_L2_{Pair}.fq.gz
+
+
+# HOUSE Meerkerk / 1 Sample ~
+
+PDOM2022NLD0077M:
+  PDOM2022NLD0077M_SAMPLE:
+    PDOM2022NLD0077M_LIBRARY:
+      PDOM2022NLD0077M_LANE: /cluster/work/users/msravine/passer_reads/domesticus/PDOM2022NLD0077M_EKDL230009953-1A_HJJ35DSX5_L1_{Pair}.fq.gz

@@ -1,0 +1,205 @@
+# -*- mode: Yaml; -*-
+# Default options.
+# Can also be specific for a set of samples, libraries, and lanes,
+# by including the "Options" hierarchy at the same level as those
+# samples, libraries, or lanes below.
+Options:
+  # Sequencing platform, see SAM/BAM reference for valid values
+  Platform: Illumina
+  # Quality offset for Phred scores, either 33 (Sanger/Illumina 1.8+)
+  # or 64 (Illumina 1.3+ / 1.5+). For Bowtie2 it is also possible to
+  # specify 'Solexa', to handle reads on the Solexa scale. This is
+  # used during adapter-trimming and sequence alignment
+  QualityOffset: 33
+
+  # Settings for trimming of reads, see AdapterRemoval man-page
+  AdapterRemoval:
+     # Set and uncomment to override defaults adapter sequences
+#     --adapter1: CTGTCTCTTATACACATCT
+#     --adapter2: CTGTCTCTTATACACATCT
+     # Some BAM pipeline defaults differ from AR defaults;
+     # To override, change these value(s):
+     --mm: 3
+     --minlength: 30
+     --minquality: 30
+     --maxns: 30
+     # Extra features enabled by default; change 'yes' to 'no' to disable
+     --collapse: yes
+     --trimns: yes
+     --trimqualities: yes
+     # Increase the maximum Phred allowed for input FASTQs, as well as for merged bases
+     # when using --collapse (default = 41). This is needed for some modern FASTQs.
+#     --qualitymax: 42
+
+  # Settings for aligners supported by the pipeline
+  Aligners:
+    # Choice of aligner software to use, either "BWA" or "Bowtie2"
+    Program: BWA
+
+    # Settings for mappings performed using BWA
+    BWA:
+      # One of "backtrack", "bwasw", or "mem"; see the BWA documentation
+      # for a description of each algorithm (defaults to 'backtrack')
+      Algorithm: mem
+      # Filter aligned reads with a mapping quality (Phred) below this value
+      MinQuality: 30
+      # Filter reads that did not map to the reference sequence
+      FilterUnmappedReads: yes
+      # May be disabled ("no") for aDNA alignments with the 'aln' algorithm.
+      # Post-mortem damage localizes to the seed region, which BWA expects to
+      # have few errors (sets "-l"). See http://pmid.us/22574660
+      UseSeed: yes
+      # Additional command-line options may be specified below. For 'backtrack' these
+      # are applied to the "bwa aln". See Bowtie2 for more examples.
+#      -n: 0.04
+
+  # Command-line options for mapDamage; use long-form options(--length not -l):
+  mapDamage:
+    # By default, the pipeline will downsample the input to 100k hits
+    # when running mapDamage; remove to use all hits
+    # --downsample: 100000
+
+  # Set to 'yes' exclude a type of trimmed reads from alignment / analysis;
+  # possible read-types reflect the output of AdapterRemoval
+  ExcludeReads:
+    # Exclude single-end reads (yes / no)?
+    Single: no
+    # Exclude non-collapsed paired-end reads (yes / no)?
+    Paired: no
+    # Exclude paired-end reads for which the mate was discarded (yes / no)?
+    Singleton: no
+    # Exclude overlapping paired-ended reads collapsed into a single sequence
+    # by AdapterRemoval (yes / no)?
+    Collapsed: no
+    # Like 'Collapsed', but only for collapsed reads truncated due to the
+    # presence of ambiguous or low quality bases at read termini (yes / no).
+    CollapsedTruncated: no
+
+  # Optional steps to perform during processing.
+  Features:
+    # If set to 'filter', PCR duplicates are removed from the output files; if set to
+    # 'mark', PCR duplicates are flagged with bit 0x400, and not removed from the
+    # output files; if set to 'no', the reads are assumed to not have been amplified.
+    PCRDuplicates: filter
+    # Set to 'no' to disable mapDamage; set to 'plots' to build basic mapDamage plots;
+    # set to 'model' to build plots and post-mortem damage models; and set to 'rescale'
+    # to build plots, models, and BAMs with rescaled quality scores. All analyses are
+    # carried out per library.
+    mapDamage: no
+    # Generate coverage information for the final BAM and for each 'RegionsOfInterest'
+    # specified in 'Prefixes' (yes / no).
+    Coverage: yes
+    # Generate histograms of number of sites with a given read-depth, from 0 to 200,
+    # for each BAM and for each 'RegionsOfInterest' specified in 'Prefixes' (yes / no).
+    Depths: yes
+    # Generate summary table for each target (yes / no)
+    Summary: yes
+
+
+# Map of prefixes by name, each having a Path, which specifies the location of the
+# BWA/Bowtie2 index, and optional regions for which additional statistics are produced.
+Prefixes:
+  # Replace 'NAME_OF_PREFIX' with name of the prefix; this name is used in summary
+  # statistics and as part of output filenames.
+#  TreeSparrow_PacBio_V2:
+#    Path: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/REF/tree_sparrow_PacBio_V2.fasta
+  HouseSparrow_18-11-14_Masked:
+    Path: /cluster/projects/nn9244k/sparrow/ref/house_sparrow_genome_assembly-18-11-14_masked.fasta
+
+    # (Optional) Uncomment and replace 'PATH_TO_BEDFILE' with the path to a .bed file
+    # listing extra regions for which coverage / depth statistics should be calculated;
+    # if no names are specified for the BED records, results are named after the
+    # chromosome / contig. Replace 'NAME' with the desired name for these regions.
+#    RegionsOfInterest:
+#      NAME: PATH_TO_BEDFILE
+
+
+# Mapping targets are specified using the following structure. Replace 'NAME_OF_TARGET'
+# with the desired prefix for filenames.
+
+# TARGET:
+
+PI22NLD0001M:
+  PI22NLD0001M_SAMPLE:
+    PI22NLD0001M_LIBRARY:
+      PI22NLD0001M_LANE_1: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/FASTQs/PI22NLD0001M_FKDN220475423-1A_H25LCDSX5_L1_{Pair}.fq.gz
+      PI22NLD0001M_LANE_2: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/FASTQs/PI22NLD0001M_FKDN220475423-1A_H22HNDSX5_L2_{Pair}.fq.gz
+      PI22NLD0001M_LANE_3: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/FASTQs/PI22NLD0001M_FKDN220475423-1A_H2273DSX5_L3_{Pair}.fq.gz
+
+
+# HOUSE Garderen / 2 Samples ~
+
+PD22NLD0146F:
+  PD22NLD0146F_SAMPLE:
+    PD22NLD0146F_LIBRARY:
+      PD22NLD0146F_LANE_1: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/FASTQs/PD22NLD0146F_FKDN220475420-1A_H25LCDSX5_L1_{Pair}.fq.gz
+      PD22NLD0146F_LANE_2: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/FASTQs/PD22NLD0146F_FKDN220475420-1A_H22HNDSX5_L2_{Pair}.fq.gz
+      PD22NLD0146F_LANE_3: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/FASTQs/PD22NLD0146F_FKDN220475420-1A_H2273DSX5_L3_{Pair}.fq.gz
+
+PD22NLD0147F:
+  PD22NLD0147F_SAMPLE:
+    PD22NLD0147F_LIBRARY:
+      PD22NLD0147F_LANE_1: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/FASTQs/PD22NLD0147F_FKDN220475421-1A_H25LCDSX5_L1_{Pair}.fq.gz
+      PD22NLD0147F_LANE_2: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/FASTQs/PD22NLD0147F_FKDN220475421-1A_H22HNDSX5_L2_{Pair}.fq.gz
+      PD22NLD0147F_LANE_3: /cluster/projects/nn9244k/sparrow/Pacheco/TreeSparrow/FASTQs/PD22NLD0147F_FKDN220475421-1A_H2273DSX5_L3_{Pair}.fq.gz
+
+
+# HOUSE Meerkerk / 1 Sample ~
+
+PDOM2022NLD0077M:
+  PDOM2022NLD0077M_SAMPLE:
+    PDOM2022NLD0077M_LIBRARY:
+      PDOM2022NLD0077M_LANE: /cluster/work/users/msravine/passer_reads/domesticus/PDOM2022NLD0077M_EKDL230009953-1A_HJJ35DSX5_L1_{Pair}.fq.gz
+
+
+# HOUSE Sales / 10 Samples ~
+
+FR041:
+  FR041_SAMPLE:
+    FR041_LIBRARY:
+      FR041_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/HI.4120.008.BioOHT_65.FR041_R{Pair}.fastq.gz
+
+FR044:
+  FR044_SAMPLE:
+    FR044_LIBRARY:
+      FR044_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/HI.4151.001.BioOHT_30.FR044_R{Pair}.fastq.gz
+
+FR046:
+  FR046_SAMPLE:
+    FR046_LIBRARY:
+      FR046_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/HI.4120.007.BioOHT_41.FR046_R{Pair}.fastq.gz
+
+FR048:
+  FR048_SAMPLE:
+    FR048_LIBRARY:
+      FR048_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/HI.4151.001.BioOHT_42.FR048_R{Pair}.fastq.gz
+
+FR049:
+  FR049_SAMPLE:
+    FR049_LIBRARY:
+      FR049_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/HI.4120.007.BioOHT_29.FR049_R{Pair}.fastq.gz
+
+FR050:
+  FR050_SAMPLE:
+    FR050_LIBRARY:
+      FR050_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/HI.4120.008.BioOHT_18.FR050_R{Pair}.fastq.gz
+
+FR051:
+  FR051_SAMPLE:
+    FR051_LIBRARY:
+      FR051_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/HI.4120.008.BioOHT_89.FR051_R{Pair}.fastq.gz
+
+FR061:
+  FR061_SAMPLE:
+    FR061_LIBRARY:
+      FR061_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/HI.4120.008.BioOHT_77.FR061_R{Pair}.fastq.gz
+
+FR063:
+  FR063_SAMPLE:
+    FR063_LIBRARY:
+      FR063_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/HI.4120.007.BioOHT_53.FR063_R{Pair}.fastq.gz
+
+FR064:
+  FR064_SAMPLE:
+    FR064_LIBRARY:
+      FR064_LANE: /cluster/projects/nn9244k/sparrow/Pacheco/NLSparrow/FASTQs/HI.4120.008.BioOHT_6.FR064_R{Pair}.fastq.gz
