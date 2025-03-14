@@ -5,6 +5,5 @@ Crotone	Italy	Europe	17.1165	39.075472	10	Italian
 Guglionesi	Italy	Europe	14.913889	41.913403	10	Italian	
 Sales	France	Europe	5.961063	45.874188	10	House	
 Utrecht	Netherlands	Europe	5.1276	52.0986	18	House	
-NA	Netherlands	Europe	5.7138	52.2297	1	NA	Focal Ind.
-NA	Netherlands	Europe	5.7138	52.2297	2	NA	Garderen
+NA	Netherlands	Europe	5.7138	52.2297	3	NA	Garderen
 NA	Netherlands	Europe	4.9876	51.9297	1	NA	Meerkerk

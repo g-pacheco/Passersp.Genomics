@@ -89,7 +89,7 @@ fulldf$Species <- factor(fulldf$Species, ordered = T,
 
 
 # Defines the shapes to be used for each Group ~
-shapes.legend <- as.vector(c(1, 9, 12, 28, 11, 23))
+shapes.legend <- as.vector(c(9, 1, 28, 12, 11, 23))
 
 
 # Creates legend plot ~
@@ -166,7 +166,7 @@ PCAauto_Eigenval_Sum <- sum(PCAauto$values)
 
 
 # Defines the shapes to be used for each Group ~
-shapes.auto <- as.vector(c(1, 9, 12, 28, 11, 23, 15))
+shapes.auto <- as.vector(c(9, 1, 28, 12, 11, 23, 15))
 
 
 PCAauto_12 <-
@@ -227,7 +227,7 @@ PCAallo_Eigenval_Sum <- sum(PCAallo$values)
 
 
 # Defines the shapes to be used for each Group ~
-shapes.allo <- as.vector(c(1, 9, 12, 28, 11, 23, 15))
+shapes.allo <- as.vector(c(9, 1, 28, 12, 11, 23, 15))
 
 
 PCAallo_12 <-
