@@ -89,7 +89,7 @@ fulldf$Species <- factor(fulldf$Species, ordered = T,
 
 
 # Defines the shapes to be used for each Group ~
-shapes.legend <- as.vector(c(1, 9, 13, 21, 11, 23))
+shapes.legend <- as.vector(c(1, 9, 12, 28, 11, 23))
 
 
 # Creates legend plot ~
@@ -115,10 +115,6 @@ MyLegend_Plot <-
                              label.theme = element_text(size = 15, family = "Optima"),
                              override.aes = list(starshape = 21, size = 5, starstroke = .15), nrow = 1, order = 1),
          colour = "none")
-
-
-# Defines the shapes to be used for each Group ~
-shapes.auto <- as.vector(c(1, 9, 13, 21, 11, 23, 14))
 
 
 # Combines all populations from the Faroe Islands ~
@@ -169,22 +165,16 @@ PCAauto_Eigenval_Sum <- sum(PCAauto$values)
 (PCAauto$values[3]/PCAauto_Eigenval_Sum)*100
 
 
+# Defines the shapes to be used for each Group ~
+shapes.auto <- as.vector(c(1, 9, 12, 28, 11, 23, 15))
+
+
 PCAauto_12 <-
   ggplot(data = subset(fulldf, CHR == "Autosomes"), aes_string(x = "PCA_1", y = "PCA_2")) +
   geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.15, starstroke = .15) +
   facet_grid2(CHR ~. , scales = "free_x", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
   scale_starshape_manual(values = shapes.auto) +
-  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Focal Ind.", "Garderen_02")), aes(label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.06, nudge_y = 0,
-                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                   ends = "last", type = "open")) +
-  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Garderen_01", "Meerkerk_01")), aes(label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = -.1,
-                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
   geom_mark_ellipse(aes(filter = Species == "House", label = "House\nSparrow"), con.colour = "#1E90FF", colour = "#1E90FF",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
                     con.type = "straight", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
@@ -194,6 +184,16 @@ PCAauto_12 <-
   geom_mark_ellipse(aes(filter = Species == "Italian", label = "Italian\nSparrow"), con.colour = "#FFD700", colour = "#FFD700",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
+  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Focal Ind.", "Garderen_02")), aes(label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.06, nudge_y = 0,
+                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                   ends = "last", type = "open")) +
+  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Garderen_01", "Meerkerk_01")), aes(label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = -.1,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
   scale_x_continuous("PC 1 (5.55%)",
                      breaks = c(-.1, 0, .1, .2),
                      labels = c("-0.1", "0", ".01", ".02"),
@@ -227,7 +227,7 @@ PCAallo_Eigenval_Sum <- sum(PCAallo$values)
 
 
 # Defines the shapes to be used for each Group ~
-shapes.allo <- as.vector(c(1, 9, 13, 21, 11, 23, 14))
+shapes.allo <- as.vector(c(1, 9, 12, 28, 11, 23, 15))
 
 
 PCAallo_12 <-
@@ -236,11 +236,6 @@ PCAallo_12 <-
   facet_grid2(CHR ~. , scales = "free_x", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
   scale_starshape_manual(values = shapes.allo) +
-  geom_label_repel(data = subset(fulldf, CHR == "Chromosome Z"), aes(label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.03, nudge_y = .015,
-                   point.padding = .6, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
   geom_mark_ellipse(aes(filter = Species == "House", label = "House\nSparrow"), con.colour = "#1E90FF", colour = "#1E90FF",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
                     con.type = "straight", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
@@ -250,6 +245,11 @@ PCAallo_12 <-
   geom_mark_ellipse(aes(filter = Species == "Italian", label = "Italian\nSparrow"), con.colour = "#FFD700", colour = "#FFD700",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
+  geom_label_repel(data = subset(fulldf, CHR == "Chromosome Z"), aes(label = Labels),
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.03, nudge_y = .015,
+                   point.padding = 1, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
   scale_x_continuous("PC 1 (9.10%)",
                      limits = c(-.19, .25),
                      expand = c(0, 0)) +
