@@ -9,7 +9,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Loads required packages ~
 pacman::p_load(rnaturalearth, rnaturalearthdata, ggtext, sf, ggspatial, tidyverse, ggforce, ggstar,
-               ggrepel, ggpattern, sysfonts, extrafont, gridExtra, grid, cowplot, patchwork, ggpubr, showtext)
+               ggrepel, shadowtext, ggpattern, sysfonts, extrafont, gridExtra, grid, cowplot, patchwork, ggpubr, showtext)
 
 
 # Imports .shp files ~
@@ -25,6 +25,13 @@ PDnrPInr <- st_intersection(PDnr, PInr)
 
 # Loads coordinates ~
 SamplingEffort <- read.csv2("Passersp.Genomics--Locations.txt", sep = "\t", header = TRUE, encoding = "UTF-8")
+
+
+# Expands SamplingEffort by creating Location_Alt ~ 
+SamplingEffort$Location_Alt <- ifelse(SamplingEffort$Labels %in% c("Garderen"), "Garderen",
+                               ifelse(SamplingEffort$Labels %in% c("Meerkerk"), "Meerkerk", SamplingEffort$Location))
+
+
 SamplingEffort$Longitude <- as.numeric(SamplingEffort$Longitude)
 SamplingEffort$Latitude <- as.numeric(SamplingEffort$Latitude)
 
@@ -58,13 +65,15 @@ MyLegend_Plot <-
  ggplot() +
   geom_sf_pattern(data = PInr, aes(pattern = "Italian"),
                   pattern_size = .05, pattern_density = .05, pattern_spacing = .05, pattern_units = "in",
-                  fill = "#FFD700", pattern_fill = "#FFD700", alpha = .5, color = "#bdbdbd", pattern_color = "#bdbdbd") +
+                  fill = "#FFD700", pattern_fill = "#ffffff", alpha = .5, color = "#bdbdbd", pattern_color = "#ffffff") +
   geom_sf_pattern(data = PDnrPInr, aes(pattern = "Italian & House"),
                   pattern_size = .05, pattern_density = .05, pattern_spacing = .05, pattern_units = "in",
-                  fill = "#e7e1ef", pattern_fill = "#e7e1ef", color = "#bdbdbd", pattern_color = "#bdbdbd") +
+                  fill = "#c7e9c0", pattern_fill = "#ffffff", color = "#bdbdbd", pattern_color = "#ffffff") +
   scale_pattern_manual(values = c("Italian" = "stripe", "Italian & House" = "circle")) +
-  geom_star(data = SamplingEffort, aes(x = Longitude, y = Latitude, starshape = Location, fill = Species),
-            size = 4.85, alpha = .9, starstroke = .15) +
+  #geom_star(data = SamplingEffort, aes(x = Longitude, y = Latitude, starshape = Location, fill = Species),
+  #          size = 4.85, alpha = .9, starstroke = .15) +
+  geom_star(data = SamplingEffort, aes(x = Longitude, y = Latitude, fill = Species),
+            starshape = 15, size = 4.85, alpha = .9, starstroke = .15) +
   scale_starshape_manual(values = shapes.legend, na.translate = FALSE) +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE,  drop = FALSE) +
   scale_colour_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE, drop = FALSE) +
@@ -84,9 +93,107 @@ MyLegend_Plot <-
          colour = "none")
 
 
+MyLegend_Plot_Alt <-
+  ggplot() +
+  geom_sf_pattern(data = PInr, aes(pattern = "Italian"),
+                  pattern_size = .05, pattern_density = .05, pattern_spacing = .05, pattern_units = "in",
+                  fill = "#FFD700", pattern_fill = "#FFD700", alpha = .5, color = "#bdbdbd", pattern_color = "#ffffff") +
+  geom_sf_pattern(data = PDnrPInr, aes(pattern = "Italian & House"),
+                  pattern_size = .05, pattern_density = .05, pattern_spacing = .05, pattern_units = "in",
+                  fill = "#c7e9c0", pattern_fill = "#c7e9c0", color = "#bdbdbd", pattern_color = "#ffffff") +
+  scale_pattern_manual(values = c("Italian" = "stripe", "Italian & House" = "circle")) +
+  geom_star(data = SamplingEffort, aes(x = Longitude, y = Latitude, starshape = Location, fill = Species),
+            size = 4.85, alpha = .9, starstroke = .15) +
+  geom_star(data = SamplingEffort, aes(x = Longitude, y = Latitude, fill = Species),
+            starshape = 15, size = 4.85, alpha = .9, starstroke = .15) +
+  scale_starshape_manual(values = shapes.legend, na.translate = FALSE) +
+  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE,  drop = FALSE) +
+  scale_colour_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE, drop = FALSE) +
+  theme(panel.background = element_rect(fill = "#ffffff"),
+        legend.position = "top",
+        legend.box = "vertical",
+        legend.spacing.y = unit(.01, "cm")) +
+  guides(fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
+                             label.theme = element_text(family = "Optima", size = 15),
+                             override.aes = list(starshape = 21, size = 5, starstroke = .15), nrow = 1, order = 1),
+         starshape = guide_legend(title = "Locations", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
+                                  label.theme = element_text(family = "Optima", size = 15),
+                                  override.aes = list(size = 5, starstroke = .15), nrow = 1, order = 2),
+         pattern = guide_legend(title = "Distributions", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
+                                label.theme = element_text(family = "Optima", size = 15),
+                                override.aes = list(starshape = 1, size = 4.5, starstroke = .15), nrow = 1, order = 3),
+         colour = "none")
+
 
 # Expands fulldf by adding Labels ~
 SamplingEffort$Location <- ifelse(SamplingEffort$Labels %in% c("Focal Ind.", "Garderen", "Meerkerk"), "Focal Area", SamplingEffort$Location)
+
+
+# Creates base map ~
+MapBody <-
+  ggplot() +
+  geom_sf(data = Global, fill = "#f0f0f0", color = "#bdbdbd") +
+  geom_sf_pattern(data = PInr, aes(pattern = "Italian"),
+                  pattern_size = .05, pattern_density = .05, pattern_spacing = .075, pattern_units = "in",
+                  fill = "#FFD700", pattern_fill = "#ffffff", alpha = .5, color = "#bdbdbd", pattern_color = "#ffffff") +
+  geom_sf_pattern(data = PDnrPInr, aes(pattern = "Italian & House"),
+                  pattern_size = .05, pattern_density = .05, pattern_spacing = .05, pattern_units = "in",
+                  fill = "#c7e9c0", pattern_fill = "#ffffff", color = "#bdbdbd", pattern_color = "#ffffff") +
+  scale_pattern_manual(values = c("Italian" = "stripe", "Italian & House" = "circle")) +
+  geom_star(data = subset(SamplingEffort, Location != "Focal Area"), aes(x = Longitude, y = Latitude, fill = Species),
+            starshape = 15, size = 4, colour = "#000000", alpha = .9, starstroke = .15) +
+  geom_star(data = subset(SamplingEffort, Location == "Focal Area"), aes(x = Longitude, y = Latitude),
+            starshape = 15, size = 2, fill = "#d9d9d9", colour = "#000000", alpha = .85, starstroke = .15) +
+  coord_sf(xlim = c(-13.6, 73), ylim = c(35.65, 61), expand = FALSE) +
+  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000")) +
+  scale_colour_manual(values = c("#1E90FF", "#FFD700", "#ee0000")) +
+  scale_x_continuous(breaks = seq(-120, 125, by = 10)) +
+  scale_y_continuous(breaks = seq(-20, 70, by = 10)) +
+  geom_shadowtext(data = subset(SamplingEffort, Location_Alt == "Utrecht"), aes(x = Longitude, y = Latitude, label = Location_Alt), show.legend = FALSE,
+                  size = 4.25, fontface = "bold", colour = "#000000", bg.colour = "#ffffff", bg.r = .15, nudge_x = -2.4, nudge_y = .7) +
+  geom_shadowtext(data = subset(SamplingEffort, Location_Alt == "Sales"), aes(x = Longitude, y = Latitude, label = Location_Alt), show.legend = FALSE,
+                  size = 4.25, fontface = "bold", colour = "#000000", bg.colour = "#ffffff", bg.r = .15, nudge_x = -1.9, nudge_y = .5) +
+  geom_shadowtext(data = subset(SamplingEffort, Location_Alt == "Crotone"), aes(x = Longitude, y = Latitude, label = Location_Alt), show.legend = FALSE,
+                  size = 4.25, fontface = "bold", colour = "#000000", bg.colour = "#ffffff", bg.r = .15, nudge_x = -2.6, nudge_y = .5) +
+  geom_shadowtext(data = subset(SamplingEffort, Location_Alt == "Guglionesi"), aes(x = Longitude, y = Latitude, label = Location_Alt), show.legend = FALSE,
+                  size = 4.25, fontface = "bold", colour = "#000000", bg.colour = "#ffffff", bg.r = .15, nudge_x = -3.3, nudge_y = .5) +
+  geom_shadowtext(data = subset(SamplingEffort, Location_Alt == "Lesina"), aes(x = Longitude, y = Latitude, label = Location_Alt), show.legend = FALSE,
+                  size = 4.25, fontface = "bold", colour = "#000000", bg.colour = "#ffffff", bg.r = .15, nudge_x = 2.35, nudge_y = -.5) +
+  geom_shadowtext(data = subset(SamplingEffort, Location_Alt == "Chokpak"), aes(x = Longitude, y = Latitude, label = Location_Alt), show.legend = FALSE,
+                  size = 4.25, fontface = "bold", colour = "#000000", bg.colour = "#ffffff", bg.r = .15, nudge_x = -2.8, nudge_y = .5) +
+  geom_shadowtext(data = subset(SamplingEffort, Location_Alt == "Garderen"), aes(x = Longitude, y = Latitude, label = Location_Alt), show.legend = FALSE,
+                  size = 3.5, fontface = "bold", colour = "#000000", bg.colour = "#ffffff", bg.r = .15, nudge_x = 2.45, nudge_y = .35) +
+  geom_shadowtext(data = subset(SamplingEffort, Location_Alt == "Meerkerk"), aes(x = Longitude, y = Latitude, label = Location_Alt), show.legend = FALSE,
+                  size = 3.5, fontface = "bold", colour = "#000000", bg.colour = "#ffffff", bg.r = .15, nudge_x = -2.45, nudge_y = -.35) +
+  annotation_north_arrow(location = "tr", which_north = "true", style = north_arrow_fancy_orienteering,
+                         pad_x = unit(.125, "in"), pad_y = unit(.125, "in")) +
+  annotation_scale(text_family = "Optima", location = "tr", line_width = 1, text_cex = 1, style = "ticks",
+                   pad_x = unit(.2, "in"), pad_y = unit(.65, "in")) +
+  theme(panel.background = element_rect(fill = "#deebf7"),
+        panel.grid.major = element_line(color = "#bdbdbd", linetype = "dashed", linewidth = .005),
+        panel.grid.minor = element_blank(),
+        panel.border = element_rect(colour = "#000000", linewidth = .3, fill = NA),
+        plot.margin = margin(t = 5, b = 0, r = 10, l = 10),
+        legend.position = "none",
+        axis.title = element_blank(),
+        axis.text = element_text(size = 11, color = "#000000"),
+        axis.ticks = element_line(color = "#000000", linewidth = .3),
+        axis.line = element_line(colour = "#000000", linewidth = .3))
+
+
+# Isolates legend ~
+MyLegendBlog <- get_legend(MyLegend_Plot)
+
+
+# Gets the final map ~
+MapFull <- ggarrange(MapBody, nrow = 1, legend.grob = MyLegendBlog)
+
+
+# Saves map ~
+ggsave(MapFull, file = "Passersp.Genomics--Map.pdf", device = cairo_pdf,
+       width = 14, height = 7.25, scale = 1, limitsize = FALSE, dpi = 600)
+ggsave(MapFull, file = "Passersp.Genomics--Map.jpeg",
+       width = 14, height = 7.25, scale = 1, limitsize = FALSE, dpi = 600)
 
 
 # Defines the shapes to be used for each Group ~
@@ -94,7 +201,7 @@ shapes.auto <- as.vector(c(9, 1, 28, 12, 11, 23, 15))
 
 
 # Creates base map ~
-MapBody <-
+MapBody_Alt <-
   ggplot() +
   geom_sf(data = Global, fill = "#fff7f3", color = "#bdbdbd") +
   geom_sf_pattern(data = PInr, aes(pattern = "Italian"),
@@ -102,7 +209,7 @@ MapBody <-
                   fill = "#FFD700", pattern_fill = "#FFD700", alpha = .5, color = "#bdbdbd", pattern_color = "#bdbdbd") +
   geom_sf_pattern(data = PDnrPInr, aes(pattern = "Italian & House"),
                   pattern_size = .05, pattern_density = .05, pattern_spacing = .05, pattern_units = "in",
-                  fill = "#e7e1ef", pattern_fill = "#e7e1ef", color = "#bdbdbd", pattern_color = "#bdbdbd") +
+                  fill = "#c7e9c0", pattern_fill = "#c7e9c0", color = "#bdbdbd", pattern_color = "#bdbdbd") +
   scale_pattern_manual(values = c("Italian" = "stripe", "Italian & House" = "circle")) +
   geom_star(data = subset(SamplingEffort, Location != "Focal Area"), aes(x = Longitude, y = Latitude, starshape = Location, fill = Species),
             size = 5, colour = "#000000", alpha = .9, starstroke = .15) +
@@ -137,18 +244,18 @@ MapBody <-
 
 
 # Isolates legend ~
-MyLegendBlog <- get_legend(MyLegend_Plot)
+MyLegendBlog_Alt <- get_legend(MyLegend_Plot_Alt)
 
 
 # Gets the final map ~
-MapFull <- ggarrange(MapBody, nrow = 1, legend.grob = MyLegendBlog)
+MapFull_Alt <- ggarrange(MapBody_Alt, nrow = 1, legend.grob = MyLegendBlog_Alt)
 
 
 # Saves map ~
-ggsave(MapFull, file = "Passersp.Genomics--Map.pdf", device = cairo_pdf,
+ggsave(MapFull_Alt, file = "Passersp.Genomics--Map_Alt.pdf", device = cairo_pdf,
        width = 14, height = 7.5, scale = 1, limitsize = FALSE, dpi = 600)
-ggsave(MapFull, file = "Passersp.Genomics--Map.jpeg",
-       width = 14, height = 8, scale = 1, limitsize = FALSE, dpi = 600)
+ggsave(MapFull_Alt, file = "Passersp.Genomics--Map_Alt.jpeg",
+       width = 14, height = 7.5, scale = 1, limitsize = FALSE, dpi = 600)
 
 
 #
