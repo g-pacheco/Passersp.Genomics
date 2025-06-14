@@ -108,12 +108,12 @@ MyLegend_Plot <-
         legend.margin = margin(t = 0, b = 0, r = 15, l = 15),
         legend.box = "vertical",
         legend.box.margin = margin(t = 10, b = 15, r = 0, l = 0)) +
-  guides(starshape = guide_legend(title = "Population", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
-                                  label.theme = element_text(size = 15, family = "Optima"),
-                                  override.aes = list(starshape = shapes.legend, size = 5, starstroke = .15), nrow = 1, order = 2),
-         fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
-                             label.theme = element_text(size = 15, family = "Optima"),
-                             override.aes = list(starshape = 21, size = 5, starstroke = .15), nrow = 1, order = 1),
+  guides(starshape = guide_legend(title = "Population", title.theme = element_text(family = "Optima", size = 19, face = "bold"),
+                                  label.theme = element_text(size = 17, family = "Optima"),
+                                  override.aes = list(starshape = shapes.legend, size = 8, starstroke = .15), nrow = 1, order = 2),
+         fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 19, face = "bold"),
+                             label.theme = element_text(size = 17, family = "Optima"),
+                             override.aes = list(starshape = 21, size = 8, starstroke = .15), nrow = 1, order = 1),
          colour = "none")
 
 
@@ -171,26 +171,26 @@ shapes.auto <- as.vector(c(9, 1, 28, 12, 11, 23, 15))
 
 PCAauto_12 <-
   ggplot(data = subset(fulldf, CHR == "Autosomes"), aes_string(x = "PCA_1", y = "PCA_2")) +
-  geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.15, starstroke = .15) +
+  geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.75, starstroke = .15) +
   facet_grid2(CHR ~. , scales = "free_x", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
   scale_starshape_manual(values = shapes.auto) +
   geom_mark_ellipse(aes(filter = Species == "House", label = "House\nSparrow"), con.colour = "#1E90FF", colour = "#1E90FF",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
                     con.type = "straight", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Spanish", label = "Spanish\nSparrow"), con.colour = "#ee0000", colour = "#ee0000",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Italian", label = "Italian\nSparrow"), con.colour = "#FFD700", colour = "#FFD700",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Focal Ind.", "Garderen_02")), aes(label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.06, nudge_y = 0,
+                   family = "Optima", size = 4.5, fontface = "bold", max.overlaps = 100, nudge_x = -.06, nudge_y = 0,
                    point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                    ends = "last", type = "open")) +
   geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Garderen_01", "Meerkerk_01")), aes(label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = -.1,
+                   family = "Optima", size = 4.5, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = -.1,
                    point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
@@ -232,21 +232,26 @@ shapes.allo <- as.vector(c(9, 1, 28, 12, 11, 23, 15))
 
 PCAallo_12 <-
   ggplot(data =  subset(fulldf, CHR == "Chromosome Z"), aes_string(x = "PCA_1", y = "PCA_2")) +
-  geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.15, starstroke = .15) +
+  geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.75, starstroke = .15) +
   facet_grid2(CHR ~. , scales = "free_x", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
   scale_starshape_manual(values = shapes.allo) +
   geom_mark_ellipse(aes(filter = Species == "House", label = "House\nSparrow"), con.colour = "#1E90FF", colour = "#1E90FF",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
                     con.type = "straight", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Spanish", label = "Spanish\nSparrow"), con.colour = "#ee0000", colour = "#ee0000",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Italian", label = "Italian\nSparrow"), con.colour = "#FFD700", colour = "#FFD700",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 10.65,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
-  geom_label_repel(data = subset(fulldf, CHR == "Chromosome Z"), aes(label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.03, nudge_y = .015,
+  geom_label_repel(data = subset(fulldf, CHR == "Chromosome Z" & Labels == "Focal Ind."), aes(label = Labels),
+                   family = "Optima", size = 4.5, fontface = "bold", max.overlaps = 100, nudge_x = -.04, nudge_y = .015,
+                   point.padding = 1, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  geom_label_repel(data = subset(fulldf, CHR == "Chromosome Z" & Labels == "Meerkerk_01"), aes(label = Labels),
+                   family = "Optima", size = 4.5, fontface = "bold", max.overlaps = 100, nudge_x = -.04, nudge_y = .015,
                    point.padding = 1, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
@@ -280,9 +285,9 @@ PCA_Plot <- ggarrange(PCAauto_12, PCAallo_12, nrow = 2, legend.grob = MyLegendBl
 
 
 # Saves plot ~
-ggsave(PCA_Plot, file = "Passersp.enomics--PCA.pdf",
+ggsave(PCA_Plot, file = "Passersp.enomics--PCA_Bigger.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 12, height = 12, dpi = 600)
-ggsave(PCA_Plot, file = "Passersp.Genomics--PCA.jpeg",
+ggsave(PCA_Plot, file = "Passersp.Genomics--PCA_Bigger.jpeg",
       limitsize = FALSE, scale = 1, width = 12, height = 12, dpi = 600)
 
 

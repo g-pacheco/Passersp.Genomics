@@ -13,7 +13,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Loads packages ~
 devtools::install_github("omys-omics/triangulaR")
-pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, grid, gtable)
+pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, grid, gtable, data.table)
 
 
 # Loads VCF data ~
@@ -27,13 +27,17 @@ annot_allo <- read.table("AllSamples_bcftools.raw.vcf.Allosome.TriangularR.Focal
 
 
 # Gets AIMs ~
-VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.9)
-VCF_allo.diff9 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.9)
+#VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.9)
+#VCF_allo.diff9 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.9)
+VCF_auto.diff7 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.7)
+VCF_allo.diff7 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.7)
 
 
 # Calculates differentiation indexes ~
-HI_HET_auto.diff9 <- hybridIndex(vcfR = VCF_auto.diff9, pm = annot_auto, p1 = "House", p2 = "Spanish")
-HI_HET_allo.diff9 <- hybridIndex(vcfR = VCF_allo.diff9, pm = annot_allo, p1 = "House", p2 = "Spanish")
+#HI_HET_auto.diff9 <- hybridIndex(vcfR = VCF_auto.diff9, pm = annot_auto, p1 = "House", p2 = "Spanish")
+#HI_HET_allo.diff9 <- hybridIndex(vcfR = VCF_allo.diff9, pm = annot_allo, p1 = "House", p2 = "Spanish")
+HI_HET_auto.diff7 <- hybridIndex(vcfR = VCF_auto.diff7, pm = annot_auto, p1 = "House", p2 = "Spanish")
+HI_HET_allo.diff7 <- hybridIndex(vcfR = VCF_allo.diff7, pm = annot_allo, p1 = "House", p2 = "Spanish")
 
 
 # Expands HI_HET ~
@@ -187,8 +191,10 @@ ggsave(Panel, file = "Passersp.Genomics--Triangular.jpeg",
 
 
 # Gets AIMs´ genotypes ~
-m_auto <- extract.gt(VCF_auto.diff9)
-m_allo <- extract.gt(VCF_allo.diff9)
+#m_auto_diff9 <- extract.gt(VCF_auto.diff9)
+#m_allo <- extract.gt(VCF_allo.diff9)
+m_auto <- extract.gt(VCF_auto.diff7)
+m_allo <- extract.gt(VCF_allo.diff7)
 
 
 # Recodes to allele counts ~ 
@@ -269,8 +275,8 @@ n_allo <- as.data.frame(n_allo)
 
 
 # Selects focal individual & controls ~
-fulldf_auto <- n_auto %>% select(PI22NLD0001M_SAMPLE, PD22NLD0146F_SAMPLE, PD22NLD0147F_SAMPLE, PDOM2022NLD0077M_SAMPLE)
-fulldf_allo <- n_allo %>% select(PI22NLD0001M_SAMPLE, PDOM2022NLD0077M_SAMPLE)
+fulldf_auto <- n_auto %>% dplyr::select(PI22NLD0001M_SAMPLE, PD22NLD0146F_SAMPLE, PD22NLD0147F_SAMPLE, PDOM2022NLD0077M_SAMPLE)
+fulldf_allo <- n_allo %>% dplyr::select(PI22NLD0001M_SAMPLE, PDOM2022NLD0077M_SAMPLE)
 
 
 # Convert row names to a column ~
@@ -278,13 +284,13 @@ fulldf_auto <- fulldf_auto %>%
                mutate(CHR = sub("_.*", "", rownames(fulldf_auto))) %>%
                mutate(POS = sub(".*_", "", rownames(fulldf_auto))) %>%
                tibble::rownames_to_column(var = "SNP") %>%
-               select(SNP, CHR, POS, everything())
+               dplyr::select(SNP, CHR, POS, everything())
 
 fulldf_allo <- fulldf_allo %>%
                mutate(CHR = sub("_.*", "", rownames(fulldf_allo))) %>%
                mutate(POS = sub(".*_", "", rownames(fulldf_allo))) %>%
                tibble::rownames_to_column(var = "SNP") %>%
-               select(SNP, CHR, POS, everything())
+               dplyr::select(SNP, CHR, POS, everything())
 
 
 # Creates Index per CHR ~
@@ -304,6 +310,66 @@ fulldf_allo <- gather(fulldf_allo, Individual, Ancestry,
 
 # Combines the DFs ~
 fulldf <- rbind(fulldf_auto, fulldf_allo)
+
+
+percent_df <- fulldf %>%
+              group_by(CHR, Individual) %>%
+              summarise(NumberOfAIMs = n(),
+              NumberOfSpanishAIMs = sum(Ancestry == 2),
+              Percentage = (NumberOfSpanishAIMs / NumberOfAIMs) * 100,
+              .groups = "drop")
+
+# Step 2: Separate out PI22NLD0001M_SAMPLE and the others
+target_ind <- percent_df %>%
+  filter(Individual == "PI22NLD0001M_SAMPLE") %>%
+  select(CHR, Percentage) %>%
+  rename(FocalInd_Percentage = Percentage)
+
+
+others_avg <- percent_df %>%
+              filter(Individual != "PI22NLD0001M_SAMPLE") %>%
+              group_by(CHR) %>%
+              summarise(others_avg_percent = mean(Percentage),
+              .groups = "drop")
+
+# Step 3: Combine both into a single table
+result <- left_join(target_ind, others_avg, by = "CHR")
+result$Difference <- round(result$FocalInd_Percentage - result$others_avg_percent, 4)
+
+
+head(fulldf_smaller, n = 20) <- fulldf %>%
+  filter(CHR == "chr11") %>%
+  filter(Individual == "PI22NLD0001M_SAMPLE")
+
+
+fulldf_smaller <- fulldf %>%
+                  filter(CHR == "chr19" | CHR == "chr11" | CHR == "chr23") %>%
+                  filter(Individual == "PI22NLD0001M_SAMPLE")
+
+
+# Convert to data.table for run-length encoding
+dt <- as.data.table(fulldf_smaller)
+
+result <- dt[, {
+  temp <- copy(.SD)
+  temp[, run_id := rleid(Ancestry)]
+  
+  ancestry_2_runs <- temp[Ancestry == 2]
+  
+  if (nrow(ancestry_2_runs) == 0) {
+    .SD[0]  # return empty data.table with original columns
+  } else {
+    longest_run <- ancestry_2_runs[, .N, by = run_id][which.max(N), run_id]
+    # select only the longest run and drop run_id column before returning
+    res <- ancestry_2_runs[run_id == longest_run]
+    res[, run_id := NULL]
+    res
+  }
+}, by = CHR]
+
+
+chr_ranges <- result[, .(Start = min(POS), End = max(POS)), by = CHR]
+chr_ranges_df <- as.data.frame(chr_ranges)
 
 
 # Expands PCA_Annot by adding Population ~
@@ -338,7 +404,7 @@ fulldf$Ancestry <- factor(fulldf$Ancestry, ordered = TRUE,
 fulldf$CHR <- factor(fulldf$CHR, ordered = TRUE,
                      levels = c("chr1", "chr1A", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", 
                                 "chr11", "chr12", "chr13", "chr14", "chr15", "chr17", "chr18", "chr19", "chr20", "chr21", 
-                                "chr22", "chr23", "chr24", "chr26", "chr27", "chr28", "chrZ", "scaffold00239"))
+                                "chr22", "chr23", "chr24", "chr26", "chr27", "chr28", "chrZ", "scaffold00169", "scaffold00239"))
 
 
 # Fixes CHRs´ names ~
@@ -382,7 +448,8 @@ ggplot(fulldf, aes(x = Index, y = Individual, fill = as.factor(Ancestry))) +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.spacing = unit(.05, "cm"),
-        legend.position = c(.8, .875),
+        #legend.position = c(.8, .875),
+        legend.position = c(.9, .875),
         legend.key = element_blank(),
         legend.background = element_blank(),
         legend.margin = margin(t = 0, b = 0, r = 0, l = 0),
@@ -400,10 +467,10 @@ ggplot(fulldf, aes(x = Index, y = Individual, fill = as.factor(Ancestry))) +
 
 
 # Saves Index plot ~
-ggsave(AncestryPlot_Index, file = "Passersp.Genomics--AncestryHeatmap_AIMs.pdf",
-       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
-ggsave(AncestryPlot_Index, file = "Passersp.Genomics--AncestryHeatmap_AIMs.jpeg",
-       limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
+ggsave(AncestryPlot_Index, file = "Passersp.Genomics--AncestryHeatmap_AIMs_0.7.pdf",
+       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 24, height = 14, dpi = 600)
+ggsave(AncestryPlot_Index, file = "Passersp.Genomics--AncestryHeatmap_AIMs_0.7.png",
+       device = "png", limitsize = FALSE, scale = 1, width = 24, height = 14, dpi = 100)
 
 
 #

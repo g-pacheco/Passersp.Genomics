@@ -200,7 +200,7 @@ fulldf <- rbind(fulldf.auto, fulldf.allo)
 fulldf$Group <- ifelse(fulldf$Population %in% c("Utrecht", "Sales"), "House Sparrow",
                 ifelse(fulldf$Population %in% c("Guglionesi", "Crotone"), "Italian Sparrow",
                 ifelse(fulldf$Population %in% c("Chokpak", "Lesina"), "Spanish Sparrow",
-                ifelse(fulldf$Population %in% c("Focal Ind.", "Meerkerk", "Garderen"), "Focal Area", "Error"))))
+                ifelse(fulldf$Population %in% c("Focal Ind.", "Meerkerk", "Garderen"), "Focal Group", "Error"))))
 
 
 # Reorders Population ~
@@ -208,7 +208,7 @@ fulldf$Group <- factor(fulldf$Group, ordered = T,
                            levels = c("House Sparrow",
                                       "Italian Sparrow",
                                       "Spanish Sparrow",
-                                      "Focal Area"))
+                                      "Focal Group"))
 
 
 # Reorders chrtype ~
@@ -236,10 +236,10 @@ ngsAdmix <-
   ggplot(fulldfUp, aes(x = Sample_ID, y = Ancestry, fill = fill_color, pattern = Status), colour = "#000000") +
   geom_col_pattern(width = .85, alpha = .7, pattern_size = .1, pattern_density = .01, pattern_spacing = .075, pattern_units = "in", pattern_colour = "#000000", pattern_fill = "#000000") +
   facet_nested(chrtype + K_Value ~ Group + Population, scales = "free_x", space = "free",
-               strip = strip_nested(text_x = elem_list_text(size = c(15, 13), family = c("Optima", "Optima"), face = c("bold", "bold"), angle = c(0, 90), margins = c(1, 2, 3, 4)),
+               strip = strip_nested(text_x = elem_list_text(size = c(17, 14), family = c("Optima", "Optima"), face = c("bold", "bold"), angle = c(0, 90), margins = c(1, 2, 3, 4)),
                                     background_x = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"), colour = c("#000000", "#000000"), linewidth = c(.3, .3)),
                                     by_layer_x = TRUE,
-                                    text_y = elem_list_text(size = c(15, 13), family = c("Optima", "Optima"), face = c("bold", "bold")),
+                                    text_y = elem_list_text(size = c(17, 14), family = c("Optima", "Optima"), face = c("bold", "bold")),
                                     background_y = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"), colour = c("#000000", "#000000"), linewidth = c(.3, .3)),
                                     by_layer_y = TRUE)) +
   scale_fill_identity() +
@@ -262,9 +262,9 @@ ngsAdmix <-
 
 # Saves the final plot ~
 ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix.pdf",
-       device = cairo_pdf, width = 20, height = 12, scale = 1, dpi = 600)
+       device = cairo_pdf, width = 25, height = 12, scale = 1, dpi = 600)
 ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix.jpeg",
-       width = 20, height = 12, scale = 1, dpi = 600)
+       width = 25, height = 12, scale = 1, dpi = 600)
 
 
 #

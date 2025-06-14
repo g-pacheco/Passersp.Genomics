@@ -6,6 +6,7 @@
 # Cleans the environment ~ 
 rm(list=ls())
 
+
 # Sets working directory ~
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
@@ -290,10 +291,10 @@ Panel_Plot <- Y150239_Plot + Meerkerk_Plot + Delta_Plot + plot_layout(ncol = 1)
   
   
 # Save the panel ~
-#ggsave(paste("Y150239Genomics--TWISST_SW150_FillArea_", x, ".pdf", sep = ""), plot = Panel_Plot,
-#       device = cairo_pdf, limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
-ggsave(paste("Y150239Genomics--TWISST_FillArea_", x, ".jpeg", sep = ""), plot = Panel_Plot,
-       limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
+ggsave(paste("Y150239Genomics--TWISST_SW150_FillArea_", x, ".pdf", sep = ""), plot = Panel_Plot,
+       device = cairo_pdf, limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
+#ggsave(paste("Y150239Genomics--TWISST_FillArea_", x, ".jpeg", sep = ""), plot = Panel_Plot,
+#       limitsize = FALSE, width = 40, height = 25, scale = 1, dpi = 600)}
 
 
 # Creates Delta boxplots per CHR ~
@@ -307,7 +308,7 @@ Delta_Boxplots <-
   scale_x_discrete("Chromosome", labels = y_strip_labels) +
   theme(panel.background = element_rect(fill = "#ffffff"),
         panel.border = element_blank(),
-        panel.grid.major = element_line(color = "#dddddd", linetype = "dashed"),
+        panel.grid.major = element_line(color = "#dddddd", linetype = "dashed", linewidth = .0005),
         panel.grid.minor = element_blank(),
         legend.position = "none",
         axis.title = element_text(family = "Optima", face = "bold", size = 18),
@@ -318,8 +319,10 @@ Delta_Boxplots <-
 
 
 # Save Delta boxplots as a PDF ~
-#ggsave(plot = Delta_Boxplots, "Y150239Genomics--TWISST_Delta_Boxplots_Per_CHR.pdf",
-#      device = cairo_pdf, limitsize = FALSE, width = 18, height = 8, dpi = 600)
+ggsave(plot = Delta_Boxplots, "Y150239Genomics--TWISST_Delta_Boxplots_Per_CHR_B.pdf",
+      device = cairo_pdf, limitsize = FALSE, width = 18, height = 8, dpi = 600)
+ggsave(plot = Delta_Boxplots, "Y150239Genomics--TWISST_Delta_Boxplots_Per_CHR.jpeg",
+       limitsize = FALSE, width = 18, height = 8, dpi = 600)
 
 
 ###################################################################################################################################################################################
@@ -433,14 +436,14 @@ for (cat in categories) {df_name <- paste0("filtered_positions_", cat, "_df")
   
   
   # Sets GO Analysis parameters ~
-  GO_Params_list[[cat]] <- GSEAGOHyperGParams(name = paste0("Passerd GO Enrich - ", cat),
-                                              geneSetCollection = GSC,
-                                              geneIds = FocalGenes_list[[cat]]$Gene_ID,
-                                              universeGeneIds = GenesUniverse,
-                                              ontology = "BP",
-                                              pvalueCutoff = .05,
-                                              conditional = FALSE,
-                                              testDirection = "over")
+GO_Params_list[[cat]] <- GSEAGOHyperGParams(name = paste0("Passerd GO Enrich - ", cat),
+                                            geneSetCollection = GSC,
+                                            geneIds = FocalGenes_list[[cat]]$Gene_ID,
+                                            universeGeneIds = GenesUniverse,
+                                            ontology = "BP",
+                                            pvalueCutoff = .05,
+                                            conditional = FALSE,
+                                            testDirection = "over")
   
   
   # Runs GO analysis ~
@@ -566,7 +569,7 @@ ggplot(expanded_df, aes(x = 1, y = Term)) +
 
 
 # Saves plot ~
-ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis.pdf",
+ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis_NEW.pdf",
        device = cairo_pdf, limitsize = FALSE, width = 12, height = 15, scale = 1, dpi = 600)
 ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis.jpeg",
        limitsize = FALSE, width = 12, height = 15, scale = 1, dpi = 600)
