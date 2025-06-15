@@ -13,7 +13,8 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Loads packages ~
 devtools::install_github("omys-omics/triangulaR")
-pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, grid, gtable, data.table)
+pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, grid, gtable,
+               rtracklayer, GenomicRanges, data.table)
 
 
 # Loads VCF data ~
@@ -336,15 +337,9 @@ others_avg <- percent_df %>%
 result <- left_join(target_ind, others_avg, by = "CHR")
 result$Difference <- round(result$FocalInd_Percentage - result$others_avg_percent, 4)
 
-
-head(fulldf_smaller, n = 20) <- fulldf %>%
-  filter(CHR == "chr11") %>%
-  filter(Individual == "PI22NLD0001M_SAMPLE")
-
-
 fulldf_smaller <- fulldf %>%
-                  filter(CHR == "chr19" | CHR == "chr11" | CHR == "chr23") %>%
-                  filter(Individual == "PI22NLD0001M_SAMPLE")
+  filter(CHR == "chr19" | CHR == "chr11" | CHR == "chr23") %>%
+  filter(Individual == "PI22NLD0001M_SAMPLE")
 
 
 # Convert to data.table for run-length encoding
@@ -356,20 +351,55 @@ result <- dt[, {
   
   ancestry_2_runs <- temp[Ancestry == 2]
   
-  if (nrow(ancestry_2_runs) == 0) {
-    .SD[0]  # return empty data.table with original columns
-  } else {
-    longest_run <- ancestry_2_runs[, .N, by = run_id][which.max(N), run_id]
-    # select only the longest run and drop run_id column before returning
-    res <- ancestry_2_runs[run_id == longest_run]
-    res[, run_id := NULL]
-    res
-  }
-}, by = CHR]
+  if (nrow(ancestry_2_runs) == 0) {.SD[0]} else {longest_run <- ancestry_2_runs[, .N, by = run_id][which.max(N), run_id]
+                                   res <- ancestry_2_runs[run_id == longest_run]
+                                   res[, run_id := NULL]
+                                   res}}, by = CHR]
 
 
-chr_ranges <- result[, .(Start = min(POS), End = max(POS)), by = CHR]
+chr_ranges <- result[, .(start = min(POS), end = max(POS)), by = CHR]
 chr_ranges_df <- as.data.frame(chr_ranges)
+
+
+chr_ranges_df <- chr_ranges_df %>%
+                 dplyr::rename(seqnames = CHR) %>%
+                 dplyr::mutate(start = as.numeric(as.character(start)),
+                               end = as.numeric(as.character(end)),
+                               start = start - 15000,
+                               end = end + 15000) %>%
+                 dplyr::arrange(seqnames, start)
+
+
+intervals_gr <- makeGRangesFromDataFrame(chr_ranges_df)
+
+
+hits <- findOverlaps(HouseGenes, intervals_gr)
+genes_in_intervals <- HouseGenes[queryHits(hits)]
+
+
+GenesWithinAIMs <- data.frame(GeneID = mcols(genes_in_intervals)$Name,
+                              CHR = as.character(seqnames(genes_in_intervals)),
+                              Start = start(genes_in_intervals),
+                              End = end(genes_in_intervals),
+                              GeneName = as.character(mcols(genes_in_intervals)$Note)) %>%
+                   dplyr::select(CHR, Start, End, GeneID, GeneName) %>%
+                   mutate(GeneName = sub("^Similar to ", "", GeneName),
+                          GeneName = sub(":.*$", "", GeneName),
+                          GeneName = sub("Protein of unknown function", "Unknown Function", GeneName)) %>%
+                   arrange(CHR, Start)
+
+
+# Saves the lists of Focal Genes ~
+write.table(GenesWithinAIMs, file = "GenesWithinAIMs_Plus15K.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+
+
+# Imports the House Sparrow annotation ~
+HouseGFF <- import("house_sparrow.gff")
+HouseGFF_dff <- as.data.frame(HouseGFF)
+
+
+
+HouseGenes <- HouseGFF[HouseGFF$type == "gene"]
 
 
 # Expands PCA_Annot by adding Population ~
@@ -430,8 +460,7 @@ fulldf$POSMb <- as.numeric(fulldf$POS) / 1000000
 
 
 # Little function to suppress y-axis labels ~
-delete_no_display <- function(v) {
-  if_else(str_detect(v, 'no_display'), '', v)}
+delete_no_display <- function(v) {if_else(str_detect(v, 'no_display'), '', v)}
 
 
 # Creates Index plot ~

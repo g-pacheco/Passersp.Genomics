@@ -13,7 +13,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Loads packages ~
 pacman::p_load(tidyverse, scales, reshape2, ggh4x, lemon, patchwork, GenomicRanges, txdbmaker,
-               rtracklayer, GOstats, GSEABase, outliers, clusterProfiler,BSgenome.Ggallus.UCSC.galGal4, VariantAnnotation, vcfR)
+               rtracklayer, GOstats, GSEABase, outliers, clusterProfiler, BSgenome.Ggallus.UCSC.galGal4, VariantAnnotation, vcfR)
 
 
 # Imports the House Sparrow annotation ~
