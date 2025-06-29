@@ -176,7 +176,7 @@ PCAauto_12 <-
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
   scale_starshape_manual(values = shapes.auto) +
   geom_mark_ellipse(aes(filter = Species == "House", label = "House\nSparrow"), con.colour = "#1E90FF", colour = "#1E90FF",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
+                    label.fill = "#d9d9d9", con.border = "one", label.fontsize = 14,
                     con.type = "straight", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Spanish", label = "Spanish\nSparrow"), con.colour = "#ee0000", colour = "#ee0000",
                     label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
@@ -190,14 +190,14 @@ PCAauto_12 <-
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                    ends = "last", type = "open")) +
   geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Garderen_01", "Meerkerk_01")), aes(label = Labels),
-                   family = "Optima", size = 4.5, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = -.1,
+                   family = "Optima", size = 4.5, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = -.12,
                    point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
-  scale_x_continuous("PC 1 (5.55%)",
+  scale_x_continuous("PC 1 (5.52%)",
                      breaks = c(-.1, 0, .1, .2),
                      labels = c("-0.1", "0", ".01", ".02"),
-                     limits = c(-.19, .25),
+                     limits = c(-.195, .25),
                      expand = c(0, 0)) +
   scale_y_continuous("PC 2 (1.97%)",
                      #breaks = c(-.08, -.04, 0.00), 
@@ -214,7 +214,7 @@ PCAauto_12 <-
         axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
         axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
         axis.ticks = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 16, face = "bold"),
         strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         axis.line = element_line(colour = "#000000", linewidth = .3))
 
@@ -255,10 +255,10 @@ PCAallo_12 <-
                    point.padding = 1, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
-  scale_x_continuous("PC 1 (9.10%)",
-                     limits = c(-.19, .25),
+  scale_x_continuous("PC 1 (8.53%)",
+                     limits = c(-.195, .25),
                      expand = c(0, 0)) +
-  scale_y_continuous("PC 2 (4.80%)",
+  scale_y_continuous("PC 2 (4.68%)",
                      limits = c(-.31, .35),
                      expand = c(0, 0)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
@@ -271,7 +271,7 @@ PCAallo_12 <-
         axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
         axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
         axis.ticks = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 16, face = "bold"),
         strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         axis.line = element_line(colour = "#000000", linewidth = .3))
 
@@ -285,9 +285,9 @@ PCA_Plot <- ggarrange(PCAauto_12, PCAallo_12, nrow = 2, legend.grob = MyLegendBl
 
 
 # Saves plot ~
-ggsave(PCA_Plot, file = "Passersp.enomics--PCA_Bigger.pdf",
+ggsave(PCA_Plot, file = "Passersp.enomics--PCA.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 12, height = 12, dpi = 600)
-ggsave(PCA_Plot, file = "Passersp.Genomics--PCA_Bigger.jpeg",
+ggsave(PCA_Plot, file = "Passersp.Genomics--PCA.jpeg",
       limitsize = FALSE, scale = 1, width = 12, height = 12, dpi = 600)
 
 

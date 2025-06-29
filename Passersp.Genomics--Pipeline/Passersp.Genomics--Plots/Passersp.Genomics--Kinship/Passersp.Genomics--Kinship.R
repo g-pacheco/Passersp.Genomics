@@ -32,14 +32,14 @@ for (k in 1:length(annotL)) {
   
   ### Only needed because the population Utrecht has subpopulation ~
   annot[[k]] <- annot[[k]] %>%
-    mutate(SubPopulation = case_when(Ind1 %in% c("PD22NLD0146F", "PD22NLD0147F") ~ "Garderen",
+    dplyr::mutate(SubPopulation = case_when(Ind1 %in% c("PD22NLD0146F", "PD22NLD0147F") ~ "Garderen",
                                      Ind1 == "PDOM2022NLD0077M" ~ "Meerkerk",
                                      Ind1 == "PI22NLD0001M" ~ "Focal Ind.", TRUE ~ Population))
   annot[[k]]$CHRType <- str_extract(annotL[k], "(Allosome|Autosomes)")
   annot[[k]] <- annot[[k]] %>%
-    group_by(SubPopulation) %>% mutate(Ind1b = paste(SubPopulation, sprintf("%02d", row_number()), sep = "_")) %>%
-    ungroup() %>%
-    mutate(Ind2b = lead(Ind1b, default = paste0(SubPopulation[1], "_", sprintf("%02d", n() + 1))))
+    dplyr::group_by(SubPopulation) %>% mutate(Ind1b = paste(SubPopulation, sprintf("%02d", row_number()), sep = "_")) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(Ind2b = lead(Ind1b, default = paste0(SubPopulation[1], "_", sprintf("%02d", n() + 1))))
   rab[[k]] <- read.table(rabL[k], header = TRUE, stringsAsFactors = FALSE)
   rab[[k]]$a <- rab[[k]]$a + 1
   rab[[k]]$Population <- annot[[k]]$Population[match(rab[[k]]$a, seq_along(annot[[k]]$Ind1))]
@@ -57,19 +57,19 @@ for (k in 1:length(annotL)) {
                                   Ind1 = ifelse(Invert, Temp_Ind2, Temp_Ind1),
                                   Ind2 = ifelse(Invert, Temp_Ind1, Temp_Ind2),
                                   Pair = paste(Ind1, "Vs", Ind2)) %>%
-                                  select(-Invert, -Temp_Ind1, -Temp_Ind2)
+                                  dplyr::select(-Invert, -Temp_Ind1, -Temp_Ind2)
   rab[[k]] <- rab[[k]] %>% mutate(Invert = str_detect(Ind2, "Focal Ind."),
                                   Temp_Ind1 = Ind1,
                                   Temp_Ind2 = Ind2,
                                   Ind1 = ifelse(Invert, Temp_Ind2, Temp_Ind1),
                                   Ind2 = ifelse(Invert, Temp_Ind1, Temp_Ind2),
                                   Pair = paste(Ind1, "Vs", Ind2)) %>%
-                                  select(-Invert, -Temp_Ind1, -Temp_Ind2)
+                                  dplyr::select(-Invert, -Temp_Ind1, -Temp_Ind2)
   tryCatch({rab[[k]] <- rab[[k]] %>%
-            select(Ind1, Ind2, a, b, rab, Pair, CHRType, Population)}, error = function(e) {
+            dplyr::select(Ind1, Ind2, a, b, rab, Pair, CHRType, Population)}, error = function(e) {
             print(paste("Error in rab[[", k, "]] column selection:", e$message))})
   rab[[k]] <- rab[[k]] %>%
-              arrange(Ind1, Ind2)}
+            dplyr::arrange(Ind1, Ind2)}
 
 
 # Expands rab list ~
@@ -82,12 +82,12 @@ fulldf <- fulldf %>% mutate(across(c(Ind1, Ind2, Pair), ~ str_replace_all(., "Fo
 
 # Corrects Population names ~
 levels(fulldf$Population <- sub("TreeSparrow", "Tree Sparrow", fulldf$Population))
-levels(fulldf$Population <- sub("Utrecht", "Focal Area", fulldf$Population))
+levels(fulldf$Population <- sub("Utrecht", "Focal Group", fulldf$Population))
 
 
 # Reorders Population ~
 fulldf$Population <- factor(fulldf$Population, ordered = T,
-                            levels = c("Focal Area",
+                            levels = c("Focal Group",
                                        "Sales",
                                        "Crotone",
                                        "Guglionesi", 

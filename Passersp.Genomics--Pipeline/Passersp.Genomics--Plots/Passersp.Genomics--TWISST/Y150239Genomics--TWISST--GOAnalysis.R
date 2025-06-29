@@ -493,6 +493,10 @@ GO_Params_list[[cat]] <- GSEAGOHyperGParams(name = paste0("Passerd GO Enrich - "
 GOEnrich_Top50_combined <- do.call(rbind, GO_Enrich_Top50_list)
 
 
+# Saves list  ~
+write.table(GOEnrich_Top50_combined, file = "Y150239Genomics--GOAnalysis_Top50_Combined.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+
+
 # Identifies native rows in GOEnrich_Top50_combined ~
 original_rows <- GOEnrich_Top50_combined %>%
                  mutate(Count = as.character(Count), 
@@ -524,10 +528,6 @@ expanded_df$Category <- factor(expanded_df$Category, ordered = TRUE,
                                levels = c("lower",
                                           "upper",
                                           "outliers"))
-
-# Saves file ~
-write.csv(expanded_df, file = "Y150239Genomics--GOAnalysis_Top50_Combined.csv", row.names = FALSE)
-
 
 # Defines y-strip facet labels ~
 y_strip_labels <- c("outliers" = "All Outliers",

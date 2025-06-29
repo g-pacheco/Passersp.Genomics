@@ -122,20 +122,20 @@ fulldf.auto <- data.frame()
 fulldf.allo <- data.frame()
 
 
-x.auto <- list(c(3, 5, 1, 4, 6, 2, 7),
-               c(4, 5, 1, 2, 6, 3),
-               c(4, 2, 5, 3, 1),
-               c(4, 3, 1, 2),
-               c(1, 3, 2),
+x.auto <- list(c(1, 2, 3, 4, 5, 6, 7),
+               c(1, 2, 3, 4, 5, 6),
+               c(1, 2, 3, 4, 5),
+               c(1, 2, 3, 4),
+               c(1, 2, 3),
                c(1, 2))
 
 
-x.allo <- list(c(4, 1, 6, 5, 7, 2, 3),
-               c(1, 4, 3, 2, 6, 5),
-               c(1, 3, 2, 5, 4),
-               c(2, 4, 1, 3),
+x.allo <- list(c(4, 5, 7, 3, 6, 2, 1),
+               c(5, 6, 1, 2, 3, 4),
+               c(5, 4, 1, 2, 3),
+               c(4, 1, 2, 3),
                c(2, 1, 3),
-               c(2, 1))
+               c(1, 2))
 
 
 # Defines samples' IDs ~
@@ -261,10 +261,10 @@ ngsAdmix <-
 
 
 # Saves the final plot ~
-ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix.pdf",
+ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix_NEW.pdf",
        device = cairo_pdf, width = 25, height = 12, scale = 1, dpi = 600)
-ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix.jpeg",
-       width = 25, height = 12, scale = 1, dpi = 600)
+#ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix.jpeg",
+#       width = 25, height = 12, scale = 1, dpi = 600)
 
 
 #

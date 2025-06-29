@@ -62,11 +62,11 @@ breaks_fun <- function(y){
 limits_fun <- function(x){
   limitVal <- max(x)
   if (limitVal > 1.6){
-    c(0, 1.8)}
+    c(0, 2)}
   else if (limitVal < .1){
-    c(0, .046)}
+    c(0, .05)}
   else {
-    c(0, .259)}}
+    c(0, .3)}}
 
 
 # Creates the plot ~

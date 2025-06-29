@@ -12,31 +12,31 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads packages ~
-devtools::install_github("omys-omics/triangulaR")
+devtools::install_github("omys-omics/triangulaR", force = TRUE)
 pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, grid, gtable,
                rtracklayer, GenomicRanges, data.table)
 
 
 # Loads VCF data ~
-VCF_auto <- read.vcfR("../../../../LargeFiles/Passersp.Genomics--TriangularR/AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.Focal.ALL.vcf", verbose = TRUE)
-VCF_allo <- read.vcfR("../../../../LargeFiles/Passersp.Genomics--TriangularR/AllSamples_bcftools.raw.vcf.Allosome.TriangularR.Focal.All.vcf", verbose = TRUE)
+VCF_auto <- read.vcfR("../../../../LargeFiles/Passersp.Genomics--TriangularR/AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.All.vcf", verbose = TRUE)
+VCF_allo <- read.vcfR("../../../../LargeFiles/Passersp.Genomics--TriangularR/AllSamples_bcftools.raw.vcf.Allosome.TriangularR.All.vcf", verbose = TRUE)
 
 
 # Loads annotation file ~
-annot_auto <- read.table("AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.Focal.ALL.annot",  sep = "\t", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
-annot_allo <- read.table("AllSamples_bcftools.raw.vcf.Allosome.TriangularR.Focal.ALL.annot",  sep = "\t", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
+annot_auto <- read.table("AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.All.annot",  sep = "\t", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
+annot_allo <- read.table("AllSamples_bcftools.raw.vcf.Allosome.TriangularR.All.annot",  sep = "\t", header = FALSE, stringsAsFactors = FALSE, col.names = c("id", "pop"))
 
 
 # Gets AIMs ~
-#VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.9)
-#VCF_allo.diff9 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.9)
+VCF_auto.diff9 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.9)
+VCF_allo.diff9 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.9)
 VCF_auto.diff7 <- alleleFreqDiff(vcfR = VCF_auto, pm = annot_auto, p1 = "House", p2 = "Spanish", difference = 0.7)
 VCF_allo.diff7 <- alleleFreqDiff(vcfR = VCF_allo, pm = annot_allo, p1 = "House", p2 = "Spanish", difference = 0.7)
 
 
 # Calculates differentiation indexes ~
-#HI_HET_auto.diff9 <- hybridIndex(vcfR = VCF_auto.diff9, pm = annot_auto, p1 = "House", p2 = "Spanish")
-#HI_HET_allo.diff9 <- hybridIndex(vcfR = VCF_allo.diff9, pm = annot_allo, p1 = "House", p2 = "Spanish")
+HI_HET_auto.diff9 <- hybridIndex(vcfR = VCF_auto.diff9, pm = annot_auto, p1 = "House", p2 = "Spanish")
+HI_HET_allo.diff9 <- hybridIndex(vcfR = VCF_allo.diff9, pm = annot_allo, p1 = "House", p2 = "Spanish")
 HI_HET_auto.diff7 <- hybridIndex(vcfR = VCF_auto.diff7, pm = annot_auto, p1 = "House", p2 = "Spanish")
 HI_HET_allo.diff7 <- hybridIndex(vcfR = VCF_allo.diff7, pm = annot_allo, p1 = "House", p2 = "Spanish")
 
@@ -185,15 +185,13 @@ Panel <-
 
 
 # Saves plot ~
-ggsave(Panel, file = "Passersp.Genomics--Triangular.pdf",
+ggsave(Panel, file = "Passersp.Genomics--Triangular_NEW.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
 ggsave(Panel, file = "Passersp.Genomics--Triangular.jpeg",
       limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
 
 
 # Gets AIMs´ genotypes ~
-#m_auto_diff9 <- extract.gt(VCF_auto.diff9)
-#m_allo <- extract.gt(VCF_allo.diff9)
 m_auto <- extract.gt(VCF_auto.diff7)
 m_allo <- extract.gt(VCF_allo.diff7)
 
@@ -313,95 +311,6 @@ fulldf_allo <- gather(fulldf_allo, Individual, Ancestry,
 fulldf <- rbind(fulldf_auto, fulldf_allo)
 
 
-percent_df <- fulldf %>%
-              group_by(CHR, Individual) %>%
-              summarise(NumberOfAIMs = n(),
-              NumberOfSpanishAIMs = sum(Ancestry == 2),
-              Percentage = (NumberOfSpanishAIMs / NumberOfAIMs) * 100,
-              .groups = "drop")
-
-# Step 2: Separate out PI22NLD0001M_SAMPLE and the others
-target_ind <- percent_df %>%
-  filter(Individual == "PI22NLD0001M_SAMPLE") %>%
-  select(CHR, Percentage) %>%
-  rename(FocalInd_Percentage = Percentage)
-
-
-others_avg <- percent_df %>%
-              filter(Individual != "PI22NLD0001M_SAMPLE") %>%
-              group_by(CHR) %>%
-              summarise(others_avg_percent = mean(Percentage),
-              .groups = "drop")
-
-# Step 3: Combine both into a single table
-result <- left_join(target_ind, others_avg, by = "CHR")
-result$Difference <- round(result$FocalInd_Percentage - result$others_avg_percent, 4)
-
-fulldf_smaller <- fulldf %>%
-  filter(CHR == "chr19" | CHR == "chr11" | CHR == "chr23") %>%
-  filter(Individual == "PI22NLD0001M_SAMPLE")
-
-
-# Convert to data.table for run-length encoding
-dt <- as.data.table(fulldf_smaller)
-
-result <- dt[, {
-  temp <- copy(.SD)
-  temp[, run_id := rleid(Ancestry)]
-  
-  ancestry_2_runs <- temp[Ancestry == 2]
-  
-  if (nrow(ancestry_2_runs) == 0) {.SD[0]} else {longest_run <- ancestry_2_runs[, .N, by = run_id][which.max(N), run_id]
-                                   res <- ancestry_2_runs[run_id == longest_run]
-                                   res[, run_id := NULL]
-                                   res}}, by = CHR]
-
-
-chr_ranges <- result[, .(start = min(POS), end = max(POS)), by = CHR]
-chr_ranges_df <- as.data.frame(chr_ranges)
-
-
-chr_ranges_df <- chr_ranges_df %>%
-                 dplyr::rename(seqnames = CHR) %>%
-                 dplyr::mutate(start = as.numeric(as.character(start)),
-                               end = as.numeric(as.character(end)),
-                               start = start - 15000,
-                               end = end + 15000) %>%
-                 dplyr::arrange(seqnames, start)
-
-
-intervals_gr <- makeGRangesFromDataFrame(chr_ranges_df)
-
-
-hits <- findOverlaps(HouseGenes, intervals_gr)
-genes_in_intervals <- HouseGenes[queryHits(hits)]
-
-
-GenesWithinAIMs <- data.frame(GeneID = mcols(genes_in_intervals)$Name,
-                              CHR = as.character(seqnames(genes_in_intervals)),
-                              Start = start(genes_in_intervals),
-                              End = end(genes_in_intervals),
-                              GeneName = as.character(mcols(genes_in_intervals)$Note)) %>%
-                   dplyr::select(CHR, Start, End, GeneID, GeneName) %>%
-                   mutate(GeneName = sub("^Similar to ", "", GeneName),
-                          GeneName = sub(":.*$", "", GeneName),
-                          GeneName = sub("Protein of unknown function", "Unknown Function", GeneName)) %>%
-                   arrange(CHR, Start)
-
-
-# Saves the lists of Focal Genes ~
-write.table(GenesWithinAIMs, file = "GenesWithinAIMs_Plus15K.txt", sep = "\t", quote = FALSE, row.names = FALSE)
-
-
-# Imports the House Sparrow annotation ~
-HouseGFF <- import("house_sparrow.gff")
-HouseGFF_dff <- as.data.frame(HouseGFF)
-
-
-
-HouseGenes <- HouseGFF[HouseGFF$type == "gene"]
-
-
 # Expands PCA_Annot by adding Population ~
 fulldf$Ancestry <- ifelse(grepl("0", fulldf$Ancestry), "House",
                    ifelse(grepl("1", fulldf$Ancestry), "Heterozygous",
@@ -409,18 +318,10 @@ fulldf$Ancestry <- ifelse(grepl("0", fulldf$Ancestry), "House",
 
 
 # Expands PCA_Annot by adding Population ~
-fulldf$Individual <- ifelse(grepl("PI22NLD0001M_SAMPLE", fulldf$Individual), "Y150239",
+fulldf$Individual <- ifelse(grepl("PI22NLD0001M_SAMPLE", fulldf$Individual), "Focal Ind.",
                      ifelse(grepl("PD22NLD0146F_SAMPLE", fulldf$Individual), "Garderen_01",
                      ifelse(grepl("PD22NLD0147F_SAMPLE", fulldf$Individual), "Garderen_02",
                      ifelse(grepl("PDOM2022NLD0077M_SAMPLE", fulldf$Individual), "Meerkerk_01", "Error"))))
-
-
-# Reorders BioStatus ~
-fulldf$Individual <- factor(fulldf$Individual, ordered = TRUE,
-                            levels = c("Meerkerk_01",
-                                       "Garderen_02",
-                                       "Garderen_01",
-                                       "Y150239"))
 
 
 # Reorders Ancestry ~
@@ -434,7 +335,7 @@ fulldf$Ancestry <- factor(fulldf$Ancestry, ordered = TRUE,
 fulldf$CHR <- factor(fulldf$CHR, ordered = TRUE,
                      levels = c("chr1", "chr1A", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", 
                                 "chr11", "chr12", "chr13", "chr14", "chr15", "chr17", "chr18", "chr19", "chr20", "chr21", 
-                                "chr22", "chr23", "chr24", "chr26", "chr27", "chr28", "chrZ", "scaffold00169", "scaffold00239"))
+                                "chr22", "chr23", "chr24", "chr26", "chr27", "chr28", "scaffold00169", "scaffold00239", "chrZ"))
 
 
 # Fixes CHRs´ names ~
@@ -448,6 +349,14 @@ y_strip_labels <- setNames(c("CHR 01", "CHR 01A", "CHR 02", "CHR 03", "CHR 04", 
                              "chr22", "chr23", "chr24", "chr26", "chr27", "chr28", "chrZ", "scaffold00169", 
                              "scaffold00221", "scaffold00223", "scaffold00224", "scaffold00238", "scaffold00239", 
                              "scaffold00242"))
+
+
+# Reorders BioStatus ~
+#fulldf$Individual <- factor(fulldf$Individual, ordered = TRUE,
+#                            levels = c("AAA",
+#                                       "Garderen_01",
+#                                       "Garderen_02",
+#                                       "Meerkerk_01"))
 
 
 # Marks y-axis labels for no display ~ 
@@ -497,11 +406,100 @@ ggplot(fulldf, aes(x = Index, y = Individual, fill = as.factor(Ancestry))) +
 
 # Saves Index plot ~
 ggsave(AncestryPlot_Index, file = "Passersp.Genomics--AncestryHeatmap_AIMs_0.7.pdf",
-       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 24, height = 14, dpi = 600)
+       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 24, height = 15, dpi = 600)
 ggsave(AncestryPlot_Index, file = "Passersp.Genomics--AncestryHeatmap_AIMs_0.7.png",
-       device = "png", limitsize = FALSE, scale = 1, width = 24, height = 14, dpi = 100)
+       device = "png", limitsize = FALSE, scale = 1, width = 24, height = 15, dpi = 100)
 
 
 #
 ##
 ### The END ~~~~~
+
+
+percent_df <- fulldf %>%
+  group_by(CHR, Individual) %>%
+  summarise(NumberOfAIMs = n(),
+            NumberOfSpanishAIMs = sum(Ancestry == 2),
+            Percentage = (NumberOfSpanishAIMs / NumberOfAIMs) * 100,
+            .groups = "drop")
+
+# Step 2: Separate out PI22NLD0001M_SAMPLE and the others
+target_ind <- percent_df %>%
+  filter(Individual == "PI22NLD0001M_SAMPLE") %>%
+  select(CHR, Percentage) %>%
+  rename(FocalInd_Percentage = Percentage)
+
+
+others_avg <- percent_df %>%
+  filter(Individual != "PI22NLD0001M_SAMPLE") %>%
+  group_by(CHR) %>%
+  summarise(others_avg_percent = mean(Percentage),
+            .groups = "drop")
+
+# Step 3: Combine both into a single table
+result <- left_join(target_ind, others_avg, by = "CHR")
+result$Difference <- round(result$FocalInd_Percentage - result$others_avg_percent, 4)
+
+fulldf_smaller <- fulldf %>%
+  filter(CHR == "chr19" | CHR == "chr11" | CHR == "chr23") %>%
+  filter(Individual == "PI22NLD0001M_SAMPLE")
+
+
+# Convert to data.table for run-length encoding
+dt <- as.data.table(fulldf_smaller)
+
+result <- dt[, {
+  temp <- copy(.SD)
+  temp[, run_id := rleid(Ancestry)]
+  
+  ancestry_2_runs <- temp[Ancestry == 2]
+  
+  if (nrow(ancestry_2_runs) == 0) {.SD[0]} else {longest_run <- ancestry_2_runs[, .N, by = run_id][which.max(N), run_id]
+  res <- ancestry_2_runs[run_id == longest_run]
+  res[, run_id := NULL]
+  res}}, by = CHR]
+
+
+chr_ranges <- result[, .(start = min(POS), end = max(POS)), by = CHR]
+chr_ranges_df <- as.data.frame(chr_ranges)
+
+
+chr_ranges_df <- chr_ranges_df %>%
+  dplyr::rename(seqnames = CHR) %>%
+  dplyr::mutate(start = as.numeric(as.character(start)),
+                end = as.numeric(as.character(end)),
+                start = start - 15000,
+                end = end + 15000) %>%
+  dplyr::arrange(seqnames, start)
+
+
+intervals_gr <- makeGRangesFromDataFrame(chr_ranges_df)
+
+
+hits <- findOverlaps(HouseGenes, intervals_gr)
+genes_in_intervals <- HouseGenes[queryHits(hits)]
+
+
+GenesWithinAIMs <- data.frame(GeneID = mcols(genes_in_intervals)$Name,
+                              CHR = as.character(seqnames(genes_in_intervals)),
+                              Start = start(genes_in_intervals),
+                              End = end(genes_in_intervals),
+                              GeneName = as.character(mcols(genes_in_intervals)$Note)) %>%
+  dplyr::select(CHR, Start, End, GeneID, GeneName) %>%
+  mutate(GeneName = sub("^Similar to ", "", GeneName),
+         GeneName = sub(":.*$", "", GeneName),
+         GeneName = sub("Protein of unknown function", "Unknown Function", GeneName)) %>%
+  arrange(CHR, Start)
+
+
+# Saves the lists of Focal Genes ~
+write.table(GenesWithinAIMs, file = "GenesWithinAIMs_Plus15K.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+
+
+# Imports the House Sparrow annotation ~
+HouseGFF <- import("house_sparrow.gff")
+HouseGFF_dff <- as.data.frame(HouseGFF)
+
+
+
+HouseGenes <- HouseGFF[HouseGFF$type == "gene"]
