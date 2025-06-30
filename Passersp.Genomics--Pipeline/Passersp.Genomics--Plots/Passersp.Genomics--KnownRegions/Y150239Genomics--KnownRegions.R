@@ -245,7 +245,7 @@ fulldfUp <- fulldfUp %>%
 
 
 # Saves table ~
-write.table(fulldfUp, file = "Passersp.Genomics--KnownGenes.txt", row.names = FALSE, quote = FALSE, sep = "\t")
+write.table(fulldfUp, file = "Passersp.Genomics--KnownRegions.txt", row.names = FALSE, quote = FALSE, sep = "\t")
 
 
 #
