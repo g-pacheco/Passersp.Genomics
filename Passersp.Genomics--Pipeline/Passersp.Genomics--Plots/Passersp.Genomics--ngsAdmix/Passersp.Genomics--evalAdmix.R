@@ -121,10 +121,10 @@ for (folder in folder_paths) {
                         ifelse(grepl("Lesina", annot$Annot), "Lesina",
                         ifelse(grepl("Crotone", annot$Annot), "Crotone",
                         ifelse(grepl("Guglionesi", annot$Annot), "Guglionesi",
-                        ifelse(grepl("PI22NLD0001M", annot$Annot), "Focal Area",
-                        ifelse(grepl("PD22NLD0146F", annot$Annot), "Focal Area",
-                        ifelse(grepl("PD22NLD0147F", annot$Annot), "Focal Area",
-                        ifelse(grepl("PDOM2022NLD0077M", annot$Annot), "Focal Area",
+                        ifelse(grepl("PI22NLD0001M", annot$Annot), "Focal Group",
+                        ifelse(grepl("PD22NLD0146F", annot$Annot), "Focal Group",
+                        ifelse(grepl("PD22NLD0147F", annot$Annot), "Focal Group",
+                        ifelse(grepl("PDOM2022NLD0077M", annot$Annot), "Focal Group",
                         ifelse(grepl("PDOM2022NLD0", annot$Annot), "Utrecht", "Error"))))))))))
     annot$Ind <- with(annot, ave(Population, Population, FUN = function(x) sprintf("%s_%02d", x, seq_along(x))))
     
@@ -213,10 +213,10 @@ fulldf_autosomes <- final_long_format_autosomes %>%
                         ifelse(grepl("Lesina", Sample_ID_2), "Lesina",
                         ifelse(grepl("Crotone", Sample_ID_2), "Crotone",
                         ifelse(grepl("Guglionesi", Sample_ID_2), "Guglionesi",
-                        ifelse(grepl("PI22NLD0001M", Sample_ID_2), "Focal Area",
-                        ifelse(grepl("PD22NLD0146F", Sample_ID_2), "Focal Area",
-                        ifelse(grepl("PD22NLD0147F", Sample_ID_2), "Focal Area",
-                        ifelse(grepl("PDOM2022NLD0077M", Sample_ID_2), "Focal Area",
+                        ifelse(grepl("PI22NLD0001M", Sample_ID_2), "Focal Group",
+                        ifelse(grepl("PD22NLD0146F", Sample_ID_2), "Focal Group",
+                        ifelse(grepl("PD22NLD0147F", Sample_ID_2), "Focal Group",
+                        ifelse(grepl("PDOM2022NLD0077M", Sample_ID_2), "Focal Group",
                         ifelse(grepl("PDOM2022NLD0", Sample_ID_2), "Utrecht", "Error"))))))))))) %>%
   select(1:3, Population_2, everything())
 
@@ -226,10 +226,10 @@ fulldf_allosome <- final_long_format_allosome %>%
                         ifelse(grepl("Lesina", Sample_ID_2), "Lesina",
                         ifelse(grepl("Crotone", Sample_ID_2), "Crotone",
                         ifelse(grepl("Guglionesi", Sample_ID_2), "Guglionesi",
-                        ifelse(grepl("PI22NLD0001M", Sample_ID_2), "Focal Area",
-                        ifelse(grepl("PD22NLD0146F", Sample_ID_2), "Focal Area",
-                        ifelse(grepl("PD22NLD0147F", Sample_ID_2), "Focal Area",
-                        ifelse(grepl("PDOM2022NLD0077M", Sample_ID_2), "Focal Area",
+                        ifelse(grepl("PI22NLD0001M", Sample_ID_2), "Focal Group",
+                        ifelse(grepl("PD22NLD0146F", Sample_ID_2), "Focal Group",
+                        ifelse(grepl("PD22NLD0147F", Sample_ID_2), "Focal Group",
+                        ifelse(grepl("PDOM2022NLD0077M", Sample_ID_2), "Focal Group",
                         ifelse(grepl("PDOM2022NLD0", Sample_ID_2), "Utrecht", "Error"))))))))))) %>%
   select(1:3, Population_2, everything())
 
@@ -386,7 +386,7 @@ rampbreaks <- c(rb1, rb2)
 
 # Reorders Population_1 in fulldf_points ~
 fulldf_points$Population_1 <- factor(fulldf_points$Population_1, ordered = T,
-                                     levels = c("Focal Area",
+                                     levels = c("Focal Group",
                                                 "Chokpak",
                                                 "Lesina",
                                                 "Guglionesi",
@@ -411,7 +411,7 @@ Passersp.Genomics_evalAdmix_Points_Plot <-
   geom_violin(data = subset(fulldf_points, Triangle == "Individual"), width = .6, linewidth = .2) + 
   geom_star(data = subset(fulldf_points, Triangle == "Population"), aes(fill = as.numeric(Value)),
             size = 3.25, starshape = 15, alpha = .85, starstroke = .1, color = "#000000") +
-  geom_star(data = subset(fulldf_points, CHRType == "Chromosome Z" & Population_1 == "Focal Area" & Triangle == "Individual"),
+  geom_star(data = subset(fulldf_points, CHRType == "Chromosome Z" & Population_1 == "Focal Group" & Triangle == "Individual"),
             size = 3.25, starshape = 15, alpha = .85, starstroke = .25, fill = NA, color = "#000000") +
   geom_label_repel(data = subset(fulldf_points, Triangle == "Population" & Value >= .015), aes(label = Labels),
                    family = "Optima", size = 4.25, fontface = "bold", nudge_x = .06, nudge_y = .5,
