@@ -15,7 +15,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 pacman::p_load(tidyverse, scales, reshape2, ggh4x, lemon, patchwork, GenomicRanges, GenomicFeatures, txdbmaker,
                rtracklayer, GOstats, GSEABase, outliers, clusterProfiler, biomaRt, AnnotationDbi,
                BSgenome.Ggallus.UCSC.galGal4, TxDb.Ggallus.UCSC.galGal4.refGene,
-               VariantAnnotation, vcfR, Biostrings)
+               VariantAnnotation, vcfR, Rsamtools, Biostrings, fuzzyjoin)
 
 
 # Loads VCF data ~
@@ -241,11 +241,84 @@ fulldfUp <- fulldfUp %>%
             mutate(GeneName = paste(unique(na.omit(gene_key[trimws(unlist(strsplit(GeneID, ",")))])),
             collapse = ", ")) %>%
             ungroup() %>%
-            relocate(GeneName, .before = 1)
+            relocate(GeneName, .before = 1) %>%
+            mutate(CHR = as.character(CHR),
+                   Start = as.numeric(as.character(Start)),
+                   End = as.numeric(as.character(End)))
 
 
 # Saves table ~
 write.table(fulldfUp, file = "Passersp.Genomics--KnownRegions.txt", row.names = FALSE, quote = FALSE, sep = "\t")
+
+
+# Creats .bed file ~
+bed_df <- fulldfUp %>%
+          dplyr::select(CHR, Start, End) %>%
+          dplyr::mutate(Start = pmax(Start - 1, 0))
+
+
+# Saves .bed file ~
+write.table(bed_df, file = "regions.bed", sep = "\t",
+            col.names = FALSE, row.names = FALSE, quote = FALSE)
+
+
+# The VCF annotation was performed on Saga with the command below ~
+#for query in Autosomes Allosome
+#do
+#java -Xmx4g -jar /cluster/projects/nn10082k/Pacheco/Software/snpEff/snpEff.jar \
+#-v Passer -stats AllSamples_bcftools.raw.vcf.${query}.TriangularR_SNPEffSummary.html \
+#/cluster/work/users/georgep/TriangularR/AllSamples_bcftools.raw.vcf.${query}.TriangularR.All.vcf \
+#> /cluster/work/users/georgep/TriangularR/AllSamples_bcftools.raw.vcf.${query}.TriangularR.All.Annotated.vcf
+#done
+
+
+# Loads .fasta file ~
+HS_fasta_path <- "../../../../LargeFiles/Passersp.Genomics--KnownGenes/house_sparrow_genome_assembly-18-11-14_masked.fasta"
+HS_fasta <- FaFile(HS_fasta_path)
+HS_SeqInfoObj <- seqinfo(HS_fasta)
+
+
+# Defines function to process the annotated VCFs ~
+process_annotated_vcf <- function(vcf_path, seqinfo_obj) {vcf <- readVcf(vcf_path, genome = seqinfo_obj)
+                                                          gr <- rowRanges(vcf)
+                                                          ann <- info(vcf)$ANN
+                                                          df <- as.data.frame(gr)
+                                                          df$ANN <- as.list(ann)
+                                                          df %>%
+                                                          unnest_longer(ANN) %>%
+                                                          separate(ANN,
+                                                          into = c("Allele", "Annotation", "Impact", "Gene_Name", "Gene_ID",
+                                                                  "Feature_Type", "Feature_ID", "Transcript_Biotype", 
+                                                                  "Rank", "HGVS.c", "HGVS.p", "cDNA.pos", 
+                                                                  "CDS.pos", "AA.pos", "Distance", "ERRORS"),
+                                                          sep = "\\|", fill = "right")}
+
+# Applies function ~
+VCF_auto_unnested <- process_annotated_vcf("../../../../LargeFiles/Passersp.Genomics--KnownGenes/AllSamples_bcftools.raw.vcf.Autosomes.TriangularR.All.Annotated.Subset.vcf.gz",
+                                          HS_SeqInfoObj)
+VCF_allo_unnested <- process_annotated_vcf("../../../../LargeFiles/Passersp.Genomics--KnownGenes/AllSamples_bcftools.raw.vcf.Allosome.TriangularR.All.Annotated.Subset.vcf.gz",
+                                          HS_SeqInfoObj)
+
+
+# Combines the two data frames ~
+VCF_AllCHRs_unnested <- bind_rows(VCF_auto_unnested, VCF_allo_unnested)
+
+
+# Filters for high-impact variants ~
+high_impact_variants <- VCF_AllCHRs_unnested %>%
+                        filter(Impact %in% c("HIGH", "MODERATE")) %>%
+                        rename(CHR = seqnames, 
+                               Start = start,
+                               End = end) %>%
+                        mutate(CHR = as.character(CHR),
+                               Start = as.numeric(as.character(Start)),
+                               End = as.numeric(as.character(End)))
+
+
+# Incorporates genotype information ~
+filtered_variants <- high_impact_variants %>%
+                     fuzzy_inner_join(fulldfUp, by = c("CHR" = "CHR", "Start" = "Start", "End" = "End"),
+                     match_fun = list(`==`, `>=`, `<=`))
 
 
 #
