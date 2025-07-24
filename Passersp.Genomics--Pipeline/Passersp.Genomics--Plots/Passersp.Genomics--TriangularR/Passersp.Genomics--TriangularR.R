@@ -13,7 +13,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Loads packages ~
 devtools::install_github("omys-omics/triangulaR", force = TRUE)
-pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, grid, gtable,
+pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, grid, gtable, cowplot, ggpubr,
                rtracklayer, GenomicRanges, data.table)
 
 
@@ -42,10 +42,10 @@ HI_HET_allo.diff7 <- hybridIndex(vcfR = VCF_allo.diff7, pm = annot_allo, p1 = "H
 
 
 # Expands HI_HET ~
-HI_HET_auto.diff9$CHRType <- "Autosomes"
+HI_HET_auto.diff9$CHRType <- "Autosomes (538 AIMs)"
 HI_HET_auto.diff9$Diff <- "0.90"
 HI_HET_auto.diff9$SNPs <- nrow(VCF_auto.diff9@fix)
-HI_HET_allo.diff9$CHRType <- "Chromosome Z"
+HI_HET_allo.diff9$CHRType <- "Chromosome Z (136 AIMs)"
 HI_HET_allo.diff9$Diff <- "0.90"
 HI_HET_allo.diff9$SNPs <- nrow(VCF_allo.diff9@fix)
 
@@ -109,17 +109,36 @@ x_vals <- seq(0, 1, length.out = 100)
 semicircle <- data.frame(x = x_vals, y = 2 * x_vals * (1 - x_vals))
 
 
+# Creates legend plot ~
+MyLegend_Plot <-
+  ggplot() +
+  geom_star(data = HI_HET, aes(x = hybrid.index, y = heterozygosity, fill = as.factor(Species)), starshape = 15, colour = "#000000", size = 3, starstroke = .15, alpha = .7) +
+  facet_grid2(. ~ CHRType, scales = "free_y", axes = "all", remove_labels = "y") +
+  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
+  theme(panel.background = element_rect(fill = "#ffffff"),
+        panel.grid.major = element_line(color = "#E5E7E9", linetype = "dashed", linewidth = .005),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.spacing.y = unit(.2, "cm"),
+        legend.position = "top",
+        legend.box = "vertical",
+        legend.margin = margin(t = 3, b = 0, r = 0, l = 0),
+        legend.box.margin = margin(t = 10, b = 10, r = 0, l = 0)) +
+  guides(fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
+                             label.theme = element_text(size = 14, family = "Optima"),
+                             override.aes = list(starshape = 15, size = 5, starstroke = .15), nrow = 1, order = 1),
+         starshape = "none",
+         colour = "none")
+
+
 # Create the plot
 Panel <-
   ggplot() +
   geom_path(data = triangle, aes(x = x, y = y), color = "#000000", linetype = 2, linewidth = .35) +
-  geom_path(data = semicircle, aes(x = x, y = y), color = "#000000", linetype = 2, linewidth = .35) +
-  geom_star(data = HI_HET, aes(x = hybrid.index, y = heterozygosity, fill = Species), starshape = 15, colour = "#000000", size = 2, starstroke = .15, alpha = .75) +
-  #geom_star(data = fulldf, aes(x = hybrid.index, y = heterozygosity, fill = perc.missing), starshape = 15, colour = "#000000", size = 2, starstroke = .15, alpha = .75) +
-  facet_grid2(CHRType ~ ., scales = "free_y", axes = "all", remove_labels = "x") +
-  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
-  geom_label(data = HI_HET, aes(x = .15, y = .85, label = paste0("# of AIMs: ", scales::comma(SNPs))), alpha = 1,
-             size = 4.5, fontface = "bold", fill = "#d6d6d6", label.padding = unit(.5, "lines"), family = "Optima", show.legend = FALSE) +
+  geom_path(data = semicircle, aes(x = x, y = y), color = "#1b7837", linetype = 4, linewidth = .35) +
+  geom_star(data = HI_HET, aes(x = hybrid.index, y = heterozygosity, fill = Species), starshape = 15, colour = "#000000", size = 3, starstroke = .15, alpha = .7) +
+  facet_grid2(. ~ CHRType, scales = "free_y", axes = "all", remove_labels = "y") +
+  scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9"), na.translate = TRUE) +
   geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
                    family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.05, nudge_y = .135,
                    point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
@@ -131,24 +150,23 @@ Panel <-
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
   geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Garderen_02"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .2, nudge_y = 0,
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .15, nudge_y = 0,
                    point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
   geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Meerkerk_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .1, nudge_y = -.025,
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .125, nudge_y = -.025,
                    point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
-  
   geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .1, nudge_y = 0,
-                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .1, nudge_y = -.01,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "#000000", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
   geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z" & Labels == "Meerkerk_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = 0, nudge_y = .175,
-                   point.padding = 1.85, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .125, nudge_y = .05,
+                   point.padding = 1.25, force_pull = 10, segment.size = .3, colour = "#000000", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
   scale_x_continuous("Hybird Index",
@@ -166,15 +184,12 @@ Panel <-
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
         panel.spacing.y = unit(.2, "cm"),
-        legend.position = "top",
-        legend.box = "vertical",
-        legend.margin = margin(t = 0, b = 0, r = 0, l = 0),
-        legend.box.margin = margin(t = 10, b = 10, r = 0, l = 0),
+        legend.position = "none",
         axis.title.x = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 25, r = 0, b = 0, l = 0)),
         axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
         axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
         axis.ticks = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold"),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 15, face = "bold"),
         strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         axis.line = element_line(colour = "#000000", linewidth = .3)) +
   guides(fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
@@ -184,11 +199,19 @@ Panel <-
          colour = "none")
 
 
+# Isolates legend ~
+MyLegendBlog <- get_legend(MyLegend_Plot)
+
+
+# Gets final plot ~
+PanelUp <- ggarrange(Panel,legend.grob = MyLegendBlog)
+
+
 # Saves plot ~
-ggsave(Panel, file = "Passersp.Genomics--Triangular_NEW.pdf",
-       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
+ggsave(PanelUp, file = "Passersp.Genomics--Triangular.pdf",
+       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 14, height = 7, dpi = 600)
 ggsave(Panel, file = "Passersp.Genomics--Triangular.jpeg",
-      limitsize = FALSE, scale = 1, width = 10, height = 12, dpi = 600)
+      limitsize = FALSE, scale = 1, width = 14, height = 7, dpi = 600)
 
 
 # Gets AIMs´ genotypes ~
