@@ -37,7 +37,8 @@ for (k in 1:length(annotL)) {
                                      Ind1 == "PI22NLD0001M" ~ "Focal Ind.", TRUE ~ Population))
   annot[[k]]$CHRType <- str_extract(annotL[k], "(Allosome|Autosomes)")
   annot[[k]] <- annot[[k]] %>%
-    dplyr::group_by(SubPopulation) %>% mutate(Ind1b = paste(SubPopulation, sprintf("%02d", row_number()), sep = "_")) %>%
+    dplyr::group_by(SubPopulation) %>% 
+    dplyr::mutate(Ind1b = paste(SubPopulation, sprintf("%02d", row_number()), sep = "_")) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(Ind2b = lead(Ind1b, default = paste0(SubPopulation[1], "_", sprintf("%02d", n() + 1))))
   rab[[k]] <- read.table(rabL[k], header = TRUE, stringsAsFactors = FALSE)
@@ -51,14 +52,14 @@ for (k in 1:length(annotL)) {
   rab[[k]]$Pair <- paste(rab[[k]]$Ind1, "Vs", rab[[k]]$Ind2)
   
   # Only needed because the individual Meerkerk_01 is amidst the Utrecht subpopulation ~
-  rab[[k]] <- rab[[k]] %>% mutate(Invert = str_detect(Ind2, "Meerkerk") & !Ind1 %in% c("Garderen_01", "Garderen_02"),
+  rab[[k]] <- rab[[k]] %>% dplyr::mutate(Invert = str_detect(Ind2, "Meerkerk") & !Ind1 %in% c("Garderen_01", "Garderen_02"),
                                   Temp_Ind1 = Ind1,
                                   Temp_Ind2 = Ind2,
                                   Ind1 = ifelse(Invert, Temp_Ind2, Temp_Ind1),
                                   Ind2 = ifelse(Invert, Temp_Ind1, Temp_Ind2),
                                   Pair = paste(Ind1, "Vs", Ind2)) %>%
                                   dplyr::select(-Invert, -Temp_Ind1, -Temp_Ind2)
-  rab[[k]] <- rab[[k]] %>% mutate(Invert = str_detect(Ind2, "Focal Ind."),
+  rab[[k]] <- rab[[k]] %>% dplyr::mutate(Invert = str_detect(Ind2, "Focal Ind."),
                                   Temp_Ind1 = Ind1,
                                   Temp_Ind2 = Ind2,
                                   Ind1 = ifelse(Invert, Temp_Ind2, Temp_Ind1),
@@ -77,7 +78,7 @@ fulldf <- bind_rows(rab)
 
 
 # Fixes individual Y150239 ~
-fulldf <- fulldf %>% mutate(across(c(Ind1, Ind2, Pair), ~ str_replace_all(., "Focal Ind._01", "Focal Ind.")))
+fulldf <- fulldf %>% dplyr::mutate(across(c(Ind1, Ind2, Pair), ~ str_replace_all(., "Focal Ind._01", "Focal Ind.")))
 
 
 # Corrects Population names ~

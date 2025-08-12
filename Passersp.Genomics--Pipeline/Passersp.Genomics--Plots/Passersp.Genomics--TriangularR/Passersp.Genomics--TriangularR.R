@@ -14,7 +14,7 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 # Loads packages ~
 devtools::install_github("omys-omics/triangulaR", force = TRUE)
 pacman::p_load(tidyverse, ggstar, ggforce, vcfR, triangulaR, ggh4x, ggrepel, grid, gtable, cowplot, ggpubr,
-               rtracklayer, GenomicRanges, data.table)
+               rtracklayer, GenomicRanges, data.table, GOstats, GSEABase, outliers, clusterProfiler, gtools)
 
 
 # Loads VCF data ~
@@ -101,7 +101,7 @@ HI_HET$Labels <- ifelse(HI_HET$pop %in% c("Focal Ind."), "Focal Ind.",
 
 
 # Creates triangle ~
-triangle <- data.frame(x = c(0, 1, 0.5, 0), y = c(0, 0, 1, 0))
+triangle <-  data.frame(x = c(0, 1, 0.5, 0), y = c(0, 0, 1, 0))
 
 
 # Creates semicircle ~
@@ -112,7 +112,7 @@ semicircle <- data.frame(x = x_vals, y = 2 * x_vals * (1 - x_vals))
 # Creates legend plot ~
 MyLegend_Plot <-
   ggplot() +
-  geom_star(data = HI_HET, aes(x = hybrid.index, y = heterozygosity, fill = as.factor(Species)), starshape = 15, colour = "#000000", size = 3, starstroke = .15, alpha = .7) +
+  geom_star(data = HI_HET, aes(x = hybrid.index, y = heterozygosity, fill = as.factor(Species)), starshape = 15, colour = "#000000", size = 3, starstroke = .15, alpha = .75) +
   facet_grid2(. ~ CHRType, scales = "free_y", axes = "all", remove_labels = "y") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000"), na.translate = FALSE) +
   theme(panel.background = element_rect(fill = "#ffffff"),
@@ -136,40 +136,40 @@ Panel <-
   ggplot() +
   geom_path(data = triangle, aes(x = x, y = y), color = "#000000", linetype = 2, linewidth = .35) +
   geom_path(data = semicircle, aes(x = x, y = y), color = "#1b7837", linetype = 4, linewidth = .35) +
-  geom_star(data = HI_HET, aes(x = hybrid.index, y = heterozygosity, fill = Species), starshape = 15, colour = "#000000", size = 3, starstroke = .15, alpha = .7) +
+  geom_star(data = HI_HET, aes(x = hybrid.index, y = heterozygosity, fill = Species), starshape = 15, colour = "#000000", size = 3, starstroke = .15, alpha = .75) +
   facet_grid2(. ~ CHRType, scales = "free_y", axes = "all", remove_labels = "y") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9"), na.translate = TRUE) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = -.05, nudge_y = .135,
-                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Garderen_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .125, nudge_y = 0,
-                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Garderen_02"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .15, nudge_y = 0,
-                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes" & Labels == "Meerkerk_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .125, nudge_y = -.025,
-                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
-                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
-                                 ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .1, nudge_y = -.01,
+  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes (538 AIMs)" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3, fontface = "bold", max.overlaps = 100, nudge_x = -.05, nudge_y = .16,
                    point.padding = 1, force_pull = 10, segment.size = .3, colour = "#000000", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
-  geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z" & Labels == "Meerkerk_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
-                   family = "Optima", size = 3.8, fontface = "bold", max.overlaps = 100, nudge_x = .125, nudge_y = .05,
+  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes (538 AIMs)" & Labels == "Garderen_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3, fontface = "bold", max.overlaps = 100, nudge_x = .16, nudge_y = .05,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "#000000", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes (538 AIMs)" & Labels == "Garderen_02"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3, fontface = "bold", max.overlaps = 100, nudge_x = .225, nudge_y = .025,
                    point.padding = 1.25, force_pull = 10, segment.size = .3, colour = "#000000", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
-  scale_x_continuous("Hybird Index",
+  geom_label_repel(data = subset(HI_HET, CHRType == "Autosomes (538 AIMs)" & Labels == "Meerkerk_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3, fontface = "bold", max.overlaps = 100, nudge_x = .2, nudge_y = -.025,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "#000000", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z (136 AIMs)" & Labels == "Focal Ind."), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3, fontface = "bold", max.overlaps = 100, nudge_x = .14, nudge_y = -.0075,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "#000000", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  geom_label_repel(data = subset(HI_HET, CHRType == "Chromosome Z (136 AIMs)" & Labels == "Meerkerk_01"), aes(x = hybrid.index, y = heterozygosity, label = Labels),
+                   family = "Optima", size = 3, fontface = "bold", max.overlaps = 100, nudge_x = .15, nudge_y = .0425,
+                   point.padding = 1.25, force_pull = 10, segment.size = .3, colour = "#000000", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  scale_x_continuous("Hybrid Index",
                      breaks = c(.25, .5, .75),
                      labels = c("0.25", "0.50", "0.75"),
                      limits = c(0, 1),
@@ -189,14 +189,9 @@ Panel <-
         axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
         axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
         axis.ticks = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 15, face = "bold"),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 13.5, face = "bold"),
         strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
-        axis.line = element_line(colour = "#000000", linewidth = .3)) +
-  guides(fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 16, face = "bold"),
-                             label.theme = element_text(size = 14, family = "Optima"),
-                             override.aes = list(starshape = 15, size = 5, starstroke = .15), nrow = 1, order = 1),
-         starshape = "none",
-         colour = "none")
+        axis.line = element_line(colour = "#000000", linewidth = .3))
 
 
 # Isolates legend ~
@@ -209,9 +204,9 @@ PanelUp <- ggarrange(Panel,legend.grob = MyLegendBlog)
 
 # Saves plot ~
 ggsave(PanelUp, file = "Passersp.Genomics--Triangular.pdf",
-       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 14, height = 7, dpi = 600)
+       device = cairo_pdf, limitsize = FALSE, scale = 1, width = 10, height = 5, dpi = 600)
 ggsave(Panel, file = "Passersp.Genomics--Triangular.jpeg",
-      limitsize = FALSE, scale = 1, width = 14, height = 7, dpi = 600)
+      limitsize = FALSE, scale = 1, width = 10, height = 5, dpi = 600)
 
 
 # Gets AIMs´ genotypes ~
@@ -374,12 +369,172 @@ y_strip_labels <- setNames(c("CHR 01", "CHR 01A", "CHR 02", "CHR 03", "CHR 04", 
                              "scaffold00242"))
 
 
-# Reorders BioStatus ~
-#fulldf$Individual <- factor(fulldf$Individual, ordered = TRUE,
-#                            levels = c("AAA",
-#                                       "Garderen_01",
-#                                       "Garderen_02",
-#                                       "Meerkerk_01"))
+# Gets percentage of Spanish AIMs ~
+percent_df <- fulldf %>%
+              group_by(CHR, Individual) %>%
+              summarise(NumberOfAIMs = n(),
+              NumberOfSpanishAIMs = sum(Ancestry == "Spanish"),
+              Percentage = (NumberOfSpanishAIMs / NumberOfAIMs) * 100, .groups = "drop")
+
+
+# Gets average for the Focal Ind. ~
+target_ind <- percent_df %>%
+              filter(Individual == "Focal Ind.") %>%
+              select(CHR, Percentage) %>%
+              dplyr::rename(FocalInd_Percentage = Percentage)
+
+
+# Gets average for all others ~
+others_avg <- percent_df %>%
+              filter(Individual != "Focal Ind.") %>%
+              group_by(CHR) %>%
+              summarise(others_avg_percent = mean(Percentage), .groups = "drop")
+
+
+# Combines both data frames ~
+result <- left_join(target_ind, others_avg, by = "CHR")
+result$Difference <- round(result$FocalInd_Percentage - result$others_avg_percent, 4)
+
+
+# Subsets data frame ~
+fulldf_smaller <- fulldf %>%
+                  filter(CHR == "1A" | CHR == "chr7" | CHR == "chr11" | CHR == "chr19" | CHR == "chr23" | CHR == "scaffold00239") %>%
+                  filter(Individual == "Focal Ind.")
+
+
+# Converts fulldf_smaller to data table ~ 
+fulldf_smaller_dt <- as.data.table(fulldf_smaller)
+
+
+# Converts fulldf_smaller to data table ~ 
+result_kant <- fulldf_smaller_dt[, {
+               temp <- copy(.SD)
+               temp[, run_id := rleid(Ancestry)]
+               ancestry_2_runs <- temp[Ancestry == "Spanish"]
+               if (nrow(ancestry_2_runs) == 0) {.SD[0]} else {longest_run <- ancestry_2_runs[, .N, by = run_id][which.max(N), run_id]
+               res <- ancestry_2_runs[run_id == longest_run]
+               res[, run_id := NULL]
+               res}}, by = CHR]
+
+
+# Gets intervals ~ 
+chr_ranges <- as.data.frame(result_kant[, .(start = min(as.numeric(POS)), 
+                              end = max(as.numeric(POS))), by = CHR])
+
+
+# Adds flanking regions ~ 
+chr_ranges <- chr_ranges %>%
+              dplyr::rename(seqnames = CHR) %>%
+              dplyr::mutate(start = as.numeric(as.character(start)),
+              end = as.numeric(as.character(end)),
+              start = start - 15000,
+              end = end + 15000) %>%
+              dplyr::arrange(seqnames, start)
+
+
+# Gets intervals ~ 
+intervals_gr <- makeGRangesFromDataFrame(chr_ranges)
+
+
+# Imports the House Sparrow annotation ~
+HouseGFF <- import("house_sparrow.gff")
+HouseGFF_dff <- as.data.frame(HouseGFF)
+
+
+# Gets House Sparrow genes ~
+HouseGenes <- HouseGFF[HouseGFF$type == "gene"]
+
+
+# Gets gene hits within intervals ~
+hits <- findOverlaps(HouseGenes, intervals_gr)
+genes_in_intervals <- HouseGenes[queryHits(hits)]
+
+
+# Gets genes within intervals ~
+GenesWithinAIMs <- data.frame(GeneID = mcols(genes_in_intervals)$Name,
+                              CHR = as.character(seqnames(genes_in_intervals)),
+                              Start = start(genes_in_intervals),
+                              End = end(genes_in_intervals),
+                              GeneName = as.character(mcols(genes_in_intervals)$Note)) %>%
+                              dplyr::select(CHR, Start, End, GeneID, GeneName) %>%
+                              mutate(GeneName = sub("^Similar to ", "", GeneName),
+                              GeneName = sub(":.*$", "", GeneName),
+                              GeneName = sub("Protein of unknown function", "Unknown Function", GeneName)) %>%
+                              arrange(CHR, Start)
+
+
+# Saves the lists of Focal Genes ~
+write.table(GenesWithinAIMs, file = "GenesWithinAIMs_Plus15K.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+
+
+# Loads GOTerm table ~
+CercaGeneIDs_GOTerms <- read.delim("../Passersp.Genomics--TWISST/Cerca/CercaGeneIDs-GOTerms.tsv", header = FALSE, sep = "\t", col.names = c("Gene_ID", "GO_Term"))
+GOTerms <- read.delim("../Passersp.Genomics--TWISST/GOTerms/house_sparrow_genome_assembly-18-11-14_masked.Protein_gffreads.fasta.Edited.tsv", header = FALSE, sep = "\t", col.names = c("Gene_ID", "GO_Term"))
+GOTermsOrtho <- read.delim("../Passersp.Genomics--TWISST/GOTerms/Orthogroups.tsv", header = TRUE, sep = "\t", col.names = c("Orthogroup", "Gene_ID_Zebra", "Gene_ID_House"))
+
+
+# Edits GOTerms lightly ~
+GOTerms <- GOTerms |> 
+           mutate(GO_Term = GO_Term |> 
+           str_replace_all("\\(InterPro\\)", "") |> 
+           str_replace_all("\\|", ", "),
+           Gene_ID = str_replace_all(Gene_ID, "-.*", ""))
+
+
+# Creates GOTermsWithData  ~
+GOTermsWithData <- GOTerms %>%
+                   filter(GO_Term != "-") %>%
+                   separate_rows(GO_Term, sep = ", ") %>%
+                   mutate(Evidence = "IEA") %>%
+                   dplyr::select(GO_Term, Evidence, Gene_ID)
+
+
+# Creates the GoFrame ~
+goFrame <- GOFrame(as.data.frame(GOTermsWithData, organism = "Passerd"))
+goAllFrame <- GOAllFrame(goFrame)
+GSC <- GeneSetCollection(goAllFrame, setType = GOCollection())
+
+
+# Reads table ~
+GenesWithinAIMs <-  read.table("GenesWithinAIMs_Plus15K.txt", sep = "\t", head = TRUE)
+
+
+# Reads Genes Universe ~
+load("HouseSparrowGenesUniverse.RData")
+
+
+# Reads Genes Universe ~
+FocalGenes_list <-  as.data.frame(GenesWithinAIMs$GeneID)
+colnames(FocalGenes_list) <- "Gene_ID"
+
+
+# Sets GO Analysis parameters ~
+GO_Params_list <- GSEAGOHyperGParams(name = "Adoro",
+                                     geneSetCollection = GSC,
+                                     geneIds = FocalGenes_list$Gene_ID,
+                                     universeGeneIds = GenesUniverse,
+                                     ontology = "BP",
+                                     pvalueCutoff = .05,
+                                     conditional = FALSE,
+                                     testDirection = "over")
+
+
+# Runs GO analysis ~
+Over <- hyperGTest(GO_Params_list)
+
+
+# Stores GO enrichment results ~
+GO_Enrich_list <- as.data.frame(summary(Over))
+
+
+# Saves full GO enrichment table ~
+GO_Enrich_list %>% arrange(Pvalue) %>% write.csv(file = "Oi.csv")
+
+
+# Get top 50 enriched terms
+GO_Enrich_Top50_list <- GO_Enrich_list %>%
+                        arrange(Pvalue) %>%
+                        head(50)
 
 
 # Marks y-axis labels for no display ~ 
@@ -423,8 +578,8 @@ ggplot(fulldf, aes(x = Index, y = Individual, fill = as.factor(Ancestry))) +
         strip.text = element_text(family = "Optima", colour = "#000000", size = 8, face = "bold"),
         strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         axis.line = element_line(colour = "#000000", linewidth = .3)) +
-  guides(fill = guide_legend(title = "Ancestry", title.theme = element_text(family = "Optima", size = 12, face = "bold"),
-                             label.theme = element_text(family = "Optima", size = 10), override.aes = list(shape = 21, size = 4, stroke = .15)))
+  guides(fill = guide_legend(title = "Ancestry", title.theme = element_text(family = "Optima", size = 14, face = "bold"),
+                             label.theme = element_text(family = "Optima", size = 12), override.aes = list(shape = 21, size = 5, stroke = .15)))
 
 
 # Saves Index plot ~
@@ -437,92 +592,3 @@ ggsave(AncestryPlot_Index, file = "Passersp.Genomics--AncestryHeatmap_AIMs_0.7.p
 #
 ##
 ### The END ~~~~~
-
-
-percent_df <- fulldf %>%
-  group_by(CHR, Individual) %>%
-  summarise(NumberOfAIMs = n(),
-            NumberOfSpanishAIMs = sum(Ancestry == 2),
-            Percentage = (NumberOfSpanishAIMs / NumberOfAIMs) * 100,
-            .groups = "drop")
-
-# Step 2: Separate out PI22NLD0001M_SAMPLE and the others
-target_ind <- percent_df %>%
-  filter(Individual == "PI22NLD0001M_SAMPLE") %>%
-  select(CHR, Percentage) %>%
-  rename(FocalInd_Percentage = Percentage)
-
-
-others_avg <- percent_df %>%
-  filter(Individual != "PI22NLD0001M_SAMPLE") %>%
-  group_by(CHR) %>%
-  summarise(others_avg_percent = mean(Percentage),
-            .groups = "drop")
-
-# Step 3: Combine both into a single table
-result <- left_join(target_ind, others_avg, by = "CHR")
-result$Difference <- round(result$FocalInd_Percentage - result$others_avg_percent, 4)
-
-fulldf_smaller <- fulldf %>%
-  filter(CHR == "chr19" | CHR == "chr11" | CHR == "chr23") %>%
-  filter(Individual == "PI22NLD0001M_SAMPLE")
-
-
-# Convert to data.table for run-length encoding
-dt <- as.data.table(fulldf_smaller)
-
-result <- dt[, {
-  temp <- copy(.SD)
-  temp[, run_id := rleid(Ancestry)]
-  
-  ancestry_2_runs <- temp[Ancestry == 2]
-  
-  if (nrow(ancestry_2_runs) == 0) {.SD[0]} else {longest_run <- ancestry_2_runs[, .N, by = run_id][which.max(N), run_id]
-  res <- ancestry_2_runs[run_id == longest_run]
-  res[, run_id := NULL]
-  res}}, by = CHR]
-
-
-chr_ranges <- result[, .(start = min(POS), end = max(POS)), by = CHR]
-chr_ranges_df <- as.data.frame(chr_ranges)
-
-
-chr_ranges_df <- chr_ranges_df %>%
-  dplyr::rename(seqnames = CHR) %>%
-  dplyr::mutate(start = as.numeric(as.character(start)),
-                end = as.numeric(as.character(end)),
-                start = start - 15000,
-                end = end + 15000) %>%
-  dplyr::arrange(seqnames, start)
-
-
-intervals_gr <- makeGRangesFromDataFrame(chr_ranges_df)
-
-
-hits <- findOverlaps(HouseGenes, intervals_gr)
-genes_in_intervals <- HouseGenes[queryHits(hits)]
-
-
-GenesWithinAIMs <- data.frame(GeneID = mcols(genes_in_intervals)$Name,
-                              CHR = as.character(seqnames(genes_in_intervals)),
-                              Start = start(genes_in_intervals),
-                              End = end(genes_in_intervals),
-                              GeneName = as.character(mcols(genes_in_intervals)$Note)) %>%
-  dplyr::select(CHR, Start, End, GeneID, GeneName) %>%
-  mutate(GeneName = sub("^Similar to ", "", GeneName),
-         GeneName = sub(":.*$", "", GeneName),
-         GeneName = sub("Protein of unknown function", "Unknown Function", GeneName)) %>%
-  arrange(CHR, Start)
-
-
-# Saves the lists of Focal Genes ~
-write.table(GenesWithinAIMs, file = "GenesWithinAIMs_Plus15K.txt", sep = "\t", quote = FALSE, row.names = FALSE)
-
-
-# Imports the House Sparrow annotation ~
-HouseGFF <- import("house_sparrow.gff")
-HouseGFF_dff <- as.data.frame(HouseGFF)
-
-
-
-HouseGenes <- HouseGFF[HouseGFF$type == "gene"]

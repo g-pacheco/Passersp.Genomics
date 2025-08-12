@@ -319,10 +319,10 @@ Delta_Boxplots <-
 
 
 # Save Delta boxplots as a PDF ~
-ggsave(plot = Delta_Boxplots, "Y150239Genomics--TWISST_Delta_Boxplots_Per_CHR_B.pdf",
-      device = cairo_pdf, limitsize = FALSE, width = 18, height = 8, dpi = 600)
-ggsave(plot = Delta_Boxplots, "Y150239Genomics--TWISST_Delta_Boxplots_Per_CHR.jpeg",
-       limitsize = FALSE, width = 18, height = 8, dpi = 600)
+#ggsave(plot = Delta_Boxplots, "Y150239Genomics--TWISST_Delta_Boxplots_Per_CHR_B.pdf",
+#      device = cairo_pdf, limitsize = FALSE, width = 18, height = 8, dpi = 600)
+#ggsave(plot = Delta_Boxplots, "Y150239Genomics--TWISST_Delta_Boxplots_Per_CHR.jpeg",
+#       limitsize = FALSE, width = 18, height = 8, dpi = 600)
 
 
 ###################################################################################################################################################################################
@@ -363,6 +363,7 @@ GSC <- GeneSetCollection(goAllFrame, setType = GOCollection())
 
 # Sets Gene Universe ~
 GenesUniverse <- (unique(GOTerms$Gene_ID))
+save(GenesUniverse, file = "HouseSparrowGenesUniverse.RData")
 
 
 # Defines categories
@@ -386,60 +387,60 @@ for (cat in categories) {df_name <- paste0("filtered_positions_", cat, "_df")
                                                    ranges = IRanges(start = as.numeric(get(df_name)$Start),
                                                    end = as.numeric(get(df_name)$End)))
   
-  # Finds overlaps ~
-  GeneOverlaps_list[[cat]] <- findOverlaps(HouseGFF, Regions_GR_list[[cat]])
+# Finds overlaps ~
+GeneOverlaps_list[[cat]] <- findOverlaps(HouseGFF, Regions_GR_list[[cat]])
   
   
-  # Extracts genes ~
-  GenesInRange <- HouseGFF[queryHits(GeneOverlaps_list[[cat]])]
-  GenesInRange_df_list[[cat]] <- data.frame(
-                                 Chromosome = as.character(seqnames(GenesInRange)),
-                                 Start = start(GenesInRange),
-                                 End = end(GenesInRange),
-                                 Gene_ID = mcols(GenesInRange)$ID,
-                                 Gene_Name = mcols(GenesInRange)$Name,
-                                 Type = mcols(GenesInRange)$type)
-  GenesInRange_df_list[[cat]]$Gene_ID <- sub("-.*", "", GenesInRange_df_list[[cat]]$Gene_ID)
+# Extracts genes ~
+GenesInRange <- HouseGFF[queryHits(GeneOverlaps_list[[cat]])]
+GenesInRange_df_list[[cat]] <- data.frame(
+                               Chromosome = as.character(seqnames(GenesInRange)),
+                               Start = start(GenesInRange),
+                               End = end(GenesInRange),
+                               Gene_ID = mcols(GenesInRange)$ID,
+                               Gene_Name = mcols(GenesInRange)$Name,
+                               Type = mcols(GenesInRange)$type)
+GenesInRange_df_list[[cat]]$Gene_ID <- sub("-.*", "", GenesInRange_df_list[[cat]]$Gene_ID)
   
   
-  # Filters for genes only ~
-  GenesInRangeOnlyGenes_df_list[[cat]] <- GenesInRange_df_list[[cat]] %>%
-                                          filter(Type == "gene") %>%
-                                          unique()
+# Filters for genes only ~
+GenesInRangeOnlyGenes_df_list[[cat]] <- GenesInRange_df_list[[cat]] %>%
+                                        filter(Type == "gene") %>%
+                                        unique()
   
   
-  # Extracts focal genes ~
-  FocalGenes_list[[cat]] <- as.data.frame(GenesInRangeOnlyGenes_df_list[[cat]]$Gene_ID)
-  colnames(FocalGenes_list[[cat]]) <- "Gene_ID"
+# Extracts focal genes ~
+FocalGenes_list[[cat]] <- as.data.frame(GenesInRangeOnlyGenes_df_list[[cat]]$Gene_ID)
+colnames(FocalGenes_list[[cat]]) <- "Gene_ID"
   
   
-  # Saves the lists of Focal Genes ~
-  write.table(FocalGenes_list[[cat]], file = paste0("Y150239Genomics--GOAnalysis--FocalGenes_", cat, ".csv"),
-              sep = "\t", quote = FALSE, row.names = FALSE)
+# Saves the lists of Focal Genes ~
+write.table(FocalGenes_list[[cat]], file = paste0("Y150239Genomics--GOAnalysis--FocalGenes_", cat, ".csv"),
+            sep = "\t", quote = FALSE, row.names = FALSE)
   
   
-  # Edits GOTermsOrtho ~ 
-  GOTermsOrtho_Edited_list[[cat]] <- GOTermsOrtho %>%
-                                     filter(Gene_ID_Zebra != "" & Gene_ID_House != "") %>%
-                                     dplyr::select(Orthogroup, Gene_ID_House, Gene_ID_Zebra) %>%
-                                     mutate(Gene_ID_House = str_replace_all(Gene_ID_House, "-.*", "")) %>%
-                                     mutate(Gene_ID_House = strsplit(Gene_ID_House, ", ")) %>%
-                                     unnest(Gene_ID_House) %>%
-                                     filter(str_detect(Gene_ID_House, paste(FocalGenes_list[[cat]]$Gene_ID, collapse = "|"))) %>%
-                                     separate_rows(Gene_ID_Zebra, sep = ", ") %>%
-                                     dplyr::select(Gene_ID_Zebra)
+# Edits GOTermsOrtho ~ 
+GOTermsOrtho_Edited_list[[cat]] <- GOTermsOrtho %>%
+                                   filter(Gene_ID_Zebra != "" & Gene_ID_House != "") %>%
+                                   dplyr::select(Orthogroup, Gene_ID_House, Gene_ID_Zebra) %>%
+                                   mutate(Gene_ID_House = str_replace_all(Gene_ID_House, "-.*", "")) %>%
+                                   mutate(Gene_ID_House = strsplit(Gene_ID_House, ", ")) %>%
+                                   unnest(Gene_ID_House) %>%
+                                   filter(str_detect(Gene_ID_House, paste(FocalGenes_list[[cat]]$Gene_ID, collapse = "|"))) %>%
+                                   separate_rows(Gene_ID_Zebra, sep = ", ") %>%
+                                   dplyr::select(Gene_ID_Zebra)
   
   
-  # Saves GOTermsOrtho ~
-  write.table(GOTermsOrtho_Edited_list[[cat]], file = paste0("Y150239Genomics--GOAnalysis--GOTermsOrtho_Edited_", cat, ".csv"),
-              sep = "\t", quote = FALSE, row.names = FALSE)
+# Saves GOTermsOrtho ~
+write.table(GOTermsOrtho_Edited_list[[cat]], file = paste0("Y150239Genomics--GOAnalysis--GOTermsOrtho_Edited_", cat, ".csv"),
+            sep = "\t", quote = FALSE, row.names = FALSE)
   
   
-  # Sets GO Analysis parameters ~
+# Sets GO Analysis parameters ~
 GO_Params_list[[cat]] <- GSEAGOHyperGParams(name = paste0("Passerd GO Enrich - ", cat),
                                             geneSetCollection = GSC,
-                                            geneIds = FocalGenes_list[[cat]]$Gene_ID,
-                                            universeGeneIds = GenesUniverse,
+                                            geneIds = class(FocalGenes_list[[cat]]$Gene_ID),
+                                            universeGeneIds = class(GenesUniverse),
                                             ontology = "BP",
                                             pvalueCutoff = .05,
                                             conditional = FALSE,
@@ -569,7 +570,7 @@ ggplot(expanded_df, aes(x = 1, y = Term)) +
 
 
 # Saves plot ~
-ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis_NEW.pdf",
+ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis.pdf",
        device = cairo_pdf, limitsize = FALSE, width = 12, height = 15, scale = 1, dpi = 600)
 ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis.jpeg",
        limitsize = FALSE, width = 12, height = 15, scale = 1, dpi = 600)
