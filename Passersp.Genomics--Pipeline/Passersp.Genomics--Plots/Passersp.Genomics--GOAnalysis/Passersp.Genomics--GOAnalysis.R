@@ -1,0 +1,406 @@
+### The BEGINNING ~~~~~
+##
+# Y150239Genomics--GOAnalysis | Written by George Pacheco ~
+
+
+# Cleans the environment ~ 
+rm(list=ls())
+
+
+# Sets working directory ~
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+
+
+# Loads packages ~
+pacman::p_load(tidyverse, scales, reshape2, ggh4x, lemon, patchwork, GenomicRanges,
+               txdbmaker, rtracklayer, GOstats, GSEABase, outliers, clusterProfiler, data.table)
+
+
+# Reads AIMs ~
+AIMs <- read.table("Passersp.Genomics--TriangularR_AIMs_0.7.txt", sep = "\t", header = TRUE, quote = "", stringsAsFactors = FALSE)
+
+
+# Gets percentage of Spanish AIMs ~
+AIMs_percent_df <- AIMs %>%
+                   group_by(CHR, Individual) %>%
+                   dplyr::summarise(NumberOfAIMs = n(),
+                   NumberOfSpanishAIMs = sum(Ancestry == "Spanish"),
+                   Percentage = (sum(Ancestry == "Spanish") / n()) * 100, .groups = "drop")
+
+
+# Gets average for the Focal Ind. ~
+FocalInd_percentage <- AIMs_percent_df %>%
+                       dplyr::filter(Individual == "Focal Ind.") %>%
+                       dplyr::select(CHR, Percentage) %>%
+                       dplyr::rename(FocalInd_Percentage = Percentage)
+
+
+# Gets average for all others ~
+Controls_percentage <- AIMs_percent_df %>%
+                       dplyr::filter(Individual != "Focal Ind.") %>%
+                       dplyr::group_by(CHR) %>%
+                       dplyr::summarise(others_avg_percent = mean(Percentage), .groups = "drop")
+
+
+# Combines both data frames ~
+DeltaPercentage <- left_join(FocalInd_percentage, Controls_percentage, by = "CHR")
+DeltaPercentage$Delta <- round(DeltaPercentage$FocalInd_Percentage - DeltaPercentage$others_avg_percent, 4)
+
+
+# Subsets data frame ~
+AIMs_abridged <- AIMs %>%
+                  filter(CHR == "1A" | CHR == "chr7" | CHR == "chr11" | CHR == "chr19" | CHR == "chr23" | CHR == "scaffold00239") %>%
+                  filter(Individual == "Focal Ind.")
+
+
+# Converts fulldf_smaller to data table ~ 
+AIMs_abridged_dt <- as.data.table(AIMs_abridged)
+
+
+# Converts fulldf_smaller to data table ~ 
+AIMs_abridged_dtUp <- AIMs_abridged_dt[, {
+  temp <- copy(.SD)
+  temp[, run_id := rleid(Ancestry)]
+  ancestry_2_runs <- temp[Ancestry == "Spanish"]
+  if (nrow(ancestry_2_runs) == 0) {
+    .SD[0]}
+  else {
+    run_lengths <- ancestry_2_runs[, .N, by = run_id]
+    run_lengths <- run_lengths[N >= 2]
+    if (nrow(run_lengths) == 0) {
+      .SD[0]}
+    else {
+      longest_run <- run_lengths[which.max(N), run_id]
+      res <- ancestry_2_runs[run_id == longest_run]
+      res[, run_id := NULL]
+      res}}}, by = CHR]
+
+
+# Gets intervals ~ 
+AIMs_abridged_ranges <- as.data.frame(AIMs_abridged_dtUp[, .(start = min(as.numeric(POS)), 
+                                                             end = max(as.numeric(POS))), by = CHR])
+
+
+# Gets individual AIMs ~ 
+IndividualAIMs <- AIMs %>%
+  dplyr::filter(Individual %in% c("Focal Ind.", "Meerkerk_01")) %>%
+  pivot_wider(id_cols = c(SNP, CHR, POS, Index),
+              names_from = Individual,
+              values_from = Ancestry) %>%
+  dplyr::filter(`Focal Ind.` == "Spanish", `Meerkerk_01` != "Spanish") %>%
+  dplyr::mutate(start = as.numeric(POS),
+                end   = as.numeric(POS)) %>%
+  dplyr::select(CHR, start, end)
+
+
+# Combines all ranges ~ 
+AllRanges <- rbind(AIMs_abridged_ranges, IndividualAIMs)
+
+
+# Adds flanking regions ~ 
+AllRanges <- AllRanges %>%
+  dplyr::rename(seqnames = CHR) %>%
+  dplyr::mutate(start = as.numeric(as.character(start)),
+                end = as.numeric(as.character(end)),
+                start = start - 15000,
+                end = end + 15000) %>%
+  dplyr::arrange(seqnames, start)
+
+
+# Gets intervals ~ 
+AIMs_intervals <- makeGRangesFromDataFrame(AllRanges)
+
+
+###################################################################################################################################################################################
+###################################################################################################################################################################################
+
+
+# Imports the House Sparrow annotation ~
+HouseGFF <- import("house_sparrow.gff")
+HouseGFF_dff <- as.data.frame(HouseGFF)
+
+
+# Loads GOTerm table ~
+GOTerms <- read.delim("house_sparrow_genome_assembly-18-11-14_masked.Protein_gffreads.fasta.Edited.tsv", header = FALSE, sep = "\t", col.names = c("Gene_ID", "GO_Term"))
+GOTermsOrtho <- read.delim("Orthogroups.tsv", header = TRUE, sep = "\t", col.names = c("Orthogroup", "Gene_ID_Zebra", "Gene_ID_House"))
+
+
+# Edits GOTerms lightly ~
+GOTerms <- GOTerms |> 
+  mutate(GO_Term = GO_Term |> 
+           str_replace_all("\\(InterPro\\)", "") |> 
+           str_replace_all("\\|", ", "),
+         Gene_ID = str_replace_all(Gene_ID, "-.*", ""))
+
+
+# Creates GOTermsWithData  ~
+GOTermsWithData <- GOTerms %>%
+  filter(GO_Term != "-") %>%
+  separate_rows(GO_Term, sep = ", ") %>%
+  mutate(Evidence = "IEA") %>%
+  dplyr::select(GO_Term, Evidence, Gene_ID)
+
+
+# Creates the GoFrame ~
+goFrame <- GOFrame(as.data.frame(GOTermsWithData, organism = "Passerd"))
+goAllFrame <- GOAllFrame(goFrame)
+GSC <- GeneSetCollection(goAllFrame, setType = GOCollection())
+
+
+# Sets Gene Universe ~
+GenesUniverse <- (unique(GOTerms$Gene_ID))
+
+
+###################################################################################################################################################################################
+###################################################################################################################################################################################
+
+
+# Gets House Sparrow genes ~
+HouseGenes <- HouseGFF[HouseGFF$type == "gene"]
+
+
+# Gets gene hits within intervals ~
+AIMs_intervals_hits <- findOverlaps(HouseGenes, AIMs_intervals)
+genes_in_AIMs_intervals <- HouseGenes[queryHits(AIMs_intervals_hits)]
+
+
+# Gets genes within intervals ~
+GenesWithinAIMs <- data.frame(GeneID = mcols(genes_in_AIMs_intervals)$Name,
+                              CHR = as.character(seqnames(genes_in_AIMs_intervals)),
+                              Start = start(genes_in_AIMs_intervals),
+                              End = end(genes_in_AIMs_intervals),
+                              GeneName = as.character(mcols(genes_in_AIMs_intervals)$Note)) %>%
+  dplyr::select(CHR, Start, End, GeneID, GeneName) %>%
+  mutate(GeneName = sub("^Similar to ", "", GeneName),
+         GeneName = sub(":.*$", "", GeneName),
+         GeneName = sub("Protein of unknown function", "Unknown Function", GeneName)) %>%
+  arrange(CHR, Start) %>%
+  distinct()
+
+
+# Saves the lists of Focal Genes ~
+write.table(GenesWithinAIMs, file = "Passersp.Genomics--GOAnalysis_GenesAroundAIMs.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+
+
+# Reads Genes Universe ~
+AIMs_FocalGenes_list <-  as.data.frame(GenesWithinAIMs$GeneID)
+colnames(AIMs_FocalGenes_list) <- "Gene_ID"
+
+
+# Reads TWISST outliers as a base ~
+GO_FocalGenes_list <- readRDS("TWISST_FocalGenes_list.rds")
+
+
+# Combines data frames ~
+GO_FocalGenes_list[["AIMs"]] <- AIMs_FocalGenes_list
+
+
+###################################################################################################################################################################################
+###################################################################################################################################################################################
+
+
+# Defines categories
+categories <- c("upper", "lower", "outliers", "AIMs")
+
+
+# Initializes lists ~ 
+GO_Params_list <- list()
+GO_Enrich_list <- list()
+GO_Enrich_Top50_list <- list()
+GO_ListSize <- list()
+
+
+# Starts GO Analysis on each set of genes ~
+for (cat in categories) {df_name <- paste0("filtered_positions_", cat, "_df")
+
+
+# Sets GO Analysis parameters ~
+GO_Params_list[[cat]] <- GSEAGOHyperGParams(name = paste0("Passerd GO Enrich - ", cat),
+                                            geneSetCollection = GSC,
+                                            geneIds = GO_FocalGenes_list[[cat]]$Gene_ID,
+                                            universeGeneIds = GenesUniverse,
+                                            ontology = "BP",
+                                            pvalueCutoff = .05,
+                                            conditional = FALSE,
+                                            testDirection = "over")
+
+# Runs GO analysis ~
+Over <- hyperGTest(GO_Params_list[[cat]])
+
+
+# Stores GO enrichment results ~
+GO_Enrich_list[[cat]] <- as.data.frame(summary(Over))
+
+
+# Defines capitalization function ~
+capitalise_words <- function(text) {
+  words <- str_split(text, " ")[[1]]
+  exclude_patterns <- c("of", "to", "and", "the", "in")
+  patterns_map <- setNames(exclude_patterns, tolower(exclude_patterns))
+  process_hyphenated <- function(word) {
+    parts <- str_split(word, "-", simplify = TRUE)
+    parts <- sapply(seq_along(parts), function(i) {
+      part <- parts[i]
+      if (i > 1) tolower(part) else str_to_title(part)})
+    str_c(parts, collapse = "-")}
+  words <- sapply(words, function(word) {
+    word_lower <- tolower(word)
+    if (word_lower %in% names(patterns_map)) {
+      patterns_map[[word_lower]]
+    } else if (str_detect(word, "-")) {
+      process_hyphenated(word)
+    } else {
+      str_to_title(word)}})
+  str_c(words, collapse = " ")}
+
+
+# Step 1: Calculate total background size ~
+GO_BackgroundSize <- length(GenesUniverse)
+
+
+# Step 2: Calculate GO_ListSize per category ~
+GO_ListSize_by_Category <- data.frame(Category = names(GO_FocalGenes_list),
+                                      GO_ListSize = sapply(GO_FocalGenes_list,
+                                                           function(x) n_distinct(x$Gene_ID)))
+
+
+# Get the GO_ListSize for this category ~
+GO_ListSize <- GO_ListSize_by_Category$GO_ListSize[
+               GO_ListSize_by_Category$Category == cat]
+
+
+# Compute Fold Enrichment for this category ~
+GO_Enrich_list[[cat]]$FoldEnrichment <- (GO_Enrich_list[[cat]]$Count / GO_ListSize) /
+                                        (GO_Enrich_list[[cat]]$Size / GO_BackgroundSize)}
+
+
+# Combines GOEnrich_Top50 results ~
+GOEnrich_Layka <- dplyr::bind_rows(GO_Enrich_list, .id = "Category")
+
+
+# Applies function ~
+GOEnrich_Layka$Term <- sapply(GOEnrich_Layka$Term, capitalise_words)
+
+
+# Creates size category ~
+GOEnrich_Layka <- GOEnrich_Layka %>%
+                  mutate(Size_cat = ifelse(Size < 50, "< 50",
+                                    ifelse(Size < 100, "< 100",
+                                    ifelse(Size < 250, "< 250",
+                                    ifelse(Size < 500, "< 500",
+                                    ifelse(Size < 750, "< 750",
+                                    ifelse(Size > 750, "> 750", "Error")))))))
+
+
+# Reorders Population ~
+GOEnrich_Layka$Size_cat <- factor(GOEnrich_Layka$Size_cat, ordered = TRUE,
+                                  levels = c("< 50",
+                                             "< 100",
+                                             "< 250",
+                                             "< 500",
+                                             "< 750",
+                                             "> 750"))
+
+# Reorders Population ~
+GOEnrich_Layka$Category <- factor(GOEnrich_Layka$Category, ordered = TRUE,
+                                  levels = c("AIMs",
+                                             "lower",
+                                             "upper",
+                                             "outliers"))
+
+
+# Corrects Terms ~
+levels(GOEnrich_Layka$Term <- sub("Ii", "II", GOEnrich_Layka$Term))
+levels(GOEnrich_Layka$Term <- sub("Gtp", "GTP", GOEnrich_Layka$Term))
+levels(GOEnrich_Layka$Term <- sub("Utp", "UTP", GOEnrich_Layka$Term))
+levels(GOEnrich_Layka$Term <- sub("Mrna", "mRNA", GOEnrich_Layka$Term))
+levels(GOEnrich_Layka$Term <- sub("Dna", "DNA", GOEnrich_Layka$Term))
+
+
+# Get top 10 enriched terms
+GOEnrich_Layka_Abridged <- GOEnrich_Layka %>%
+  group_by(Category) %>%
+  arrange(Pvalue, .by_group = TRUE) %>%
+  slice_head(n = 10) %>%
+  mutate(Term = as.character(Term)) %>%
+  ungroup() %>%
+  group_by(Category) %>%
+  mutate(Term = factor(Term, levels = unique(Term[order(FoldEnrichment)]))) %>%
+  ungroup()
+
+
+# Defines color palette and breaks ~
+color_palette <- c("#d73027", "#EAEDE9", "#4575b4")  
+nHalf <- 10
+Min <- 0
+Max <- .05
+Thresh <- 0
+rc1 <- colorRampPalette(colors = color_palette[1:2], space = "Lab")(nHalf)
+rc2 <- colorRampPalette(colors = color_palette[2:3], space = "Lab")(nHalf)
+rampcols <- c(rc1, rc2)
+rampcols[c(nHalf, nHalf+1)] <- rgb(t(col2rgb(color_palette[2])), maxColorValue = 256) 
+rb1 <- seq(Min, Thresh, length.out = nHalf + 1)
+rb2 <- seq(Thresh, Max, length.out = nHalf + 1)[-1]
+rampbreaks <- c(rb1, rb2)
+
+
+# Corrects the y-strip facet labels ~
+y_strip_labels <- c("AIMs" = "AIMs",
+                    "lower" = "TWISST (Lower Fence)",
+                    "upper" = "TWISST (Upper Fence)",
+                    "outliers" = "TWISST (Outliers)")
+
+
+# Creates AIMs GO Analysis plot ~
+GOPlot <- ggplot(GOEnrich_Layka_Abridged, aes(x = log1p(FoldEnrichment), y = Term)) +
+  geom_segment(aes(x = 0, xend = log1p(FoldEnrichment), y = Term, yend = Term, color = Pvalue), linewidth = 7) +
+  geom_point(aes(size = Size_cat), shape = 21, fill = "#ffffff", color = "#000000", stroke = .15) +
+  scale_size_manual(values = c("< 50" = 7.5, "< 100" = 4.5, "< 250" = 6, "< 500" = 7.5, "< 750" = 9, "> 750" = 10.5)) +
+  scale_x_continuous(breaks = c(2, 4, 6),
+                     limits = c(0, 6.5),
+                     expand = c(0, 0)) +
+  scale_y_discrete() +
+  scale_color_gradientn(colors = rampcols,
+                        limits = c(0, .05),
+                        breaks = c(.01, .02, .03, .04),
+                        labels = c(0.01, 0.02, 0.03, 0.04)) +
+  labs(x = "Log-transformed Fold Enrichment") +
+  facet_grid(Category ~ ., scales = "free_y", labeller = labeller(Category = y_strip_labels)) +
+  theme(panel.background = element_rect(fill = "#ffffff"),
+        panel.border = element_blank(),
+        panel.grid.major = element_line(color = "#dddddd", linetype = "dashed", linewidth = .0005),
+        panel.grid.minor = element_blank(),
+        legend.position = "right",
+        legend.margin = margin(t = 0, b = 0, r = 0, l = 15),
+        legend.spacing.y = unit(1, "cm"),
+        axis.title.x = element_text(family = "Optima", face = "bold", size = 18, margin = margin(t = 25, r = 0, b = 0, l = 0)),
+        axis.title.y = element_blank(),
+        axis.text.x = element_text(family = "Optima", size = 14, face = "bold"),
+        axis.text.y = element_text(family = "Optima", size = 16, face = "bold"),
+        axis.ticks = element_line(color = "#000000", linewidth = .3),
+        axis.line = element_line(colour = "#000000", linewidth = .3),
+        strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 17, face = "bold")) +
+  guides(colour = guide_colourbar(title = "P-value",
+                                  title.theme = element_text(family = "Optima", size = 18, face = "bold"),
+                                  label.theme = element_text(family = "Optima", size = 14, face = "bold"),
+                                  barwidth = 1.5, barheight = 10, order = 1, frame.linetype = 1,
+                                  frame.colour = NA, ticks.colour = "#000000", frame.linewidth = .3,
+                                  direction = "vertical", reverse = FALSE, even.steps = TRUE,
+                                  draw.ulim = TRUE, draw.llim = TRUE),
+         size = guide_legend(title = "Size",
+                             title.theme = element_text(family = "Optima", size = 18, face = "bold"),
+                             label.theme = element_text(family = "Optima", size = 14, face = "bold"),
+                             order = 2, override.aes = list(colour = "#000000", shape = 21, fill = "#ffffff", stroke = .15)))
+
+
+# Saves GO Analysis plot ~
+ggsave(plot = GOPlot, "Passersp.Genomics--AIMsGOAnalysis_Trufa.pdf",
+       device = cairo_pdf, limitsize = FALSE, width = 12, height = 16, dpi = 600)
+ggsave(plot = GOPlot, "Passersp.Genomics--AIMsGOAnalysis.jpeg",
+       limitsize = FALSE, width = 12, height = 16, dpi = 600)
+
+
+#
+##
+### The END ~~~~~

@@ -108,12 +108,12 @@ MyLegend_Plot <-
         legend.margin = margin(t = 0, b = 0, r = 15, l = 15),
         legend.box = "vertical",
         legend.box.margin = margin(t = 10, b = 15, r = 0, l = 0)) +
-  guides(starshape = guide_legend(title = "Population", title.theme = element_text(family = "Optima", size = 19, face = "bold"),
-                                  label.theme = element_text(size = 17, family = "Optima"),
-                                  override.aes = list(starshape = shapes.legend, size = 8, starstroke = .15), nrow = 1, order = 2),
-         fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 19, face = "bold"),
-                             label.theme = element_text(size = 17, family = "Optima"),
-                             override.aes = list(starshape = 21, size = 8, starstroke = .15), nrow = 1, order = 1),
+  guides(starshape = guide_legend(title = "Population", title.theme = element_text(family = "Optima", size = 24, face = "bold"),
+                                  label.theme = element_text(size = 22, family = "Optima"),
+                                  override.aes = list(starshape = shapes.legend, size = 10, starstroke = .15), nrow = 1, order = 2),
+         fill = guide_legend(title = "Species", title.theme = element_text(family = "Optima", size = 24, face = "bold"),
+                             label.theme = element_text(size = 22, family = "Optima"),
+                             override.aes = list(starshape = 21, size = 10, starstroke = .15), nrow = 1, order = 1),
          colour = "none")
 
 
@@ -171,37 +171,45 @@ shapes.auto <- as.vector(c(9, 1, 28, 12, 11, 23, 15))
 
 PCAauto_12 <-
   ggplot(data = subset(fulldf, CHR == "Autosomes"), aes_string(x = "PCA_1", y = "PCA_2")) +
-  geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.75, starstroke = .15) +
+  geom_star(aes(starshape = Population, fill = Species), alpha = .8, size = 3, starstroke = .15) +
   facet_grid2(CHR ~. , scales = "free_x", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
   scale_starshape_manual(values = shapes.auto) +
   geom_mark_ellipse(aes(filter = Species == "House", label = "House\nSparrow"), con.colour = "#1E90FF", colour = "#1E90FF",
-                    label.fill = "#d9d9d9", con.border = "one", label.fontsize = 14,
+                    label.fill = "#d9d9d9", con.border = "one", label.fontsize = 22,
                     con.type = "straight", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Spanish", label = "Spanish\nSparrow"), con.colour = "#ee0000", colour = "#ee0000",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 22,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Italian", label = "Italian\nSparrow"), con.colour = "#FFD700", colour = "#FFD700",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 22,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
-  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Focal Ind.", "Garderen_02")), aes(label = Labels),
-                   family = "Optima", size = 4.5, fontface = "bold", max.overlaps = 100, nudge_x = -.06, nudge_y = 0,
-                   point.padding = .6, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Focal Ind.")), aes(label = Labels),
+                   family = "Optima", size = 7, fontface = "bold", max.overlaps = 100, nudge_x = -.03, nudge_y = .075,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                    ends = "last", type = "open")) +
-  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Garderen_01", "Meerkerk_01")), aes(label = Labels),
-                   family = "Optima", size = 4.5, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = -.12,
+  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Garderen_02")), aes(label = Labels),
+                   family = "Optima", size = 7, fontface = "bold", max.overlaps = 100, nudge_x = -.015, nudge_y = .18,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Garderen_01")), aes(label = Labels),
+                   family = "Optima", size = 7, fontface = "bold", max.overlaps = 100, nudge_x = 0, nudge_y = -.205,
+                   point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
+                   arrow = arrow(angle = 30, length = unit(.10, "inches"),
+                                 ends = "last", type = "open")) +
+  geom_label_repel(data = subset(fulldf, CHR == "Autosomes" & Labels == c("Meerkerk_01")), aes(label = Labels),
+                   family = "Optima", size = 7, fontface = "bold", max.overlaps = 100, nudge_x = .04, nudge_y = .0,
                    point.padding = 1, force_pull = 10, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
   scale_x_continuous("PC 1 (5.52%)",
                      breaks = c(-.1, 0, .1, .2),
-                     labels = c("-0.1", "0", ".01", ".02"),
+                     labels = c("-0.1", "0", "0.1", "0.2"),
                      limits = c(-.195, .25),
                      expand = c(0, 0)) +
   scale_y_continuous("PC 2 (1.97%)",
-                     #breaks = c(-.08, -.04, 0.00), 
-                     #labels = c("-0.08", "-0.04", "0.00"),
                      limits = c(-.31, .35),
                      expand = c(0, 0)) +
   theme(panel.background = element_rect(fill = "#ffffff"),
@@ -210,11 +218,13 @@ PCAauto_12 <-
         panel.border = element_blank(),
         panel.spacing = unit(.2, "cm"),
         legend.position = "none",
-        axis.title.x = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 25, r = 0, b = 0, l = 0)),
-        axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
-        axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
-        axis.ticks = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 16, face = "bold"),
+        axis.title.x = element_text(family = "Optima", size = 22, face = "bold", margin = margin(t = 25, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(family = "Optima", size = 22, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(family = "Optima", color = "#000000", size = 20, face = "bold"),
+        axis.ticks.x = element_blank(),
+        axis.ticks.y = element_line(color = "#000000", linewidth = .3),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 28, face = "bold"),
         strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         axis.line = element_line(colour = "#000000", linewidth = .3))
 
@@ -232,30 +242,32 @@ shapes.allo <- as.vector(c(9, 1, 28, 12, 11, 23, 15))
 
 PCAallo_12 <-
   ggplot(data =  subset(fulldf, CHR == "Chromosome Z"), aes_string(x = "PCA_1", y = "PCA_2")) +
-  geom_star(aes(starshape = Population, fill = Species), alpha = .7, size = 2.75, starstroke = .15) +
+  geom_star(aes(starshape = Population, fill = Species), alpha = .8, size = 3, starstroke = .15) +
   facet_grid2(CHR ~. , scales = "free_x", axes = "all", remove_labels = "x") +
   scale_fill_manual(values = c("#1E90FF", "#FFD700", "#ee0000", "#d9d9d9")) +
   scale_starshape_manual(values = shapes.allo) +
   geom_mark_ellipse(aes(filter = Species == "House", label = "House\nSparrow"), con.colour = "#1E90FF", colour = "#1E90FF",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 22,
                     con.type = "straight", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Spanish", label = "Spanish\nSparrow"), con.colour = "#ee0000", colour = "#ee0000",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 22,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_mark_ellipse(aes(filter = Species == "Italian", label = "Italian\nSparrow"), con.colour = "#FFD700", colour = "#FFD700",
-                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 14,
+                    label.fill = "#d9d9d9", expand = unit(4, "mm"), con.border = "one", label.fontsize = 22,
                     con.type = "elbow", label.family = "Optima", con.cap = 0, label.hjust = .5, show.legend = FALSE) +
   geom_label_repel(data = subset(fulldf, CHR == "Chromosome Z" & Labels == "Focal Ind."), aes(label = Labels),
-                   family = "Optima", size = 4.5, fontface = "bold", max.overlaps = 100, nudge_x = -.04, nudge_y = .015,
+                   family = "Optima", size = 7, fontface = "bold", max.overlaps = 100, nudge_x = -.04, nudge_y = .015,
                    point.padding = 1, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
   geom_label_repel(data = subset(fulldf, CHR == "Chromosome Z" & Labels == "Meerkerk_01"), aes(label = Labels),
-                   family = "Optima", size = 4.5, fontface = "bold", max.overlaps = 100, nudge_x = -.04, nudge_y = .015,
+                   family = "Optima", size = 7, fontface = "bold", max.overlaps = 100, nudge_x = -.04, nudge_y = .015,
                    point.padding = 1, segment.size = .3, colour = "black", fill = "#d9d9d9", alpha = .85,
                    arrow = arrow(angle = 30, length = unit(.10, "inches"),
                                  ends = "last", type = "open")) +
   scale_x_continuous("PC 1 (8.53%)",
+                     breaks = c(-.1, 0, .1, .2),
+                     labels = c("-0.1", "0", "0.1", "0.2"),
                      limits = c(-.195, .25),
                      expand = c(0, 0)) +
   scale_y_continuous("PC 2 (4.68%)",
@@ -267,11 +279,11 @@ PCAallo_12 <-
         panel.border = element_blank(),
         panel.spacing = unit(.2, "cm"),
         legend.position = "none",
-        axis.title.x = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 25, r = 0, b = 0, l = 0)),
-        axis.title.y = element_text(family = "Optima", size = 16, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
-        axis.text = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
+        axis.title.x = element_text(family = "Optima", size = 22, face = "bold", margin = margin(t = 25, r = 0, b = 0, l = 0)),
+        axis.title.y = element_text(family = "Optima", size = 22, face = "bold", margin = margin(t = 0, r = 25, b = 0, l = 0)),
+        axis.text = element_text(family = "Optima", color = "#000000", size = 20, face = "bold"),
         axis.ticks = element_line(color = "#000000", linewidth = .3),
-        strip.text = element_text(family = "Optima", colour = "#000000", size = 16, face = "bold"),
+        strip.text = element_text(family = "Optima", colour = "#000000", size = 28, face = "bold"),
         strip.background = element_rect(colour = "#000000", fill = "#d6d6d6", linewidth = .3),
         axis.line = element_line(colour = "#000000", linewidth = .3))
 
@@ -289,6 +301,10 @@ ggsave(PCA_Plot, file = "Passersp.Genomics--PCA.pdf",
        device = cairo_pdf, limitsize = FALSE, scale = 1, width = 12, height = 12, dpi = 600)
 ggsave(PCA_Plot, file = "Passersp.Genomics--PCA.jpeg",
       limitsize = FALSE, scale = 1, width = 12, height = 12, dpi = 600)
+
+
+# Saves plot to use it in article panel ~
+saveRDS(PCA_Plot, "../Passersp.Genomics--PopStructurePanel/PCA_Plot.rds")
 
 
 #

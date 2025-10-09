@@ -184,21 +184,33 @@ geno_df$Population <- ifelse(grepl("PI22NLD0001M_SAMPLE", geno_df$Sample_ID), "F
 geno_df$Species <- ifelse(geno_df$Population %in% c("Utrecht", "Sales"), "House",
                    ifelse(geno_df$Population %in% c("Chokpak", "Lesina"), "Spanish",
                    ifelse(geno_df$Population %in% c("Crotone", "Guglionesi"), "Italian",
-                   ifelse(geno_df$Population %in% c("Garderen_01", "Garderen_02", "Meerkerk_01"), "Control",
+                   ifelse(geno_df$Population %in% c("Meerkerk_01"), "Control",
                    ifelse(geno_df$Population %in% c("Focal Ind."), "Focal Ind.", "Error")))))
 
 
-# Identify condition per SNP and summarise by gene
+# Identify condition per SNP and summarise by gene ~
 genotype_summary <- geno_df %>%
-  group_by(Gene_ID, SNP_ID) %>%
-  summarise(Cond1 = all(Genotype[Species %in% c("House", "Control")] %in% c(NA, "0/0", "0/1")) &&
-                    all(Genotype[Species == "Focal Ind."] == "1/1"),
-            Cond2 = all(Genotype[Species %in% c("House", "Control")] == "1/1") &&
-                    all(Genotype[Species == "Focal Ind."] %in% c("0/0", "0/1")), .groups = "drop") %>%
-  group_by(Gene_ID) %>%
-  summarise(`Number of SNPs` = n(),
-            `Private Homo Alternative` = sum(Cond1),
-            `Private Homo Ref. or Hetero` = sum(Cond2), .groups = "drop")
+                    group_by(Gene_ID, SNP_ID) %>%
+                    summarise(Cond1 = all(Genotype[Species %in% c("House", "Control")] %in% c(NA, "0/0", "0/1")) &&
+                                      all(Genotype[Species == "Focal Ind."] == "1/1"),
+                              Cond2 = all(Genotype[Species %in% c("House", "Control")] == "1/1") &&
+                                      all(Genotype[Species == "Focal Ind."] %in% c("0/0", "0/1")), .groups = "drop") %>%
+                    group_by(Gene_ID) %>%
+                    summarise(`Number of SNPs` = n(),
+                              `Private Homo Alternative` = sum(Cond1),
+                              `Private Homo Ref. or Hetero` = sum(Cond2), .groups = "drop")
+
+# Keep SNP-level summary
+#snp_summary <- geno_df %>%
+#               group_by(Gene_ID, SNP_ID) %>%
+#               summarise(Cond1 = all(Genotype[Species %in% c("House", "Control")] %in% c(NA, "0/0", "0/1")) &&
+#                                 all(Genotype[Species == "Focal Ind."] == "1/1"),
+#                         Cond2 = all(Genotype[Species %in% c("House", "Control")] == "1/1") &&
+#                                 all(Genotype[Species == "Focal Ind."] %in% c("0/0", "0/1")), .groups = "drop")
+
+# Filter to SNPs that obey at least one condition
+#snp_summary_hits <- snp_summary %>%
+#                    filter(Cond1 | Cond2)
 
 
 # Merge summary with coordinate table ~

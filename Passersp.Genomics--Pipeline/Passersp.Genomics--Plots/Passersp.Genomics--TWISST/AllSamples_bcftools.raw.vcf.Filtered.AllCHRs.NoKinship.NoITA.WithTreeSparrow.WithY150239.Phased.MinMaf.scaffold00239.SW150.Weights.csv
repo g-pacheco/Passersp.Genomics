@@ -1,0 +1,8 @@
+#topo1 (TreeSparrow,((House,Spanish),Y150239));
+#topo2 (TreeSparrow,((House,Y150239),Spanish));
+#topo3 (TreeSparrow,(House,(Spanish,Y150239)));
+topo1	topo2	topo3
+9420	57300	19680
+37540	19440	29420
+42740	40940	2720
+59200	24000	3200

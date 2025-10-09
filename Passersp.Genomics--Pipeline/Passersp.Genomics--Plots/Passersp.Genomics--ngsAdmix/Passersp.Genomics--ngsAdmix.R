@@ -12,7 +12,8 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 
 # Loads required packages ~
-pacman::p_load(tidyverse, ggpattern, ggh4x, scales, optparse, plyr, RColorBrewer, extrafont, gtable, grid, ggtext, glue)
+pacman::p_load(tidyverse, ggpattern, ggh4x, scales, optparse, plyr, RColorBrewer, extrafont, gtable, grid, ggtext, glue,
+               patchwork, cowplot, grImport2, pdftools, magick, gtable)
 
 
 # Creates colour palette ~
@@ -121,11 +122,13 @@ ids.allo$chrtype <- "Chromosome Z"
 fulldf.auto <- data.frame()
 fulldf.allo <- data.frame()
 
+#1, 6, 3, 2, 5, 4, 7)
+#c(3, 6, 4, 5, 2, 1),
+#c(2, 1, 4, 3, 5),
+#c(2, 3, 4, 1),
+
 
 x.auto <- list(c(1, 6, 3, 2, 5, 4, 7),
-               #c(3, 6, 4, 5, 2, 1),
-               #c(2, 1, 4, 3, 5),
-               #c(2, 3, 4, 1),
                c(1, 3, 2),
                c(1, 2))
 
@@ -197,18 +200,18 @@ fulldf <- rbind(fulldf.auto, fulldf.allo)
 
 
 # Expands fulldf by adding Group ~
-fulldf$Group <- ifelse(fulldf$Population %in% c("Utrecht", "Sales"), "House Sparrow",
-                ifelse(fulldf$Population %in% c("Guglionesi", "Crotone"), "Italian Sparrow",
-                ifelse(fulldf$Population %in% c("Chokpak", "Lesina"), "Spanish Sparrow",
-                ifelse(fulldf$Population %in% c("Focal Ind.", "Meerkerk", "Garderen"), "Focal Group", "Error"))))
+fulldf$Group <- ifelse(fulldf$Population %in% c("Utrecht", "Sales"), "House\nSparrow",
+                ifelse(fulldf$Population %in% c("Guglionesi", "Crotone"), "Italian\nSparrow",
+                ifelse(fulldf$Population %in% c("Chokpak", "Lesina"), "Spanish\nSparrow",
+                ifelse(fulldf$Population %in% c("Focal Ind.", "Meerkerk", "Garderen"), "Focal\nGroup", "Error"))))
 
 
 # Reorders Population ~
 fulldf$Group <- factor(fulldf$Group, ordered = T,
-                           levels = c("House Sparrow",
-                                      "Italian Sparrow",
-                                      "Spanish Sparrow",
-                                      "Focal Group"))
+                           levels = c("House\nSparrow",
+                                      "Italian\nSparrow",
+                                      "Spanish\nSparrow",
+                                      "Focal\nGroup"))
 
 
 # Reorders chrtype ~
@@ -233,20 +236,32 @@ fulldfUp <- fulldf %>%
 
 # Creates the plot ~
 ngsAdmix <-
-  ggplot(fulldfUp, aes(x = Sample_ID, y = Ancestry, fill = fill_color, pattern = Status), colour = "#000000") +
+  ggplot(subset(fulldfUp, !(chrtype == "Autosomes" & K_Value == "K = 7")), aes(x = Sample_ID, y = Ancestry, fill = fill_color, pattern = Status), colour = "#000000") +
   geom_col_pattern(width = .85, alpha = .7, pattern_size = .1, pattern_density = .01, pattern_spacing = .075, pattern_units = "in", pattern_colour = "#000000", pattern_fill = "#000000") +
   facet_nested(chrtype + K_Value ~ Group + Population, scales = "free_x", space = "free",
-               strip = strip_nested(text_x = elem_list_text(size = c(17, 14), family = c("Optima", "Optima"), face = c("bold", "bold"), angle = c(0, 90), margins = c(1, 2, 3, 4)),
-                                    background_x = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"), colour = c("#000000", "#000000"), linewidth = c(.3, .3)),
-                                    by_layer_x = TRUE,
-                                    text_y = elem_list_text(size = c(17, 14), family = c("Optima", "Optima"), face = c("bold", "bold")),
-                                    background_y = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"), colour = c("#000000", "#000000"), linewidth = c(.3, .3)),
-                                    by_layer_y = TRUE)) +
+               strip = strip_nested(size = "variable",
+                                    text_x = elem_list_text(size = c(22, 19),
+                                                            family = c("Optima", "Optima"),
+                                                            face = c("bold", "bold"),
+                                                            angle = c(0, 90)),
+                                    background_x = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"),
+                                                                  colour = c("#000000", "#000000"),
+                                                                  linewidth = c(.3, .3)),
+                                                                  by_layer_x = TRUE,
+                                    text_y = elem_list_text(size = c(22, 19),
+                                                            family = c("Optima", "Optima"),
+                                                            face = c("bold", "bold")),
+                                    background_y = elem_list_rect(fill = c("#d6d6d6", "#FAFAFA"),
+                                                                  colour = c("#000000", "#000000"),
+                                                                  linewidth = c(.3, .3)),
+                                                                  by_layer_y = TRUE)) +
   scale_fill_identity() +
   scale_pattern_manual(values = c("stripe", "none")) +
   scale_x_discrete(expand = c(0, 0)) + 
   scale_y_continuous(expand = c(0, 0), breaks = NULL) +
-  theme(panel.background = element_rect(fill = "#ffffff"),
+  theme(strip.text.x.top  = element_text(margin = margin(t = 7.5, b = 7.5)),
+        strip.text.y.right = element_text(margin = margin(r = 7.5, l = 7.5)),
+        panel.background = element_rect(fill = "#ffffff"),
         panel.grid.minor.x = element_blank(),
         panel.grid.major = element_blank(),
         panel.border = element_blank(),
@@ -255,16 +270,19 @@ ngsAdmix <-
         legend.position = "none",
         axis.title = element_blank(),
         axis.text.x.bottom = element_blank(),
-        #axis.text.x.bottom = element_text(colour = "#000000", face = "bold", angle = 90, vjust = .5, hjust = .5),
         axis.text.y = element_blank(),
         axis.ticks = element_blank())
 
 
 # Saves the final plot ~
 ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix_Abridged.pdf",
-       device = cairo_pdf, width = 25, height = 8, scale = 1, dpi = 600)
+       device = cairo_pdf, width = 25, height = 7, scale = 1, dpi = 600)
 ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix_Abridged.jpeg",
-       width = 25, height = 8, scale = 1, dpi = 600)
+       width = 25, height = 7, scale = 1, dpi = 600)
+
+
+# Saves plot to use it in article panel ~
+saveRDS(ngsAdmix, "../Passersp.Genomics--PopStructurePanel/Passersp.Genomics--ngsAdmix_Abridged.rds")
 
 
 #
