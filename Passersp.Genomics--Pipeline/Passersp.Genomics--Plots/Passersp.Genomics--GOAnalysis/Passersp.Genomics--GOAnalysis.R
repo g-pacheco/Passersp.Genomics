@@ -395,9 +395,9 @@ GOPlot <- ggplot(GOEnrich_Layka_Abridged, aes(x = log1p(FoldEnrichment), y = Ter
 
 
 # Saves GO Analysis plot ~
-ggsave(plot = GOPlot, "Passersp.Genomics--AIMsGOAnalysis_Trufa.pdf",
+ggsave(plot = GOPlot, "Passersp.Genomics--GOAnalysis.pdf",
        device = cairo_pdf, limitsize = FALSE, width = 12, height = 16, dpi = 600)
-ggsave(plot = GOPlot, "Passersp.Genomics--AIMsGOAnalysis.jpeg",
+ggsave(plot = GOPlot, "Passersp.Genomics--GOAnalysis.jpeg",
        limitsize = FALSE, width = 12, height = 16, dpi = 600)
 
 
