@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# Y150239Genomics--TWISST by George Pacheco ~
+# Passersp.Genomics--TWISST by George Pacheco ~
 
 
 # Cleans the environment ~ 
@@ -354,17 +354,6 @@ GOTermsWithData <- GOTerms %>%
   dplyr::select(GO_Term, Evidence, Gene_ID)
 
 
-# Creates the GoFrame ~
-goFrame <- GOFrame(as.data.frame(GOTermsWithData, organism = "Passerd"))
-goAllFrame <- GOAllFrame(goFrame)
-GSC <- GeneSetCollection(goAllFrame, setType = GOCollection())
-
-
-# Sets Gene Universe ~
-GenesUniverse <- (unique(GOTerms$Gene_ID))
-#save(GenesUniverse, file = "HouseSparrowGenesUniverse.RData")
-
-
 # Defines categories
 categories <- c("upper", "lower", "outliers")
 
@@ -413,173 +402,8 @@ FocalGenes_list[[cat]] <- as.data.frame(GenesInRangeOnlyGenes_df_list[[cat]]$Gen
 colnames(FocalGenes_list[[cat]]) <- "Gene_ID"
 
 
-# Saves Extracts focal genes ~
-saveRDS(FocalGenes_list, file = "../Passersp.Genomics--GOAnalysis/TWISST_FocalGenes_list.rds")
-
-
-# Saves the lists of Focal Genes ~
-write.table(FocalGenes_list[[cat]], file = paste0("Y150239Genomics--GOAnalysis--FocalGenes_", cat, ".csv"),
-            sep = "\t", quote = FALSE, row.names = FALSE)
-
-
-# Edits GOTermsOrtho ~ 
-GOTermsOrtho_Edited_list[[cat]] <- GOTermsOrtho %>%
-  filter(Gene_ID_Zebra != "" & Gene_ID_House != "") %>%
-  dplyr::select(Orthogroup, Gene_ID_House, Gene_ID_Zebra) %>%
-  mutate(Gene_ID_House = str_replace_all(Gene_ID_House, "-.*", "")) %>%
-  mutate(Gene_ID_House = strsplit(Gene_ID_House, ", ")) %>%
-  unnest(Gene_ID_House) %>%
-  filter(str_detect(Gene_ID_House, paste(FocalGenes_list[[cat]]$Gene_ID, collapse = "|"))) %>%
-  separate_rows(Gene_ID_Zebra, sep = ", ") %>%
-  dplyr::select(Gene_ID_Zebra)
-
-
-# Saves GOTermsOrtho ~
-write.table(GOTermsOrtho_Edited_list[[cat]], file = paste0("Y150239Genomics--GOAnalysis--GOTermsOrtho_Edited_", cat, ".csv"),
-            sep = "\t", quote = FALSE, row.names = FALSE)
-
-
-# Sets GO Analysis parameters ~
-GO_Params_list[[cat]] <- GSEAGOHyperGParams(name = paste0("Passerd GO Enrich - ", cat),
-                                            geneSetCollection = GSC,
-                                            geneIds = FocalGenes_list[[cat]]$Gene_ID,
-                                            universeGeneIds = GenesUniverse,
-                                            ontology = "BP",
-                                            pvalueCutoff = .05,
-                                            conditional = FALSE,
-                                            testDirection = "over")
-
-
-# Runs GO analysis ~
-Over <- hyperGTest(GO_Params_list[[cat]])
-
-
-# Stores GO enrichment results ~
-GO_Enrich_list[[cat]] <- as.data.frame(summary(Over))
-
-
-# Saves full GO enrichment table ~
-GO_Enrich_list[[cat]] %>% arrange(Pvalue) %>%
-  write.csv(file = paste0("Y150239Genomics--GOAnalysis_", cat, ".csv"))
-
-
-# Get top 50 enriched terms
-GO_Enrich_Top50_list[[cat]] <- GO_Enrich_list[[cat]] %>%
-  arrange(Pvalue) %>%
-  head(50)
-
-
-# Defines capitalization function ~
-capitalise_words <- function(text) {
-  words <- str_split(text, " ")[[1]]
-  exclude_patterns <- c("of", "to", "and", "the", "in")
-  patterns_map <- setNames(exclude_patterns, tolower(exclude_patterns))
-  process_hyphenated <- function(word) {
-    parts <- str_split(word, "-", simplify = TRUE)
-    parts <- sapply(seq_along(parts), function(i) {
-      part <- parts[i]
-      if (i > 1) tolower(part) else str_to_title(part)})
-    str_c(parts, collapse = "-")}
-  words <- sapply(words, function(word) {
-    word_lower <- tolower(word)
-    if (word_lower %in% names(patterns_map)) {
-      patterns_map[[word_lower]]
-    } else if (str_detect(word, "-")) {
-      process_hyphenated(word)
-    } else {
-      str_to_title(word)}})
-  str_c(words, collapse = " ")}
-
-
-# Applies function ~
-GO_Enrich_Top50_list[[cat]]$Term <- sapply(GO_Enrich_Top50_list[[cat]]$Term, capitalise_words)
-GO_Enrich_Top50_list[[cat]]$Category <- cat}
-
-
-# Combines GOEnrich_Top50 results ~
-GOEnrich_Top50_combined <- do.call(rbind, GO_Enrich_Top50_list)
-
-
-# Saves list  ~
-write.table(GOEnrich_Top50_combined, file = "Y150239Genomics--GOAnalysis_Top50_Combined.txt", sep = "\t", quote = FALSE, row.names = FALSE)
-
-
-# Identifies native rows in GOEnrich_Top50_combined ~
-original_rows <- GOEnrich_Top50_combined %>%
-  mutate(Count = as.character(Count), 
-         Size = as.character(Size),
-         is_expanded = FALSE)
-
-
-# Gets expands rows ~
-expanded_rows <- GOEnrich_Top50_combined %>%
-  distinct(Term) %>%
-  crossing(Category = unique(GOEnrich_Top50_combined$Category)) %>%
-  anti_join(original_rows, by = c("Term", "Category")) %>%
-  mutate(Pvalue = NA, Count = "", Size = "", is_expanded = TRUE)
-
-
-# Combines native and expanded rows ~
-expanded_df <- bind_rows(original_rows, expanded_rows) %>%
-  select(-is_expanded)
-
-
-# Ensures column order matches original ~
-expanded_df <- expanded_df %>% 
-  select(names(GOEnrich_Top50_combined)) %>%
-  arrange(desc(Term))
-
-
-# Reorders Category ~
-expanded_df$Category <- factor(expanded_df$Category, ordered = TRUE,
-                               levels = c("lower",
-                                          "upper",
-                                          "outliers"))
-
-# Defines y-strip facet labels ~
-y_strip_labels <- c("outliers" = "All Outliers",
-                    "upper" = "Upper Fence",
-                    "lower" = "Lower Fence")
-
-
-# Creates GoAnalysis plot ~
-GOAnalysis_Plot <-
-  ggplot(expanded_df, aes(x = 1, y = Term)) +
-  geom_tile(aes(fill = -log(Pvalue), width = 4), colour = "#000000") +
-  geom_text(aes(label = ifelse(Count != "" & Size != "", paste(Count, "/", Size), "")), color = "#000000", size = 3) +
-  coord_fixed() +
-  scale_fill_gradient(low = "#e5f5f9", high = "#238b45", na.value = "#FAFAFA",) +
-  facet_nested(. ~ Category, labeller = labeller(Category = y_strip_labels),
-               strip = strip_nested(text_x = elem_list_text(size = 12, family = "Optima", face = "bold", angle = 90),
-                                    background_x = elem_list_rect(fill = "#FAFAFA", colour = "#000000", linewidth = .2),
-                                    by_layer_x = TRUE)) +
-  scale_x_discrete(expand = c(0, 0)) + 
-  scale_y_discrete(expand = c(0, 0)) +
-  theme(panel.background = element_rect(fill = "#ffffff"),
-        panel.border = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.spacing = unit(.25, "lines"),
-        legend.position = "right",
-        legend.box.margin = margin(0, 0, 0, 25),
-        axis.title.x = element_blank(),
-        axis.title.y = element_text(family = "Optima", color = "#000000", size = 16, face = "bold"),
-        axis.text.x = element_blank(),
-        axis.text.y = element_text(family = "Optima", color = "#000000", size = 8.5, face = "bold"),
-        axis.ticks.x = element_blank(),
-        axis.ticks.y = element_line(color = "#000000", linewidth = .2)) +
-  guides(fill = guide_colourbar(title = "Pvalue (-log)", title.theme = element_text(size = 12, family =  "Optima", face = "bold"),
-                                label.theme = element_text(size = 10, family =  "Optima", face = "bold"), label.position = "right",
-                                barwidth = 1.25, barheight = 12, order = 1, frame.linetype = 1, frame.colour = NA,
-                                ticks.colour = "#000000", direction = "vertical", even.steps = TRUE,
-                                draw.ulim = TRUE, draw.llim = TRUE))
-
-
-# Saves plot ~
-ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis.pdf",
-       device = cairo_pdf, limitsize = FALSE, width = 12, height = 15, scale = 1, dpi = 600)
-#ggsave(GOAnalysis_Plot, file = "Y150239Genomics--TWISST_GOAnalysis.jpeg",
-#       limitsize = FALSE, width = 12, height = 15, scale = 1, dpi = 600)
+# Saves focal genes ~
+saveRDS(FocalGenes_list, file = "../Passersp.Genomics--GOAnalysis/TWISST_FocalGenes_list.rds")}
 
 
 ###################################################################################################################################################################################

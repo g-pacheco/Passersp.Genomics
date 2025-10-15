@@ -85,7 +85,7 @@ pigmentation_genes_of_interest_coords <- HouseGFF_dff %>%
 
 
 # Sets pigmentation genes of interest found in the Zebra Finch ~  
-pigmentation_genes_of_interest_ZebraFinch <- c("ASIP", "OCA2", "MLANA", "PMEL")
+pigmentation_genes_of_interest_ZebraFinch <- c("ASIP", "OCA2", "MLANA", "PMEL", "MC1R")
 
 
 # Genes gene information ~
@@ -113,30 +113,30 @@ writeXStringSet(CombinedGeneSet, filepath = "RegionsOfInterest_BLAST.fasta")
 
 # The BLAST was performed on Saga with the command below ~
 # module load BLAST+/2.14.1-gompi-2023a
-# blastn -query ZebraFinch_SelectedGenes.fasta -db housesparrow_db -out ZebraFinch_BLASTresults.txt -outfmt 6 -num_threads 6
+# blastn -query RegionsOfInterest_BLAST.fasta -db housesparrow_db -out RegionsOfInterest_BLASTresults.txt -outfmt 6 -num_threads 6
 
 
 # Loads Zebra Finch BLAST results ~
-ZebraFinch_BLAST <- read.table("RegionsOfInterest_BLASTresults.txt", sep = "\t", header = FALSE,
-                               col.names = c("GeneID", "CHR", "Score", "Length", "Mismatch",
-                                             "GapOpen", "qStart", "qEnd", "Start", "End", "E-value", "Bitscore"))
+RegionsOfInterest_BLASTresults <- read.table("RegionsOfInterest_BLASTresults.txt", sep = "\t", header = FALSE,
+                                             col.names = c("GeneID", "CHR", "Score", "Length", "Mismatch",
+                                                           "GapOpen", "qStart", "qEnd", "Start", "End", "E-value", "Bitscore"))
 
 
 # Gets ZebraFinch_BestHits while adding a +- 15K flanking region ~
-ZebraFinch_BestHits <- ZebraFinch_BLAST %>%
-                       group_by(GeneID) %>%
-                       slice_max(Bitscore, n = 1, with_ties = FALSE) %>%
-                       dplyr::select(CHR, Start, End, GeneID) %>%
-                       dplyr::mutate(Start = as.numeric(as.character(Start)),
-                                     End = as.numeric(as.character(End)),
-                                     Start = pmax(Start - 15000, 0),
-                                     End = End + 15000) %>%
-                       group_by(CHR, Start, End) %>%
-                       summarise(GeneID = paste(unique(GeneID), collapse = ", "), .groups = "drop")
+RegionsOfInterest_BLASTresults_BestHits <- RegionsOfInterest_BLASTresults %>%
+                                           group_by(GeneID) %>%
+                                           slice_max(Bitscore, n = 1, with_ties = FALSE) %>%
+                                           dplyr::select(CHR, Start, End, GeneID) %>%
+                                           dplyr::mutate(Start = as.numeric(as.character(Start)),
+                                                         End = as.numeric(as.character(End)),
+                                                         Start = pmax(Start - 15000, 0),
+                                                         End = End + 15000) %>%
+                                           group_by(CHR, Start, End) %>%
+                                           summarise(GeneID = paste(unique(GeneID), collapse = ", "), .groups = "drop")
 
 
 # Combines all gene coordinates ~
-fulldf <- rbind(pigmentation_genes_of_interest_coords, ZebraFinch_BestHits)
+fulldf <- rbind(pigmentation_genes_of_interest_coords, RegionsOfInterest_BLASTresults_BestHits)
 
 
 # Sets function to extract genotypes from VCF ~
@@ -196,52 +196,41 @@ genotype_summary <- geno_df %>%
                               Cond2 = all(Genotype[Species %in% c("House", "Control")] == "1/1") &&
                                       all(Genotype[Species == "Focal Ind."] %in% c("0/0", "0/1")), .groups = "drop") %>%
                     group_by(Gene_ID) %>%
-                    summarise(`Number of SNPs` = n(),
-                              `Private Homo Alternative` = sum(Cond1),
-                              `Private Homo Ref. or Hetero` = sum(Cond2), .groups = "drop")
-
-# Keep SNP-level summary
-#snp_summary <- geno_df %>%
-#               group_by(Gene_ID, SNP_ID) %>%
-#               summarise(Cond1 = all(Genotype[Species %in% c("House", "Control")] %in% c(NA, "0/0", "0/1")) &&
-#                                 all(Genotype[Species == "Focal Ind."] == "1/1"),
-#                         Cond2 = all(Genotype[Species %in% c("House", "Control")] == "1/1") &&
-#                                 all(Genotype[Species == "Focal Ind."] %in% c("0/0", "0/1")), .groups = "drop")
-
-# Filter to SNPs that obey at least one condition
-#snp_summary_hits <- snp_summary %>%
-#                    filter(Cond1 | Cond2)
+                    summarise(`NumberofSNPs` = n(),
+                              `PrivateHomoAlternative` = sum(Cond1),
+                              `PrivateHomoRef.orHetero` = sum(Cond2), .groups = "drop")
 
 
 # Merge summary with coordinate table ~
 fulldfUp <- fulldf %>%
             left_join(genotype_summary, by = c("GeneID" = "Gene_ID")) %>%
-                      replace_na(list(`Number of SNPs` = 0,
-                                      `Private Homo Alternative` = 0,
-                                      `Private Homo Ref. or Hetero` = 0)) %>%
-                      mutate(`Region Length` = as.numeric(End) - as.numeric(Start) + 1,
-                             Coverage = round((`Number of SNPs` / `Region Length`) * 100, 4)) %>%
-             dplyr::select(GeneID, CHR, Start, End, `Region Length`, "Number of SNPs", Coverage, "Private Homo Alternative", "Private Homo Ref. or Hetero")
-
+                      replace_na(list(`NumberofSNPs` = 0,
+                                      `PrivateHomoAlternative` = 0,
+                                      `PrivateHomoRef.orHetero` = 0)) %>%
+                      mutate(RegionLength = as.numeric(End) - as.numeric(Start) + 1,
+                             Coverage = round((NumberofSNPs / RegionLength) * 100, 4)) %>%
+             dplyr::select(GeneID, CHR, Start, End, RegionLength, NumberofSNPs, Coverage, PrivateHomoAlternative, PrivateHomoRef.orHetero) %>%
+             dplyr::arrange(CHR, Start)
 
 # Sets gene key ~
-gene_key <- c("ENSTGUT00000003914.2" = "ASIP",
+gene_key <- c("ENSTGUT00000003914.2" = "PMEL",
               "ENSTGUT00000010894.2" = "OCA2",
               "ENSTGUT00000025229.1" = "OCA2",
-              "ENSTGUT00000034149.1" = "MLANA",
-              "ENSTGUT00000036307.1" = "MLANA",
-              "ENSTGUT00000045010.1" = "PMEL",
+              "ENSTGUT00000034149.1" = "ASIP",
+              "ENSTGUT00000036307.1" = "ASIP",
+              "ENSTGUT00000045010.1" = "MLANA",
+              "ENSTGUT00000008351.2" = "MC1R",
               "IV00_00042043" = "CREBBP",
               "IV00_00042044" = "CREBBP",
               "IV00_00042045" = "CREBBP",
               "IV00_00042115" = "WDR24",
-              "RedJunglefowl_Chr10_Pos15038239_±1Kb" = "Trans-eQTL Affecting CREBBP & WDR24",
+              "RedJunglefowl_Chr10_Pos15038239_±1Kb" = "Trans-eQTL Affecting CREBBP \\& WDR24",
               "IV00_00022782" = "TYRP1",
               "IV00_00008837" = "HERC2",
               "IV00_00008839" = "HERC2",
               "IV00_00051423" = "MFSD12",
               "IV00_00016654" = "HAND2", 
-              "IV00_00016726" = "DCT",
+              "IV00_00016726" = "DCTD",
               "IV00_00015896" = "HPGDS",
               "IV00_00038225" = "WNT7A",
               "IV00_00038223" = "WNT7A")
@@ -259,8 +248,13 @@ fulldfUp <- fulldfUp %>%
                    End = as.numeric(as.character(End)))
 
 
+# Minor correction ~
+levels(fulldfUp$GeneID <- sub("RedJunglefowl_Chr10_Pos15038239_±1Kb", "Red Junglefowl Chr10 (\\\\textasciitilde15038239)", fulldfUp$GeneID))
+levels(fulldfUp$GeneID <- sub("_", "\\\\_", fulldfUp$GeneID))
+
+
 # Saves table ~
-write.table(fulldfUp, file = "Passersp.Genomics--KnownRegions.txt", row.names = FALSE, quote = FALSE, sep = "\t")
+write.table(fulldfUp, file = "Passersp.GenomicsKnownRegions.txt", row.names = FALSE, quote = FALSE, sep = "\t")
 
 
 # Creats .bed file ~
@@ -336,3 +330,16 @@ filtered_variants <- high_impact_variants %>%
 #
 ##
 ### The END ~~~~~
+
+
+# Keep SNP-level summary
+#snp_summary <- geno_df %>%
+#               group_by(Gene_ID, SNP_ID) %>%
+#               summarise(Cond1 = all(Genotype[Species %in% c("House", "Control")] %in% c(NA, "0/0", "0/1")) &&
+#                                 all(Genotype[Species == "Focal Ind."] == "1/1"),
+#                         Cond2 = all(Genotype[Species %in% c("House", "Control")] == "1/1") &&
+#                                 all(Genotype[Species == "Focal Ind."] %in% c("0/0", "0/1")), .groups = "drop")
+
+# Filter to SNPs that obey at least one condition
+#snp_summary_hits <- snp_summary %>%
+#                    filter(Cond1 | Cond2)

@@ -1,6 +1,6 @@
 ### The BEGINNING ~~~~~
 ##
-# Y150239Genomics--GOAnalysis | Written by George Pacheco ~
+# Passersp.Genomics--GOAnalysis | Written by George Pacheco ~
 
 
 # Cleans the environment ~ 
@@ -195,6 +195,52 @@ GO_FocalGenes_list <- readRDS("TWISST_FocalGenes_list.rds")
 GO_FocalGenes_list[["AIMs"]] <- AIMs_FocalGenes_list
 
 
+
+GO_FocalGenes_df <- map_dfr(names(GO_FocalGenes_list), function(type_name) {
+                    data.frame(Gene_ID = GO_FocalGenes_list[[type_name]]$Gene_ID,
+                               Type = type_name)})
+
+
+
+GO_FocalGenes_summary <- GO_FocalGenes_df %>%
+  filter(Type %in% c("AIMs", "upper")) %>%
+  mutate(value = "CHECK") %>%
+  pivot_wider(names_from = Type, 
+              values_from = value, 
+              values_fill = "---") %>%
+  dplyr::rename(GeneID = Gene_ID) %>%
+  dplyr::select(GeneID, AIMs, upper)
+
+
+# Saves table ~
+write.table(GO_FocalGenes_summary, file = "Passersp.GenomicsGOAnalysis_FocalGenes.txt", row.names = FALSE, quote = FALSE, sep = "\t", eol = "\n")
+
+
+# Split into 3 parts
+part1 <- GO_FocalGenes_summary[1:40, ]
+part2 <- GO_FocalGenes_summary[41:80, ] 
+part3 <- GO_FocalGenes_summary[81:120, ]
+part4 <- GO_FocalGenes_summary[121:160, ]
+part5 <- GO_FocalGenes_summary[161:200, ]
+part6 <- GO_FocalGenes_summary[201:240, ]
+part7 <- GO_FocalGenes_summary[241:280, ]
+part8 <- GO_FocalGenes_summary[281:320, ]
+part9 <- GO_FocalGenes_summary[321:360, ]
+part10 <- GO_FocalGenes_summary[361:nrow(GO_FocalGenes_summary), ]
+
+# Save as separate files
+write.table(part1, "FocalGenes_part1.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(part2, "FocalGenes_part2.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(part3, "FocalGenes_part3.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(part4, "FocalGenes_part4.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(part5, "FocalGenes_part5.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(part6, "FocalGenes_part6.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(part7, "FocalGenes_part7.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(part8, "FocalGenes_part8.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(part9, "FocalGenes_part9.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+write.table(part10, "FocalGenes_part10.txt", sep = "\t", row.names = FALSE, quote = FALSE)
+
+
 ###################################################################################################################################################################################
 ###################################################################################################################################################################################
 
@@ -348,11 +394,11 @@ rampbreaks <- c(rb1, rb2)
 y_strip_labels <- c("AIMs" = "AIMs",
                     "lower" = "TWISST (Lower Fence)",
                     "upper" = "TWISST (Upper Fence)",
-                    "outliers" = "TWISST (Outliers)")
+                    "outliers" = "TWISST")
 
 
 # Creates AIMs GO Analysis plot ~
-GOPlot <- ggplot(GOEnrich_Layka_Abridged, aes(x = log1p(FoldEnrichment), y = Term)) +
+GOPlot <- ggplot(subset(GOEnrich_Layka_Abridged, Category == "AIMs" | Category == "outliers"), aes(x = log1p(FoldEnrichment), y = Term)) +
   geom_segment(aes(x = 0, xend = log1p(FoldEnrichment), y = Term, yend = Term, color = Pvalue), linewidth = 7) +
   geom_point(aes(size = Size_cat), shape = 21, fill = "#ffffff", color = "#000000", stroke = .15) +
   scale_size_manual(values = c("< 50" = 7.5, "< 100" = 4.5, "< 250" = 6, "< 500" = 7.5, "< 750" = 9, "> 750" = 10.5)) +
@@ -396,9 +442,9 @@ GOPlot <- ggplot(GOEnrich_Layka_Abridged, aes(x = log1p(FoldEnrichment), y = Ter
 
 # Saves GO Analysis plot ~
 ggsave(plot = GOPlot, "Passersp.Genomics--GOAnalysis.pdf",
-       device = cairo_pdf, limitsize = FALSE, width = 12, height = 16, dpi = 600)
+       device = cairo_pdf, limitsize = FALSE, width = 12, height = 10, dpi = 600)
 ggsave(plot = GOPlot, "Passersp.Genomics--GOAnalysis.jpeg",
-       limitsize = FALSE, width = 12, height = 16, dpi = 600)
+       limitsize = FALSE, width = 12, height = 10, dpi = 600)
 
 
 #
