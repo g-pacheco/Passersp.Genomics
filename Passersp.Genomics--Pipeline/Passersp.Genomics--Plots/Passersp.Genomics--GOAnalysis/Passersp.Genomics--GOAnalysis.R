@@ -195,28 +195,73 @@ GO_FocalGenes_list <- readRDS("TWISST_FocalGenes_list.rds")
 GO_FocalGenes_list[["AIMs"]] <- AIMs_FocalGenes_list
 
 
-
+# Expands GO Focal Genes ~
 GO_FocalGenes_df <- map_dfr(names(GO_FocalGenes_list), function(type_name) {
-                    data.frame(Gene_ID = GO_FocalGenes_list[[type_name]]$Gene_ID,
+                    data.frame(GeneID = GO_FocalGenes_list[[type_name]]$Gene_ID,
                                Type = type_name)})
 
 
+# Makes House Genes a data frame ~
+HouseGenes_df <- data.frame(GeneID = mcols(HouseGenes)$Name,
+                            CHR = as.character(seqnames(HouseGenes)),
+                            Start = start(HouseGenes),
+                            End = end(HouseGenes),
+                            GeneName = as.character(mcols(HouseGenes)$Note)) %>%
+                            mutate(GeneName = ifelse(grepl("^Similar to ", GeneName),
+                                   sub("^Similar to ([A-Za-z0-9-]+).*", "\\1", GeneName),
+                                   GeneName), GeneName = sub(":.*$", "", GeneName),
+                                   GeneName = sub("Protein of unknown function", "Unknown", GeneName),
+                                   GeneName = ifelse(GeneName == "Complement", "Complement C1s", GeneName))
 
-GO_FocalGenes_summary <- GO_FocalGenes_df %>%
-  filter(Type %in% c("AIMs", "upper")) %>%
-  mutate(value = "CHECK") %>%
-  pivot_wider(names_from = Type, 
-              values_from = value, 
-              values_fill = "---") %>%
-  dplyr::rename(GeneID = Gene_ID) %>%
-  dplyr::select(GeneID, AIMs, upper)
+
+# Annotates Merges GO Focal Genes ~
+GO_FocalGenes_annot <- GO_FocalGenes_df %>%
+                       left_join(HouseGenes_df, by = "GeneID") %>%
+                       select(GeneID, GeneName, CHR, Start, End, Type) %>%
+                       mutate(CHR_type = case_when(str_detect(CHR, "^scaffold") ~ "scaffold",
+                                                   str_detect(CHR, "^chr[0-9]") ~ "numchr", TRUE ~ "letterchr"),
+                              CHR_num = as.numeric(str_match(CHR, "^chr([0-9]+)")[,2]),
+                              CHR_letter = str_match(CHR, "^chr[0-9]+([A-Za-z])")[,2],
+                              CHR_letter = ifelse(is.na(CHR_letter), "", CHR_letter),
+                              CHR_num_adj = CHR_num + (match(CHR_letter, LETTERS, nomatch = 0) / 100),
+                              scaffold_num = as.numeric(str_match(CHR, "scaffold([0-9]+)")[,2]),
+                              CHR_sort = case_when(CHR_type == "numchr" ~ CHR_num_adj,
+                              CHR_type == "letterchr" ~ 999,
+                              CHR_type == "scaffold" ~ 1000 + scaffold_num / 1000, TRUE ~ 1e6)) %>%
+                        arrange(CHR_sort, Start) %>%
+                        select(-CHR_type, -CHR_num, -CHR_letter, -CHR_num_adj, -scaffold_num, -CHR_sort)
 
 
-# Saves table ~
+# Gets correct CHR levels ~
+chr_levels <- GO_FocalGenes_annot %>%
+              distinct(CHR) %>%
+              pull(CHR)
+
+
+# Makes CHR an ordered factor ~
+GO_FocalGenes_annot <- GO_FocalGenes_annot %>%
+                       mutate(CHR = factor(CHR, levels = chr_levels, ordered = TRUE))
+
+
+
+# Creates final data frame with the annotated Focal Genes ~
+GO_FocalGenes_summary <- GO_FocalGenes_annot %>%
+                         filter(Type %in% c("AIMs", "upper")) %>%
+                         mutate(value = "CHECK",
+                                CHR = factor(as.character(CHR), levels = chr_levels, ordered = TRUE),
+                                GeneName = ifelse(GeneName %in% c("Complement C1s", "Unknown"),
+                                GeneName, toupper(GeneName))) %>%
+                         pivot_wider(names_from = Type,
+                                     values_from = value,
+                                     values_fill = "---") %>%
+                         arrange(CHR, Start)
+
+
+# Saves final data frame with the annotated Focal Genes ~
 write.table(GO_FocalGenes_summary, file = "Passersp.GenomicsGOAnalysis_FocalGenes.txt", row.names = FALSE, quote = FALSE, sep = "\t", eol = "\n")
 
 
-# Split into 3 parts
+# Splits final data frame with the annotated Focal Genes for a better display on LaTex ~
 part1 <- GO_FocalGenes_summary[1:40, ]
 part2 <- GO_FocalGenes_summary[41:80, ] 
 part3 <- GO_FocalGenes_summary[81:120, ]
@@ -228,7 +273,8 @@ part8 <- GO_FocalGenes_summary[281:320, ]
 part9 <- GO_FocalGenes_summary[321:360, ]
 part10 <- GO_FocalGenes_summary[361:nrow(GO_FocalGenes_summary), ]
 
-# Save as separate files
+
+# Saves split final data frame with the annotated Focal Genes for a better display on LaTex ~
 write.table(part1, "FocalGenes_part1.txt", sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(part2, "FocalGenes_part2.txt", sep = "\t", row.names = FALSE, quote = FALSE)
 write.table(part3, "FocalGenes_part3.txt", sep = "\t", row.names = FALSE, quote = FALSE)
