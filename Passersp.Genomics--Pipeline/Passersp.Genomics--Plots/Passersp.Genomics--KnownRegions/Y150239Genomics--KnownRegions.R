@@ -188,30 +188,6 @@ geno_df$Species <- ifelse(geno_df$Population %in% c("Utrecht", "Sales"), "House"
                    ifelse(geno_df$Population %in% c("Focal Ind."), "Focal Ind.", "Error")))))
 
 
-# Identify condition per SNP and summarise by gene ~
-genotype_summary <- geno_df %>%
-                    group_by(Gene_ID, SNP_ID) %>%
-                    summarise(Cond1 = all(Genotype[Species %in% c("House", "Control")] %in% c(NA, "0/0", "0/1")) &&
-                                      all(Genotype[Species == "Focal Ind."] == "1/1"),
-                              Cond2 = all(Genotype[Species %in% c("House", "Control")] == "1/1") &&
-                                      all(Genotype[Species == "Focal Ind."] %in% c("0/0", "0/1")), .groups = "drop") %>%
-                    group_by(Gene_ID) %>%
-                    summarise(`NumberofSNPs` = n(),
-                              `PrivateHomoAlternative` = sum(Cond1),
-                              `PrivateHomoRef.orHetero` = sum(Cond2), .groups = "drop")
-
-
-# Merge summary with coordinate table ~
-fulldfUp <- fulldf %>%
-            left_join(genotype_summary, by = c("GeneID" = "Gene_ID")) %>%
-                      replace_na(list(`NumberofSNPs` = 0,
-                                      `PrivateHomoAlternative` = 0,
-                                      `PrivateHomoRef.orHetero` = 0)) %>%
-                      mutate(RegionLength = as.numeric(End) - as.numeric(Start) + 1,
-                             Coverage = round((NumberofSNPs / RegionLength) * 100, 4)) %>%
-             dplyr::select(GeneID, CHR, Start, End, RegionLength, NumberofSNPs, Coverage, PrivateHomoAlternative, PrivateHomoRef.orHetero) %>%
-             dplyr::arrange(CHR, Start)
-
 # Sets gene key ~
 gene_key <- c("ENSTGUT00000003914.2" = "PMEL",
               "ENSTGUT00000010894.2" = "OCA2",
@@ -236,21 +212,87 @@ gene_key <- c("ENSTGUT00000003914.2" = "PMEL",
               "IV00_00038223" = "WNT7A")
 
 
+# Identify condition per SNP and summarise by gene ~
+genotype_summary <- geno_df %>%
+                    group_by(Gene_ID, SNP_ID) %>%
+                    summarise(Cond1 = all(Genotype[Species %in% c("House", "Control")] %in% c(NA, "0/0", "0/1")) &&
+                                      all(Genotype[Species == "Focal Ind."] == "1/1"),
+                              Cond2 = all(Genotype[Species %in% c("House", "Control")] == "1/1") &&
+                                      all(Genotype[Species == "Focal Ind."] %in% c("0/0", "0/1")), .groups = "drop") %>%
+                    group_by(Gene_ID) %>%
+                    summarise(NumberofSNPs = n(),
+                              PrivateHomoAlternative = sum(Cond1),
+                              PrivateHomoRef.orHetero = sum(Cond2),
+                              SNPIDsPrivateHomoAlternative = paste(SNP_ID[Cond1], collapse = ", "),
+                              SNPIDsPrivateHomoRef.orHetero = paste(SNP_ID[Cond2], collapse = ", "), .groups = "drop")
+
+
+# Merge summary with coordinate table ~
+fulldfUp <- fulldf %>%
+            left_join(genotype_summary, by = c("GeneID" = "Gene_ID")) %>%
+            replace_na(list(NumberofSNPs = 0,
+                            PrivateHomoAlternative = 0,
+                            PrivateHomoRef.orHetero = 0,
+                            SNPIDsPrivateHomoAlternative = "",
+                            SNPIDsPrivateHomoRef.orHetero = "")) %>%
+            mutate(RegionLength = as.numeric(End) - as.numeric(Start) + 1,
+                   Coverage = round((NumberofSNPs / RegionLength) * 100, 4)) %>%
+            arrange(CHR, Start)
+
+
 # Expands fulldfUp by adding GeneName ~
 fulldfUp <- fulldfUp %>%
             rowwise() %>%
             mutate(GeneName = paste(unique(na.omit(gene_key[trimws(unlist(strsplit(GeneID, ",")))])),
-            collapse = ", ")) %>%
+                   collapse = ", ")) %>%
             ungroup() %>%
             relocate(GeneName, .before = 1) %>%
             mutate(CHR = as.character(CHR),
-                   Start = as.numeric(as.character(Start)),
-                   End = as.numeric(as.character(End)))
+                   Start = as.numeric(Start),
+                   End = as.numeric(End))
+
+
+# Collapse genes with duplicated fragments but shared SNPs ~
+fulldfUp <- fulldfUp %>%
+            group_by(GeneName, CHR) %>%
+            summarise(GeneID = paste(unique(GeneID), collapse = ", "),
+                      Start = min(Start),
+                      End = max(End),
+                      RegionLength = End - Start + 1,
+                      NumberofSNPs = sum(NumberofSNPs),
+                      Coverage = round((NumberofSNPs / RegionLength) * 100, 4),
+                      SNPIDsPrivateHomoAlternative = {alt <- unique(trimws(unlist(strsplit(paste(na.omit(SNPIDsPrivateHomoAlternative), collapse = ","), ",\\s*"))))
+                                                        alt <- alt[alt != ""]
+                                                        if (length(alt) == 0) "" else paste(alt, collapse = ", ")},
+                      SNPIDsPrivateHomoRef.orHetero = {ref <- unique(trimws(unlist(strsplit(paste(na.omit(SNPIDsPrivateHomoRef.orHetero), collapse = ","), ",\\s*"))))
+                                                         ref <- ref[ref != ""]
+                                                         if (length(ref) == 0) "" else paste(ref, collapse = ", ")},
+                      PrivateHomoAlternative = {alt <- unique(trimws(unlist(strsplit(paste(na.omit(SNPIDsPrivateHomoAlternative), collapse = ","), ",\\s*"))))
+                                                alt <- alt[alt != ""]
+                                                length(alt)},
+                      PrivateHomoRef.orHetero = {ref <- unique(trimws(unlist(strsplit(paste(na.omit(SNPIDsPrivateHomoRef.orHetero), collapse = ","), ",\\s*"))))
+                                                 ref <- ref[ref != ""]
+                                                 length(ref)}, .groups = "drop") %>%
+             dplyr::select(GeneName, GeneID, CHR, Start, End, RegionLength, NumberofSNPs, Coverage, PrivateHomoAlternative, PrivateHomoRef.orHetero, SNPIDsPrivateHomoAlternative, SNPIDsPrivateHomoRef.orHetero) %>%
+             mutate(CHR_type = case_when(str_detect(CHR, "^scaffold") ~ "scaffold",
+                                         str_detect(CHR, "^chr[0-9]") ~ "numchr", TRUE ~ "letterchr"),
+                    CHR_num = as.numeric(str_match(CHR, "^chr([0-9]+)")[,2]),
+                    CHR_letter = str_match(CHR, "^chr[0-9]+([A-Za-z])")[,2],
+                    CHR_letter = ifelse(is.na(CHR_letter), "", CHR_letter),
+                    CHR_num_adj = CHR_num + (match(CHR_letter, LETTERS, nomatch = 0) / 100),
+                    scaffold_num = as.numeric(str_match(CHR, "scaffold([0-9]+)")[,2]),
+                    CHR_sort = case_when(CHR_type == "numchr" ~ CHR_num_adj,
+                                              CHR_type == "letterchr" ~ 999,
+                                              CHR_type == "scaffold" ~ 1000 + scaffold_num / 1000, TRUE ~ 1e6)) %>%
+  arrange(CHR_sort, Start) %>%
+  dplyr::select(-CHR_type, -CHR_num, -CHR_letter, -CHR_num_adj, -scaffold_num, -CHR_sort)
 
 
 # Minor correction ~
 levels(fulldfUp$GeneID <- sub("RedJunglefowl_Chr10_Pos15038239_±1Kb", "Red Junglefowl Chr10 (\\\\textasciitilde15038239)", fulldfUp$GeneID))
-levels(fulldfUp$GeneID <- sub("_", "\\\\_", fulldfUp$GeneID))
+levels(fulldfUp$GeneID <- gsub("_", "\\\\_", fulldfUp$GeneID))
+levels(fulldfUp$SNPIDsPrivateHomoAlternative <- gsub("_", "\\\\_", fulldfUp$SNPIDsPrivateHomoAlternative))
+levels(fulldfUp$SNPIDsPrivateHomoRef.orHetero <- gsub("_", "\\\\_", fulldfUp$SNPIDsPrivateHomoRef.orHetero))
 
 
 # Saves table ~

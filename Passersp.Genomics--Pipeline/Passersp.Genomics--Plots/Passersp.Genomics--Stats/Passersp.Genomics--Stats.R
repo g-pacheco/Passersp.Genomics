@@ -72,8 +72,8 @@ fulldf$Population <- factor(fulldf$Population, ordered = T,
                                        "Tree Sparrow"))
 
 # Cleans DF ~
-fulldf <- fulldf %>% select(Population, total_reads, percentage_retained_reads,
-                            hits_unique_frac, hits_coverage)
+fulldf <- fulldf %>% dplyr::select(Population, total_reads, percentage_retained_reads,
+                                   hits_unique_frac, hits_coverage)
 
 
 # Converts DF from wide into long ~
@@ -143,7 +143,7 @@ labels_fun <- function(z) {
 
 
 # Creates the panel ~
-Y150239Genomics_Stat <- 
+StatPlot <- 
  ggplot() +
   geom_boxplot(data = fulldfUp, aes(x = Population, y = Value),
                outlier.shape = NA, width = .5, lwd = .25, colour = "#000000", fill = "#C19EBE", alpha = .7) +
@@ -156,7 +156,7 @@ Y150239Genomics_Stat <-
         panel.spacing = unit(.2, "cm"),
         axis.line = element_line(colour = "#000000", linewidth = .3),
         axis.title = element_blank(),
-        axis.text.x = element_text(family = "Optima", colour = "#000000", size = 11, face = "bold", angle = 45, vjust = 1, hjust = 1),
+        axis.text.x = element_text(family = "Optima", colour = "#000000", size = 13, face = "bold", angle = 45, vjust = 1, hjust = 1),
         axis.text.y = element_text(family = "Optima", color = "#000000", size = 11, face = "bold"),
         axis.ticks.x = element_line(color = "#000000", linewidth = .3),
         axis.ticks.y = element_line(color = "#000000", linewidth = .3),
@@ -170,9 +170,9 @@ Y150239Genomics_Stat <-
 
 
 # Saves the panel ~
-ggsave(Y150239Genomics_Stat, file = "Passersp.Genomics--Stats.pdf",
+ggsave(StatPlot, file = "Passersp.Genomics--Stats.pdf",
        device = cairo_pdf, width = 12, height = 12, scale = 1, dpi = 600)
-ggsave(Y150239Genomics_Stat, file = "Passersp.Genomics--Stats.jpeg",
+ggsave(StatPlot, file = "Passersp.Genomics--Stats.jpeg",
        width = 12, height = 12, scale = 1, dpi = 600)
 
 

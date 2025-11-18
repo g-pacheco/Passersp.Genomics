@@ -128,15 +128,30 @@ fulldf.allo <- data.frame()
 #c(2, 3, 4, 1),
 
 
-x.auto <- list(c(1, 6, 3, 2, 5, 4, 7),
-               c(1, 3, 2),
-               c(1, 2))
+#x.auto <- list(c(1, 6, 3, 2, 5, 4, 7),
+#               c(1, 3, 2),
+#               c(1, 2))
 
 
-x.allo <- list(c(4, 5, 7, 3, 6, 2, 1),
+#x.allo <- list(c(4, 5, 7, 3, 6, 2, 1),
                #c(5, 6, 1, 2, 3, 4),
                #c(5, 4, 1, 2, 3),
                #c(4, 1, 2, 3),
+               #c(2, 1, 3),
+               #c(1, 2))
+
+
+x.auto <- list(c(1, 6, 3, 2, 5, 4, 7),
+               c(3, 6, 4, 5, 2, 1),
+               c(2, 1, 4, 3, 5),
+               c(2, 3, 4, 1),
+               c(1, 3, 2),
+               c(1, 2))
+
+x.allo <- list(c(4, 5, 7, 3, 6, 2, 1),
+               c(5, 6, 1, 2, 3, 4),
+               c(5, 4, 1, 2, 3),
+               c(4, 1, 2, 3),
                c(2, 1, 3),
                c(1, 2))
 
@@ -147,25 +162,24 @@ sampleid = "Sample_ID"
 
 # Loops over all Ks while adding labels and reordering clusters ~
 for (j in 1:length(samples.auto[, 1])){
-  data <- read.table(samples.auto[j, 1])[, x.auto[[j]]]
-  for (i in 1:dim(data)[2]) { 
-    temp <- data.frame(Ancestry = data[, i])
-    temp$K <- as.factor(rep(i, times = length(temp$Ancestry)))
-    temp[sampleid] <- as.factor(ids.auto[sampleid][, 1])
-    temp$K_Value <- as.factor(rep(paste("K = ", dim(data)[2], sep = ""), times = length(temp$Ancestry)))
-    temp <- merge(ids.auto, temp)
-    fulldf.auto <- rbind(fulldf.auto, temp)}}
-
+     data <- read.table(samples.auto[j, 1])[, x.auto[[j]]]
+             for (i in 1:dim(data)[2]) { 
+             temp <- data.frame(Ancestry = data[, i])
+             temp$K <- as.factor(rep(i, times = length(temp$Ancestry)))
+             temp[sampleid] <- as.factor(ids.auto[sampleid][, 1])
+             temp$K_Value <- as.factor(rep(paste("K = ", dim(data)[2], sep = ""), times = length(temp$Ancestry)))
+             temp <- merge(ids.auto, temp)
+             fulldf.auto <- rbind(fulldf.auto, temp)}}
 
 for (j in 1:length(samples.allo[, 1])){
-  data <- read.table(samples.allo[j, 1])[, x.allo[[j]]]
-  for (i in 1:dim(data)[2]) { 
-    temp <- data.frame(Ancestry = data[, i])
-    temp$K <- as.factor(rep(i, times = length(temp$Ancestry)))
-    temp[sampleid] <- as.factor(ids.allo[sampleid][, 1])
-    temp$K_Value <- as.factor(rep(paste("K = ", dim(data)[2], sep = ""), times = length(temp$Ancestry)))
-    temp <- merge(ids.allo, temp)
-    fulldf.allo <- rbind(fulldf.allo, temp)}}
+     data <- read.table(samples.allo[j, 1])[, x.allo[[j]]]
+             for (i in 1:dim(data)[2]) { 
+                  temp <- data.frame(Ancestry = data[, i])
+                  temp$K <- as.factor(rep(i, times = length(temp$Ancestry)))
+                  temp[sampleid] <- as.factor(ids.allo[sampleid][, 1])
+                  temp$K_Value <- as.factor(rep(paste("K = ", dim(data)[2], sep = ""), times = length(temp$Ancestry)))
+                  temp <- merge(ids.allo, temp)
+                  fulldf.allo <- rbind(fulldf.allo, temp)}}
 
 
 # Finds missing rows in fulldf.allo ~ 
@@ -236,7 +250,8 @@ fulldfUp <- fulldf %>%
 
 # Creates the plot ~
 ngsAdmix <-
-  ggplot(subset(fulldfUp, !(chrtype == "Autosomes" & K_Value == "K = 7")), aes(x = Sample_ID, y = Ancestry, fill = fill_color, pattern = Status), colour = "#000000") +
+  #ggplot(subset(fulldfUp, !(chrtype == "Autosomes" & K_Value == "K = 7")), aes(x = Sample_ID, y = Ancestry, fill = fill_color, pattern = Status), colour = "#000000") +
+  ggplot(fulldfUp, aes(x = Sample_ID, y = Ancestry, fill = fill_color, pattern = Status), colour = "#000000") +
   geom_col_pattern(width = .85, alpha = .7, pattern_size = .1, pattern_density = .01, pattern_spacing = .075, pattern_units = "in", pattern_colour = "#000000", pattern_fill = "#000000") +
   facet_nested(chrtype + K_Value ~ Group + Population, scales = "free_x", space = "free",
                strip = strip_nested(size = "variable",
@@ -275,10 +290,10 @@ ngsAdmix <-
 
 
 # Saves the final plot ~
-ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix_Abridged.pdf",
-       device = cairo_pdf, width = 25, height = 7, scale = 1, dpi = 600)
-ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix_Abridged.jpeg",
-       width = 25, height = 7, scale = 1, dpi = 600)
+ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix.pdf",
+       device = cairo_pdf, width = 26, height = 14, scale = 1, dpi = 600)
+ggsave(ngsAdmix, file = "Passersp.Genomics--ngsAdmix.jpeg",
+       width = 26, height = 14, scale = 1, dpi = 600)
 
 
 # Saves plot to use it in article panel ~
